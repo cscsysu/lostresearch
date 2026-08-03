@@ -225,9 +225,32 @@ def main():
     with open(neg_file, "w", encoding="utf-8") as f:
         json.dump(neg_results, f, ensure_ascii=False, indent=2)
 
+    # 8. 因果干预 (第五章)
+    print("\n[8/9] Causal intervention (Chapter 5)...")
+    from intervention import run_intervention_experiment
+    intervention_results = run_intervention_experiment(model, tokenizer, prepared, all_results)
+    intv_file = os.path.join(config.DATA_DIR, f"intervention_{config.MODEL_NAME}.json")
+    # 自定义序列化 (含 tensor)
+    def serialize(obj):
+        if isinstance(obj, (np.ndarray, torch.Tensor)):
+            return obj.tolist() if hasattr(obj, 'tolist') else list(obj)
+        if isinstance(obj, dict):
+            return {k: serialize(v) for k, v in obj.items()}
+        if isinstance(obj, list):
+            return [serialize(v) for v in obj]
+        return obj
+    with open(intv_file, "w", encoding="utf-8") as f:
+        json.dump(serialize(intervention_results), f, ensure_ascii=False, indent=2)
+    print(f"  Intervention: {intv_file}")
+
+    # 9. Benchmark 发布 (第六章)
+    print("\n[9/9] Benchmark release (Chapter 6)...")
+    from infodyn_bench import create_benchmark_release
+    create_benchmark_release()
+
     # 最终总结
     print("\n" + "=" * 70)
-    print("EXPERIMENT COMPLETE")
+    print("EXPERIMENT COMPLETE (All 6 chapters)")
     print("=" * 70)
     print(f"Total samples: {len(all_results)}")
     print(f"Correct: {sum(s['final_correct'] for s in all_results)}")
@@ -239,6 +262,8 @@ def main():
     print(f"  - full_results_{config.MODEL_NAME}.json (轨迹数据)")
     print(f"  - prediction_results_{config.MODEL_NAME}.json (预测任务)")
     print(f"  - negative_controls_{config.MODEL_NAME}.json (负对照)")
+    print(f"  - intervention_{config.MODEL_NAME}.json (因果干预)")
+    print(f"  - infodyn_bench_release.json (Benchmark 发布)")
     print(f"  - trajectory_comparison_{config.MODEL_NAME}.png (总览图)")
     print(f"  - pattern_distribution_{config.MODEL_NAME}.png (模式分布)")
     print("=" * 70)
