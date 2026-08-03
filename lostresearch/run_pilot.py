@@ -1,4 +1,10 @@
-"""Main pilot experiment: 跑 N 题, 采集每层 CIS 轨迹, 分析 '信号丢失' 现象."""
+"""Main pilot experiment: 跑 N 题, 采集每层 CIS 轨迹, 分析 '信号丢失' 现象.
+
+修正版:
+1. 适配新的 trajectory_collector return 格式
+2. 加 final-layer sanity check 报告
+3. 默认跑 10 样本 (调试 token 对齐)
+"""
 import json
 import os
 import sys
@@ -25,7 +31,7 @@ def is_answer_correct(generated: str, aliases: list) -> bool:
 
 def main():
     print("=" * 60)
-    print("InfoDyn Pilot Experiment")
+    print("InfoDyn Pilot Experiment (v2: token-aligned)")
     print(f"Model: {config.MODEL_NAME}")
     print(f"Device: {config.DEVICE}")
     print(f"Thinking: {config.ENABLE_THINKING}")
@@ -56,18 +62,39 @@ def main():
     print(f"  Number of transformer layers: {collector.num_layers}")
 
     all_results = []
+    sanity_results = []
     t0 = time.time()
     for i, sample in enumerate(tqdm(prepared, desc="Collecting")):
         try:
             # 3.1 采集轨迹 (forward pass)
             traj = collector.collect_trajectory(
                 prompt_ids=sample["prompt_ids"],
-                primary_answer_ids=sample["primary_answer_ids"],
+                answer_token_ids=sample["answer_token_ids"],
             )
 
             # 3.2 生成答案
-            generated = collector.generate_answer(sample["prompt_ids"])
+            gen = collector.generate_answer(sample["prompt_ids"])
+            generated = gen["text"]
             correct = is_answer_correct(generated, sample["aliases"])
+
+            # 3.3 Sanity check: final layer argmax 是否等于生成的第一个 token
+            sanity = traj["sanity_check"]
+            sanity_passed = (traj["final_argmax_token"] == gen["first_token_id"])
+            sanity["passed"] = sanity_passed
+            sanity["generated_first_token_id"] = gen["first_token_id"]
+            sanity["generated_first_token_decoded"] = gen["first_token_decoded"]
+            sanity_results.append({
+                "id": sample["id"],
+                "question": sample["question"][:50],
+                "answer": sample["answer"],
+                "generated": generated,
+                "correct": correct,
+                "final_argmax_token": sanity["final_argmax_token"],
+                "final_argmax_decoded": sanity["final_argmax_decoded"],
+                "generated_first_token_id": gen["first_token_id"],
+                "generated_first_token_decoded": gen["first_token_decoded"],
+                "sanity_passed": sanity_passed,
+            })
 
             result = {
                 "id": sample["id"],
@@ -80,16 +107,20 @@ def main():
                 "correct_token_logprob": traj["correct_token_logprob"],
                 "correct_token_rank": traj["correct_token_rank"],
                 "top5_per_layer": traj["top5_per_layer"],
+                "best_alias_idx_per_layer": traj["best_alias_idx_per_layer"],
             }
             all_results.append(result)
 
-            if (i + 1) % 10 == 0:
+            if (i + 1) % 5 == 0:
                 elapsed = time.time() - t0
-                print(f"\n  [{i+1}/{len(prepared)}] {elapsed:.1f}s elapsed, "
-                      f"correct so far: {sum(r['final_correct'] for r in all_results)}/{len(all_results)}")
+                n_pass = sum(s["sanity_passed"] for s in sanity_results)
+                print(f"\n  [{i+1}/{len(prepared)}] {elapsed:.1f}s, "
+                      f"correct: {sum(r['final_correct'] for r in all_results)}/{len(all_results)}, "
+                      f"sanity: {n_pass}/{len(sanity_results)}")
 
         except Exception as e:
             print(f"\n  Error on sample {sample['id']}: {e}")
+            import traceback; traceback.print_exc()
             continue
 
     print(f"\n  Collected {len(all_results)} trajectories in {time.time()-t0:.1f}s")
@@ -101,17 +132,42 @@ def main():
         json.dump(all_results, f, ensure_ascii=False, indent=2)
     print(f"  Saved to {output_file}")
 
-    # 5. 可视化和统计
-    print("\n[5/5] Visualization and analysis...")
+    # 保存 sanity check 结果
+    sanity_file = os.path.join(config.DATA_DIR, f"sanity_check_{config.MODEL_NAME}.json")
+    with open(sanity_file, "w", encoding="utf-8") as f:
+        json.dump(sanity_results, f, ensure_ascii=False, indent=2)
+    print(f"  Sanity check saved to {sanity_file}")
 
-    # 5.1 总体对比图
+    # 5. 打印 sanity check 报告
+    print("\n" + "=" * 60)
+    print("SANITY CHECK REPORT")
+    print("=" * 60)
+    n_pass = sum(s["sanity_passed"] for s in sanity_results)
+    n_total = len(sanity_results)
+    print(f"Passed: {n_pass}/{n_total} ({100*n_pass/n_total:.1f}%)")
+    print()
+    print(f"{'ID':<16} {'Correct':<8} {'Argmax':<20} {'Generated':<20} {'Pass'}")
+    print("-" * 80)
+    for s in sanity_results:
+        print(f"{s['id']:<16} {'✓' if s['correct'] else '✗':<8} "
+              f"{repr(s['final_argmax_decoded']):<20} "
+              f"{repr(s['generated_first_token_decoded']):<20} "
+              f"{'✓' if s['sanity_passed'] else '✗'}")
+
+    if n_pass < n_total:
+        print(f"\n⚠ {n_total - n_pass} samples failed sanity check!")
+        print("  这说明 hook/forward 的最终层 argmax 和 generate 的首 token 不一致,")
+        print("  可能是 attention mask、padding 或 hook 位置问题, 需要修复后再扩展实验。")
+    else:
+        print(f"\n✓ 所有样本通过 sanity check, token 对齐正确, 可以继续扩展实验。")
+
+    # 6. 可视化和统计
+    print("\n[5/5] Visualization and analysis...")
     plot_correct_vs_incorrect(
         all_results,
         save_path=os.path.join(config.FIGURE_DIR, f"trajectory_comparison_{config.MODEL_NAME}.png")
     )
 
-    # 5.2 挑几个有意思的样本单独画
-    # 找一个错误样本, 一个正确样本
     correct_sample = next((s for s in all_results if s["final_correct"]), None)
     incorrect_sample = next((s for s in all_results if not s["final_correct"]), None)
 
@@ -126,11 +182,10 @@ def main():
             save_path=os.path.join(config.FIGURE_DIR, f"single_incorrect_{incorrect_sample['id']}.png")
         )
 
-    # 5.3 打印统计摘要
     print_summary(all_results)
 
-    print(f"\nDone! Figures saved to: {config.FIGURE_DIR}")
-    print(f"Data saved to: {config.DATA_DIR}")
+    print(f"\nDone! Figures: {config.FIGURE_DIR}")
+    print(f"Data: {config.DATA_DIR}")
 
 
 if __name__ == "__main__":

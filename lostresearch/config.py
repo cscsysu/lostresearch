@@ -19,7 +19,7 @@ ENABLE_THINKING = False
 # ============ 数据 ============
 DATASET_NAME = "mandarjoshi/trivia_qa"  # HuggingFace 要求 namespace/name
 DATASET_CONFIG = "unfiltered.nocontext"
-NUM_SAMPLES = 50  # pilot 阶段先跑 50 题
+NUM_SAMPLES = 10  # 先跑 10 题验证 token 对齐, 通过后再扩展到 50+
 MAX_PROMPT_LEN = 512  # 截断超长 prompt
 
 # ============ 生成 ============
