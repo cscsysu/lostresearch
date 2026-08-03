@@ -14,14 +14,14 @@ DTYPE = "bfloat16"
 ENABLE_THINKING = False
 
 # ============ 数据 ============
-# 200 题 pilot: TriviaQA 100 + HotpotQA 50 + GSM8K 50
+# 正式规模: TriviaQA 500 + HotpotQA 250 + GSM8K 250 = 1000
 DATASETS = [
     {"name": "mandarjoshi/trivia_qa", "config": "unfiltered.nocontext",
-     "split": "validation", "n": 100, "label": "triviaqa"},
+     "split": "validation", "n": 500, "label": "triviaqa"},
     {"name": "hotpotqa/hotpot_qa", "config": "distractor",
-     "split": "validation", "n": 50, "label": "hotpotqa"},
+     "split": "validation", "n": 250, "label": "hotpotqa"},
     {"name": "openai/gsm8k", "config": "main",
-     "split": "test", "n": 50, "label": "gsm8k"},
+     "split": "test", "n": 250, "label": "gsm8k"},
 ]
 MAX_PROMPT_LEN = 512
 
