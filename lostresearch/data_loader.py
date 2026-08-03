@@ -42,10 +42,19 @@ def load_triviaqa(n: int) -> List[Dict]:
 
 
 def load_hotpotqa(n: int) -> List[Dict]:
-    try:
-        ds = load_dataset("hotpot_qa", "distractor", split="validation")
-    except Exception:
-        ds = load_dataset("hotpot_qa", "fullwiki", split="validation")
+    # hotpotqa 官方 namespace 是 hotpotqa
+    for name in ["hotpotqa/hotpot_qa", "hotpot_qa"]:
+        try:
+            ds = load_dataset(name, "distractor", split="validation")
+            break
+        except Exception:
+            try:
+                ds = load_dataset(name, "fullwiki", split="validation")
+                break
+            except Exception:
+                continue
+    else:
+        raise RuntimeError("Cannot load hotpot_qa")
     samples = []
     for i, item in enumerate(ds):
         if i >= n: break
@@ -64,7 +73,15 @@ def load_hotpotqa(n: int) -> List[Dict]:
 
 
 def load_gsm8k(n: int) -> List[Dict]:
-    ds = load_dataset("gsm8k", "main", split="test")
+    # gsm8k 官方 namespace 是 openai
+    for name in ["openai/gsm8k", "gsm8k"]:
+        try:
+            ds = load_dataset(name, "main", split="test")
+            break
+        except Exception:
+            continue
+    else:
+        raise RuntimeError("Cannot load gsm8k")
     samples = []
     for i, item in enumerate(ds):
         if i >= n: break

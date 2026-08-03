@@ -18,9 +18,9 @@ ENABLE_THINKING = False
 DATASETS = [
     {"name": "mandarjoshi/trivia_qa", "config": "unfiltered.nocontext",
      "split": "validation", "n": 100, "label": "triviaqa"},
-    {"name": "hotpot_qa", "config": "distractor",
+    {"name": "hotpotqa/hotpot_qa", "config": "distractor",
      "split": "validation", "n": 50, "label": "hotpotqa"},
-    {"name": "gsm8k", "config": "main",
+    {"name": "openai/gsm8k", "config": "main",
      "split": "test", "n": 50, "label": "gsm8k"},
 ]
 MAX_PROMPT_LEN = 512

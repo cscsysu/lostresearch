@@ -17,6 +17,7 @@ from sklearn.neural_network import MLPRegressor, MLPClassifier
 from sklearn.metrics import (roc_auc_score, average_precision_score,
                               brier_score_loss, mean_absolute_error)
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 
 import config
 
@@ -104,6 +105,9 @@ def run_prediction_task(all_samples: List[Dict]) -> Dict:
 
     feature_names = list(features_list[0].keys())
     X = np.array([[f[k] for k in feature_names] for f in features_list])
+    # Scale features for MLP
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
     y_decay = np.array([t["will_decay"] for t in targets_list])
     y_correct = np.array([t["final_correct"] for t in targets_list])
     y_cis = np.array([t["final_cis_value"] for t in targets_list])
@@ -168,24 +172,27 @@ def run_prediction_task(all_samples: List[Dict]) -> Dict:
             "final_cis_mae": float(np.mean(np.abs(y_cis - y_pred_cis_lr))),
         }
 
-    # === 基线 5: MLP ===
+    # === 基线 5: MLP (with scaling) ===
     if len(X) >= 30:
         # 回归
-        mlp_reg = MLPRegressor(hidden_layer_sizes=(64, 32), max_iter=500, random_state=42)
-        mlp_reg.fit(X, y_cis)
-        y_pred_cis_mlp = mlp_reg.predict(X)
+        mlp_reg = MLPRegressor(hidden_layer_sizes=(64, 32), max_iter=1000,
+                               random_state=42, early_stopping=True)
+        mlp_reg.fit(X_scaled, y_cis)
+        y_pred_cis_mlp = mlp_reg.predict(X_scaled)
         # 分类
         if y_decay.sum() > 0 and y_decay.sum() < len(y_decay):
-            mlp_clf = MLPClassifier(hidden_layer_sizes=(64, 32), max_iter=500, random_state=42)
-            mlp_clf.fit(X, y_decay)
-            y_pred_decay_mlp = mlp_clf.predict_proba(X)[:, 1]
+            mlp_clf = MLPClassifier(hidden_layer_sizes=(64, 32), max_iter=1000,
+                                     random_state=42, early_stopping=True)
+            mlp_clf.fit(X_scaled, y_decay)
+            y_pred_decay_mlp = mlp_clf.predict_proba(X_scaled)[:, 1]
             auc_decay_mlp = roc_auc_score(y_decay, y_pred_decay_mlp)
         else:
             auc_decay_mlp = 0.5
         if y_correct.sum() > 0 and y_correct.sum() < len(y_correct):
-            mlp_clf2 = MLPClassifier(hidden_layer_sizes=(64, 32), max_iter=500, random_state=42)
-            mlp_clf2.fit(X, y_correct)
-            y_pred_correct_mlp = mlp_clf2.predict_proba(X)[:, 1]
+            mlp_clf2 = MLPClassifier(hidden_layer_sizes=(64, 32), max_iter=1000,
+                                      random_state=42, early_stopping=True)
+            mlp_clf2.fit(X_scaled, y_correct)
+            y_pred_correct_mlp = mlp_clf2.predict_proba(X_scaled)[:, 1]
             auc_correct_mlp = roc_auc_score(y_correct, y_pred_correct_mlp)
         else:
             auc_correct_mlp = 0.5

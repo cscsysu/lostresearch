@@ -220,7 +220,7 @@ def main():
     print("\n" + "=" * 70)
     print("Bonus: Negative Controls")
     print("=" * 70)
-    neg_results = run_negative_controls(all_results, collector)
+    neg_results = run_negative_controls(prepared, all_results, collector)
     neg_file = os.path.join(config.DATA_DIR, f"negative_controls_{config.MODEL_NAME}.json")
     with open(neg_file, "w", encoding="utf-8") as f:
         json.dump(neg_results, f, ensure_ascii=False, indent=2)

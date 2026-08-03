@@ -19,26 +19,27 @@ import config
 from trajectory_collector import TrajectoryCollector
 
 
-def run_random_label_control(samples: List[Dict], collector: TrajectoryCollector,
+def run_random_label_control(prepared_samples: List[Dict], collector: TrajectoryCollector,
                               n_control: int = 20) -> Dict:
-    """负对照 1: 把答案换成随机 token, 看信号是否消失."""
+    """负对照 1: 把答案换成随机 token, 看信号是否消失.
+
+    注意: 需要 prepared_samples (含 prompt_ids), 不是 all_results.
+    """
     print("\n  [负对照 1] 随机标签 (random token as answer)")
     vocab_size = collector.unembed.shape[0]
 
     random_logprobs = []
-    for i, s in enumerate(samples[:n_control]):
-        # 生成随机 token id
+    for i, s in enumerate(prepared_samples[:n_control]):
         random_token = random.randint(0, vocab_size - 1)
         traj = collector.collect_trajectory(
             prompt_ids=s["prompt_ids"],
             answer_token_ids=[[random_token]],
-            generated_token_ids=s.get("generated_token_ids", [random_token]),
+            generated_token_ids=[random_token],
         )
         random_logprobs.append(traj["correct_logprob"])
         if (i + 1) % 5 == 0:
             print(f"    {i+1}/{n_control}")
 
-    # 统计
     all_mid_max = [max(lp[1:-1]) for lp in random_logprobs if len(lp) > 2]
     return {
         "control": "random_label",
@@ -48,23 +49,22 @@ def run_random_label_control(samples: List[Dict], collector: TrajectoryCollector
     }
 
 
-def run_shuffled_answer_control(samples: List[Dict], collector: TrajectoryCollector,
+def run_shuffled_answer_control(prepared_samples: List[Dict], collector: TrajectoryCollector,
                                   n_control: int = 20) -> Dict:
     """负对照 2: 把 A 题的答案配给 B 题."""
     print("\n  [负对照 2] 答案置换 (A 题答案配给 B 题)")
 
-    shuffled = samples[:n_control].copy()
+    shuffled = prepared_samples[:n_control].copy()
     random.seed(42)
     random.shuffle(shuffled)
 
     shuffled_logprobs = []
-    for i, (orig, shuf) in enumerate(zip(samples[:n_control], shuffled)):
-        # 用 shuf 的答案, 但 orig 的 prompt
-        if orig["answer_token_ids"] and shuf["answer_token_ids"]:
+    for i, (orig, shuf) in enumerate(zip(prepared_samples[:n_control], shuffled)):
+        if orig["prompt_ids"] and shuf["answer_token_ids"]:
             traj = collector.collect_trajectory(
                 prompt_ids=orig["prompt_ids"],
                 answer_token_ids=shuf["answer_token_ids"],
-                generated_token_ids=orig.get("generated_token_ids", []),
+                generated_token_ids=shuf.get("generated_token_ids", []),
             )
             shuffled_logprobs.append(traj["correct_logprob"])
         if (i + 1) % 5 == 0:
@@ -104,18 +104,25 @@ def run_shuffled_layer_control(samples: List[Dict], n_control: int = 20) -> Dict
     }
 
 
-def run_negative_controls(samples: List[Dict], collector: TrajectoryCollector) -> List[Dict]:
-    """运行所有负对照."""
+def run_negative_controls(prepared_samples: List[Dict], all_results: List[Dict],
+                           collector: TrajectoryCollector) -> List[Dict]:
+    """运行所有负对照.
+
+    Args:
+        prepared_samples: 含 prompt_ids 的原始样本 (用于跑 forward)
+        all_results: 已采集的结果 (用于对比)
+        collector: TrajectoryCollector
+    """
     print("\n" + "=" * 70)
     print("NEGATIVE CONTROLS")
     print("=" * 70)
 
     results = []
-    n_control = min(20, len(samples))
+    n_control = min(20, len(prepared_samples))
 
     # 1. 随机标签
     try:
-        r1 = run_random_label_control(samples, collector, n_control)
+        r1 = run_random_label_control(prepared_samples, collector, n_control)
         results.append(r1)
         print(f"  随机标签 mid_max_logprob: {r1['mid_max_logprob_mean']:.2f} "
               f"± {r1['mid_max_logprob_std']:.2f}")
@@ -124,16 +131,16 @@ def run_negative_controls(samples: List[Dict], collector: TrajectoryCollector) -
 
     # 2. 答案置换
     try:
-        r2 = run_shuffled_answer_control(samples, collector, n_control)
+        r2 = run_shuffled_answer_control(prepared_samples, collector, n_control)
         results.append(r2)
         print(f"  答案置换 mid_max_logprob: {r2['mid_max_logprob_mean']:.2f} "
               f"± {r2['mid_max_logprob_std']:.2f}")
     except Exception as e:
         print(f"  答案置换失败: {e}")
 
-    # 3. 层序打乱
+    # 3. 层序打乱 (用 all_results 的已有轨迹)
     try:
-        r3 = run_shuffled_layer_control(samples, n_control)
+        r3 = run_shuffled_layer_control(all_results, n_control)
         results.append(r3)
         print(f"  层序打乱 mid_final_delta: {r3['mid_final_delta_mean']:.2f} "
               f"± {r3['mid_final_delta_std']:.2f}")
@@ -142,7 +149,7 @@ def run_negative_controls(samples: List[Dict], collector: TrajectoryCollector) -
 
     # 对比: 真实样本的信号
     real_mid_max = [max(s["correct_logprob"][1:-1])
-                    for s in samples if len(s["correct_logprob"]) > 2]
+                    for s in all_results if len(s["correct_logprob"]) > 2]
     print(f"\n  真实样本 mid_max_logprob: {np.mean(real_mid_max):.2f} "
           f"± {np.std(real_mid_max):.2f}")
     print("\n  判据: 负对照的信号应显著弱于真实样本")

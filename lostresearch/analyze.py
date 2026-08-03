@@ -77,9 +77,9 @@ def compute_trajectory_metrics(sample: Dict) -> Dict:
     final_rank = ranks[-1]
     final_logprob = logprobs[-1]
 
-    # 是否信号丢失
+    # 是否信号丢失 (基于 CIS: 中间层 CIS 有竞争力, 但最终层 CIS<0)
     signal_lost = (mid_best_rank <= config.RANK_COMPETITIVE
-                   and final_rank > config.RANK_LOST)
+                   and cis and cis[-1] < 0)
 
     # CIS 变化
     if cis:
