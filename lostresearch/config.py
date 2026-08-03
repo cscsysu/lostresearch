@@ -1,46 +1,54 @@
-"""Configuration for InfoDyn pilot experiment."""
+"""Configuration for InfoDyn full experiment on Qwen3-8B."""
 import os
 
 # ============ 模型 ============
 MODEL_PATH = "/data2/css2025/models/Qwen/Qwen3-8B"
 MODEL_NAME = "Qwen3-8B"
-# GPU 选择: 服务器上 nvidia-smi 显示 5 张卡:
-#   index 0 = A40 (46GB)  ← 选这个
-#   index 1-4 = RTX 3090 (24GB)
-# 用 CUDA_VISIBLE_DEVICES=0 选 A40, 此时在程序内它就是 cuda:0
-# run_pilot.sh 会设置 CUDA_VISIBLE_DEVICES, 这里 device 用 cuda:0
+# 服务器 GPU 映射 (CUDA ordinal):
+#   0 = A40 (46GB)  ← 选这个
+#   1-4 = RTX 3090 (24GB)
 DEVICE = "cuda:0"
 DTYPE = "bfloat16"
 
 # ============ Thinking mode ============
-# Qwen3 默认开 thinking, 必须显式关闭
 ENABLE_THINKING = False
 
 # ============ 数据 ============
-DATASET_NAME = "mandarjoshi/trivia_qa"  # HuggingFace 要求 namespace/name
-DATASET_CONFIG = "unfiltered.nocontext"
-NUM_SAMPLES = 10  # 先跑 10 题验证 token 对齐, 通过后再扩展到 50+
-MAX_PROMPT_LEN = 512  # 截断超长 prompt
+# 200 题 pilot: TriviaQA 100 + HotpotQA 50 + GSM8K 50
+DATASETS = [
+    {"name": "mandarjoshi/trivia_qa", "config": "unfiltered.nocontext",
+     "split": "validation", "n": 100, "label": "triviaqa"},
+    {"name": "hotpot_qa", "config": "distractor",
+     "split": "validation", "n": 50, "label": "hotpotqa"},
+    {"name": "gsm8k", "config": "main",
+     "split": "test", "n": 50, "label": "gsm8k"},
+]
+MAX_PROMPT_LEN = 512
 
 # ============ 生成 ============
 MAX_NEW_TOKENS = 32
-DO_SAMPLE = False  # greedy, 可复现
-
-# ============ 读出方式 ============
-# 三种读出方式, pilot 阶段先做两种
-USE_RAW_LOGIT_LENS = True      # 直接用最终 LM head 解码中间层
-USE_TUNED_LENS = False          # 需要训练 translator, pilot 阶段先不做
-USE_CANDIDATE_SCORING = True    # 只算答案 token 的 logit
+DO_SAMPLE = False
 
 # ============ 答案处理 ============
-MAX_ANSWER_TOKENS = 10  # 多 token 答案最多算前 10 个 token
-USE_TEACHER_FORCING = True  # 用 teacher forcing 算多 token 答案序列概率
+MAX_ANSWER_TOKENS = 10
+
+# ============ 信号丢失判据 ============
+# 真正的 "信号丢失": 中间层正确答案有竞争力, 但最终层被压过
+RANK_COMPETITIVE = 5    # 中间层 rank <= 5 算 "有竞争力"
+RANK_LOST = 10          # 最终层 rank > 10 算 "丢失"
+PROB_EMERGENCE = 0.05  # 中间层 prob > 0.05 算 "信号出现"
+PROB_DECAY = 0.01       # 最终层 prob < 0.01 算 "信号衰减"
+
+# ============ 预测任务 ============
+PREDICTION_T0 = 0.5  # 在 50% 深度处预测
+PREDICTION_FEATURES = ["logprob_at_t0", "slope_before_t0", "rank_at_t0",
+                        "max_logprob_before_t0", "transitions_before_t0"]
 
 # ============ 输出 ============
-OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "outputs")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_DIR = os.path.join(BASE_DIR, "outputs")
 FIGURE_DIR = os.path.join(OUTPUT_DIR, "figures")
 DATA_DIR = os.path.join(OUTPUT_DIR, "data")
 
-os.makedirs(OUTPUT_DIR, exist_ok=True)
-os.makedirs(FIGURE_DIR, exist_ok=True)
-os.makedirs(DATA_DIR, exist_ok=True)
+for d in [OUTPUT_DIR, FIGURE_DIR, DATA_DIR]:
+    os.makedirs(d, exist_ok=True)

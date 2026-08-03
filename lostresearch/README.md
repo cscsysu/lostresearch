@@ -1,51 +1,55 @@
 # InfoDyn - Lost Research
 
 Tracking how the "correct answer signal" evolves across Transformer layers.
-Pilot experiment on Qwen3-8B with TriviaQA.
+Full experiment on Qwen3-8B with TriviaQA + HotpotQA + GSM8K.
 
 ## Quick Start
 
 ```bash
-# 1. 安装依赖
-pip install -r requirements.txt
-
-# 2. 运行 pilot (50 题, 约 5-10 分钟)
 bash run_pilot.sh
 ```
 
-## File Structure
+## What It Does (7 stages)
+
+1. **Load model**: Qwen3-8B on A40 (non-thinking mode)
+2. **Load data**: TriviaQA 100 + HotpotQA 50 + GSM8K 50 = 200 samples
+3. **Collect trajectories**: per-layer hidden states + logit lens + CIS
+4. **Sanity check**: final-layer argmax == generate() first token
+5. **Save data**: full trajectory JSON
+6. **Analysis**: signal loss statistics + pattern classification + visualization
+7. **Prediction task**: 5 baselines (Random/Persistence/Linear/MLP) predict signal decay
+
+## Key Files
 
 ```
-lostresearch/
-├── config.py                  # 配置: 模型路径、GPU、数据集等
-├── data_loader.py             # 加载 TriviaQA, 构造 prompt, tokenize 答案
-├── trajectory_collector.py    # Hook 采集每层 hidden state + CIS 计算
-├── visualize.py               # 画轨迹图, 正确 vs 错误对比
-├── run_pilot.py               # 主实验脚本
-├── run_pilot.sh               # 一键运行
-└── outputs/
-    ├── data/                  # 原始轨迹数据 (JSON)
-    └── figures/               # 可视化图
+config.py              # 配置
+data_loader.py         # 多数据集加载 + token 对齐
+trajectory_collector.py # Hook + CIS + generated 对照
+analyze.py             # 信号丢失判据 + 模式分类 + 可视化
+prediction.py          # 信息动态预测任务
+negatives.py           # 负对照 (随机标签/答案置换/层序打乱)
+run_full.py            # 主实验脚本
+run_pilot.sh           # 一键运行
 ```
 
-## What This Pilot Tests
+## Output
 
-**核心问题**: 模型答错时, 中间层是否曾经出现过正确答案的信号?
+```
+outputs/
+├── data/
+│   ├── full_results_Qwen3-8B.json        # 完整轨迹数据
+│   ├── prediction_results_Qwen3-8B.json   # 预测任务结果
+│   ├── negative_controls_Qwen3-8B.json    # 负对照结果
+│   └── sanity_Qwen3-8B.json               # sanity check
+└── figures/
+    ├── trajectory_comparison_Qwen3-8B.png  # 正确 vs 错误对比
+    ├── pattern_distribution_Qwen3-8B.png  # 模式分布
+    └── single_*.png                       # 单样本轨迹
+```
 
-**测量方法**:
-1. 对每层 hidden state 用 logit lens (final norm + LM head) 解码
-2. 计算正确答案 token 的 log probability 和 rank
-3. 画出从第 0 层到第 L 层的信号轨迹
-4. 比较正确样本 vs 错误样本的轨迹
+## Key Metrics
 
-**预期发现**:
-- 正确样本: 信号从弱到强, 最终层 log prob 高
-- 错误样本: 中间层信号曾达到峰值, 但最终层衰减
-- 这就是 "知道但没说" (Lost in Transmission) 现象
-
-## Key Config
-
-Edit `config.py` to change:
-- `NUM_SAMPLES`: 样本数量 (pilot=50, 正式=1000+)
-- `DEVICE`: GPU 设备
-- `ENABLE_THINKING`: Qwen3 thinking mode (默认关闭)
+- **CIS** = log P(correct) - log P(generated) per layer
+- **Signal Lost**: mid rank ≤ 5 but final rank > 10
+- **Pattern**: Absent / Early-Decay / Late-Emergent / Gradual-Buildup / Fluctuating
+- **"Know but didn't say"**: mid rank ≤ 5 + final CIS < 0
