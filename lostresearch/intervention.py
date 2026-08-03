@@ -500,11 +500,11 @@ def run_intervention_experiment(model, tokenizer,
 
     # 5.1 Necessity
     print("\n[5.1] Necessity Experiment")
-    necessity_results = run_necessity_experiment(patcher, prepared_samples, n_samples=20)
+    necessity_results = run_necessity_experiment(patcher, prepared_samples, n_samples=50)
 
     # 5.2 + 5.3 Patching
     print("\n[5.2+5.3] Patching Experiment")
-    patch_results = run_patch_experiment(patcher, prepared_samples, all_results, n_samples=20)
+    patch_results = run_patch_experiment(patcher, prepared_samples, all_results, n_samples=50)
 
     # 分析
     analysis = analyze_intervention_results(necessity_results, patch_results)
