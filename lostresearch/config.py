@@ -5,9 +5,9 @@ import os
 MODEL_PATH = "/data2/css2025/models/Qwen/Qwen3-8B"
 MODEL_NAME = "Qwen3-8B"
 # GPU 选择: 服务器上 nvidia-smi 显示 5 张卡:
-#   index 0-3 = RTX 3090 (24GB), 其中 index 0 被占 16GB
-#   index 4   = A40 (46GB, 最空闲)
-# 用 CUDA_VISIBLE_DEVICES=4 选 A40, 此时在程序内它变成 cuda:0
+#   index 0 = A40 (46GB)  ← 选这个
+#   index 1-4 = RTX 3090 (24GB)
+# 用 CUDA_VISIBLE_DEVICES=0 选 A40, 此时在程序内它就是 cuda:0
 # run_pilot.sh 会设置 CUDA_VISIBLE_DEVICES, 这里 device 用 cuda:0
 DEVICE = "cuda:0"
 DTYPE = "bfloat16"

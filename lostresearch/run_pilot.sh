@@ -24,14 +24,14 @@ nvidia-smi --query-gpu=index,name,memory.used,memory.total --format=csv,noheader
 echo ""
 
 # 服务器 GPU 映射 (按 nvidia-smi 的 index):
-#   0 = RTX 3090 (24GB, 被占 16GB)
-#   1 = RTX 3090 (24GB, 空闲)
-#   2 = RTX 3090 (24GB, 空闲)
-#   3 = RTX 3090 (24GB, 空闲)
-#   4 = A40      (46GB, 空闲)  ← 选这个
-# 用 index 4 的 A40, 程序内它会被映射成 cuda:0
-export CUDA_VISIBLE_DEVICES=4
-echo "✓ 使用 GPU index 4 (A40 46GB), 程序内映射为 cuda:0"
+#   0 = A40      (46GB)  ← 选这个
+#   1 = RTX 3090 (24GB)
+#   2 = RTX 3090 (24GB)
+#   3 = RTX 3090 (24GB)
+#   4 = RTX 3090 (24GB)
+# 用 index 0 的 A40, 程序内它就是 cuda:0
+export CUDA_VISIBLE_DEVICES=0
+echo "✓ 使用 GPU index 0 (A40 46GB), 程序内映射为 cuda:0"
 echo ""
 
 # 运行实验
