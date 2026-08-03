@@ -4,8 +4,11 @@ import os
 # ============ 模型 ============
 MODEL_PATH = "/data2/css2025/models/Qwen/Qwen3-8B"
 MODEL_NAME = "Qwen3-8B"
-# GPU 0 = A40 (46GB, 最空闲); GPU 1-4 = 3090 (GPU1 被占)
-# 注意: 服务器上 A40 是 cuda:0
+# GPU 选择: 服务器上 nvidia-smi 显示 5 张卡:
+#   index 0-3 = RTX 3090 (24GB), 其中 index 0 被占 16GB
+#   index 4   = A40 (46GB, 最空闲)
+# 用 CUDA_VISIBLE_DEVICES=4 选 A40, 此时在程序内它变成 cuda:0
+# run_pilot.sh 会设置 CUDA_VISIBLE_DEVICES, 这里 device 用 cuda:0
 DEVICE = "cuda:0"
 DTYPE = "bfloat16"
 
@@ -14,7 +17,7 @@ DTYPE = "bfloat16"
 ENABLE_THINKING = False
 
 # ============ 数据 ============
-DATASET_NAME = "trivia_qa"
+DATASET_NAME = "mandarjoshi/trivia_qa"  # HuggingFace 要求 namespace/name
 DATASET_CONFIG = "unfiltered.nocontext"
 NUM_SAMPLES = 50  # pilot 阶段先跑 50 题
 MAX_PROMPT_LEN = 512  # 截断超长 prompt

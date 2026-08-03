@@ -16,8 +16,27 @@ def load_triviaqa(num_samples: int = None) -> List[Dict]:
         answer: str (canonical answer)
         aliases: List[str] (所有合法别名)
     """
-    print(f"Loading {config.DATASET_NAME} ({config.DATASET_CONFIG}) ...")
-    ds = load_dataset(config.DATASET_NAME, config.DATASET_CONFIG, split="validation")
+    # HuggingFace 新版 datasets 要求 namespace/name 格式
+    # trivia_qa 的官方 namespace 是 mandarjoshi
+    dataset_name = config.DATASET_NAME
+    if "/" not in dataset_name:
+        dataset_name = f"mandarjoshi/{dataset_name}"
+
+    # 尝试多个配置名以兼容不同版本的 datasets
+    configs_to_try = [config.DATASET_CONFIG, "rc.nocontext", "rc", "unfiltered"]
+    ds = None
+    last_err = None
+    for cfg in configs_to_try:
+        try:
+            print(f"Loading {dataset_name} (config={cfg}) ...")
+            ds = load_dataset(dataset_name, cfg, split="validation")
+            print(f"  ✓ 成功 (config={cfg})")
+            break
+        except Exception as e:
+            print(f"  ✗ config={cfg} 失败: {str(e)[:100]}")
+            last_err = e
+    if ds is None:
+        raise last_err
 
     samples = []
     n = num_samples or config.NUM_SAMPLES
