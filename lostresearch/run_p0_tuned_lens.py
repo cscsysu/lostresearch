@@ -119,7 +119,7 @@ def train_tuned_lens(model, hiddens, final_logits, num_layers, epochs=500, lr=1e
     return translators
 
 
-def compute_cis_with_tuned_lens(model, translators, samples, n_samples=200):
+def compute_cis_with_tuned_lens(model, tokenizer, translators, samples, n_samples=200):
     """用 tuned lens 重算 CIS 轨迹."""
     print("Computing CIS with tuned lens...")
     layers = get_residual_layers(model)
@@ -290,7 +290,7 @@ def main():
         print(f"Saved translators to {translator_file}")
 
     # 3. 用 tuned lens 重算 CIS
-    results = compute_cis_with_tuned_lens(model, translators, prepared, n_samples=200)
+    results = compute_cis_with_tuned_lens(model, tokenizer, translators, prepared, n_samples=200)
 
     # 4. 对比
     compare_raw_vs_tuned(results)
