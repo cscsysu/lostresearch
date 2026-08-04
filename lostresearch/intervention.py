@@ -147,12 +147,7 @@ class ActivationPatcher:
                 rest = ()
             # h 可能是 [batch, seq, hidden] 或 [batch, hidden]
             if h.dim() == 3:
-                if h.dim() == 3:
                 h[0, actual_pos] = self._patch_value.to(h.device).to(h.dtype)
-            elif h.dim() == 2:
-                h[0] = self._patch_value.to(h.device).to(h.dtype)
-            else:
-                raise ValueError(f"Unexpected h dim: {h.dim()}")
             elif h.dim() == 2:
                 h[0] = self._patch_value.to(h.device).to(h.dtype)
             else:
