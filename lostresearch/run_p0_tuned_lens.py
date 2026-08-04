@@ -279,8 +279,15 @@ def main():
     # 1. 采集 hiddens + final logits
     hiddens, final_logits, num_layers = collect_all_hiddens(model, prepared, n_samples=200)
 
-    # 2. 训练 tuned lens
-    translators = train_tuned_lens(model, hiddens, final_logits, num_layers, epochs=300)
+    # 2. 训练 tuned lens (或加载已保存的)
+    translator_file = os.path.join(config.DATA_DIR, "tuned_lens_translators_Qwen3-8B.pt")
+    if os.path.exists(translator_file):
+        print(f"Loading saved translators from {translator_file}...")
+        translators = torch.load(translator_file, map_location="cpu")
+    else:
+        translators = train_tuned_lens(model, hiddens, final_logits, num_layers, epochs=300)
+        torch.save(translators, translator_file)
+        print(f"Saved translators to {translator_file}")
 
     # 3. 用 tuned lens 重算 CIS
     results = compute_cis_with_tuned_lens(model, translators, prepared, n_samples=200)
