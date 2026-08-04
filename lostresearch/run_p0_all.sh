@@ -28,7 +28,10 @@ nohup bash -c '
   echo "=== P0-5+6: Strict Patching Controls + Mediation (needs model) ==="
   python run_p0_strict_patching.py
   echo ""
-  echo "=== ALL P0 DONE ==="
+  echo "=== P1: Component-level Decomposition (attention vs MLP, per-head) ==="
+  python run_p1_components.py
+  echo ""
+  echo "=== ALL P0+P1 DONE ==="
   date
 ' >> "$LOG" 2>&1 &
 
