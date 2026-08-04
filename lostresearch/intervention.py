@@ -146,12 +146,14 @@ class ActivationPatcher:
                 h = output
                 rest = ()
             # h 可能是 [batch, seq, hidden] 或 [batch, hidden]
+            # 用 h 的实际 shape 来 clamp, 不依赖外部的 actual_pos
             if h.dim() == 3:
-                h[0, actual_pos] = self._patch_value.to(h.device).to(h.dtype)
+                pos = min(actual_pos, h.shape[1] - 1)
+                h[0, pos] = self._patch_value.to(h.device).to(h.dtype)
             elif h.dim() == 2:
                 h[0] = self._patch_value.to(h.device).to(h.dtype)
             else:
-                raise ValueError(f"Unexpected h dim: {h.dim()}")
+                raise ValueError(f"Unexpected h dim: {h.dim()}, shape={h.shape}")
             if rest:
                 return (h,) + rest
             return h
@@ -211,11 +213,12 @@ class ActivationPatcher:
                 rest = ()
             for pos in range(patch_len):
                 if h.dim() == 3:
-                    h[0, pos] = clean_hiddens[patch_layer][pos].to(h.device).to(h.dtype)
+                    p = min(pos, h.shape[1] - 1)
+                    h[0, p] = clean_hiddens[patch_layer][pos].to(h.device).to(h.dtype)
                 elif h.dim() == 2:
                     h[0] = clean_hiddens[patch_layer][pos].to(h.device).to(h.dtype)
                 else:
-                    raise ValueError(f"Unexpected h dim: {h.dim()}")
+                    raise ValueError(f"Unexpected h dim: {h.dim()}, shape={h.shape}")
             if rest:
                 return (h,) + rest
             return h
@@ -268,11 +271,12 @@ class ActivationPatcher:
                 h = output
                 rest = ()
             if h.dim() == 3:
-                h[0, actual_pos] = self._patch_value.to(h.device).to(h.dtype)
+                pos = min(actual_pos, h.shape[1] - 1)
+                h[0, pos] = self._patch_value.to(h.device).to(h.dtype)
             elif h.dim() == 2:
                 h[0] = self._patch_value.to(h.device).to(h.dtype)
             else:
-                raise ValueError(f"Unexpected h dim: {h.dim()}")
+                raise ValueError(f"Unexpected h dim: {h.dim()}, shape={h.shape}")
             if rest:
                 return (h,) + rest
             return h
@@ -330,11 +334,12 @@ class ActivationPatcher:
                 rest = ()
             for pos in range(patch_len):
                 if h.dim() == 3:
-                    h[0, pos] = clean_hiddens[patch_layer][pos].to(h.device).to(h.dtype)
+                    p = min(pos, h.shape[1] - 1)
+                    h[0, p] = clean_hiddens[patch_layer][pos].to(h.device).to(h.dtype)
                 elif h.dim() == 2:
                     h[0] = clean_hiddens[patch_layer][pos].to(h.device).to(h.dtype)
                 else:
-                    raise ValueError(f"Unexpected h dim: {h.dim()}")
+                    raise ValueError(f"Unexpected h dim: {h.dim()}, shape={h.shape}")
             if rest:
                 return (h,) + rest
             return h
@@ -391,11 +396,12 @@ class ActivationPatcher:
                 h = output
                 rest = ()
             if h.dim() == 3:
-                h[0, actual_pos] = self._patch_value.to(h.device).to(h.dtype)
+                pos = min(actual_pos, h.shape[1] - 1)
+                h[0, pos] = self._patch_value.to(h.device).to(h.dtype)
             elif h.dim() == 2:
                 h[0] = self._patch_value.to(h.device).to(h.dtype)
             else:
-                raise ValueError(f"Unexpected h dim: {h.dim()}")
+                raise ValueError(f"Unexpected h dim: {h.dim()}, shape={h.shape}")
             if rest:
                 return (h,) + rest
             return h
