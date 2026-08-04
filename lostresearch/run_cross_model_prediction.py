@@ -38,6 +38,11 @@ def extract_features_targets(samples, t0=0.5):
     """提取特征和标签."""
     features_list, targets_list = [], []
     for s in samples:
+        # 兼容不同字段名
+        if "correct_logprob" not in s and "cis" in s:
+            s["correct_logprob"] = s["cis"]  # 近似
+        if "correct_rank" not in s and "correct_rank" in s:
+            pass  # already has it
         f = extract_features(s, t0)
         t = extract_targets(s)
         if f and t:
