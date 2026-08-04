@@ -154,16 +154,27 @@ def compute_cis_with_tuned_lens(model, tokenizer, translators, samples, n_sample
         # 用 tuned lens 解码
         cis_tuned = []
         cis_raw = []
+        correct_rank_tuned = []
+        correct_rank_raw = []
+
         # 从 generated 文本重新 tokenize gen_token
         gen_text = s.get("generated", "")
-        if gen_text:
-            gen_full = tokenizer.encode(s["prompt_text"] + gen_text, add_special_tokens=False)
-            prompt_len = len(s["prompt_ids"])
-            gen_ids = gen_full[prompt_len:]
-            gen_token = gen_ids[0] if gen_ids else s["primary_answer_ids"][0]
-        else:
-            gen_token = s["primary_answer_ids"][0]
         target_token = s["primary_answer_ids"][0]
+
+        if gen_text:
+            # 用 prompt_ids 的实际 token 来对齐
+            prompt_ids = s["prompt_ids"]
+            # decode prompt_ids 回文本再拼接
+            prompt_decoded = tokenizer.decode(prompt_ids)
+            gen_full_ids = tokenizer.encode(prompt_decoded + gen_text, add_special_tokens=False)
+            gen_ids = gen_full_ids[len(prompt_ids):]
+            gen_token = gen_ids[0] if gen_ids else target_token
+        else:
+            gen_token = target_token
+
+        if i == 0:
+            print(f"  [diag] sample {s['id']}: target={target_token}, gen_token={gen_token}, "
+                  f"gen_text='{gen_text[:30]}', match={target_token == gen_token}")
 
         for l in range(num_layers):
             h = hidden_buffer[l].to(device).float()
@@ -175,6 +186,10 @@ def compute_cis_with_tuned_lens(model, tokenizer, translators, samples, n_sample
             lp_correct_raw = log_probs_raw[target_token].item()
             lp_gen_raw = log_probs_raw[gen_token].item()
             cis_raw.append(lp_correct_raw - lp_gen_raw)
+            # rank
+            sorted_raw = torch.argsort(logits_raw, descending=True)
+            rank_raw = (sorted_raw == target_token).nonzero(as_tuple=True)[0].item()
+            correct_rank_raw.append(rank_raw)
 
             # Tuned lens
             A = translators[l]["A"].to(device).float()
@@ -186,11 +201,17 @@ def compute_cis_with_tuned_lens(model, tokenizer, translators, samples, n_sample
             lp_correct_tuned = log_probs_tuned[target_token].item()
             lp_gen_tuned = log_probs_tuned[gen_token].item()
             cis_tuned.append(lp_correct_tuned - lp_gen_tuned)
+            # rank
+            sorted_tuned = torch.argsort(logits_tuned, descending=True)
+            rank_tuned = (sorted_tuned == target_token).nonzero(as_tuple=True)[0].item()
+            correct_rank_tuned.append(rank_tuned)
 
         results.append({
             "id": s["id"],
             "cis_raw": cis_raw,
             "cis_tuned": cis_tuned,
+            "correct_rank_raw": correct_rank_raw,
+            "correct_rank_tuned": correct_rank_tuned,
             "final_correct": s.get("final_correct", False),
         })
 
@@ -198,12 +219,11 @@ def compute_cis_with_tuned_lens(model, tokenizer, translators, samples, n_sample
 
 
 def compare_raw_vs_tuned(results):
-    """对比 raw logit lens 和 tuned lens 的轨迹."""
+    """对比 raw logit lens 和 tuned lens 的轨迹 + 重算 8.5%."""
     print("\n" + "=" * 70)
     print("P0-4: Tuned Lens vs Raw Logit Lens")
     print("=" * 70)
 
-    # 对每个样本, 计算两种 lens 的关键指标
     correct_samples = [r for r in results if r["final_correct"]]
     incorrect_samples = [r for r in results if not r["final_correct"]]
 
@@ -212,24 +232,24 @@ def compare_raw_vs_tuned(results):
             continue
         print(f"\n  {label} (n={len(group)}):")
 
-        for lens in ["cis_raw", "cis_tuned"]:
-            # CIS 变号率
+        for lens_name, cis_key, rank_key in [("raw", "cis_raw", "correct_rank_raw"),
+                                               ("tuned", "cis_tuned", "correct_rank_tuned")]:
             sign_change = sum(1 for r in group
-                             if any(r[lens][i] > 0 and r[lens][i+1] < 0
-                                    for i in range(len(r[lens])-1)))
-            # 峰值 CIS
-            peaks = [max(r[lens]) for r in group]
-            # 最终 CIS
-            finals = [r[lens][-1] for r in group]
-            # 中间最高 vs 最终下降
-            deltas = [max(r[lens][1:-1]) - r[lens][-1] for r in group
-                      if len(r[lens]) > 2]
+                             if any(r[cis_key][i] > 0 and r[cis_key][i+1] < 0
+                                    for i in range(len(r[cis_key])-1)))
+            peaks = [max(r[cis_key]) for r in group]
+            finals = [r[cis_key][-1] for r in group]
+            deltas = [max(r[cis_key][1:-1]) - r[cis_key][-1] for r in group
+                      if len(r[cis_key]) > 2]
+            # peak rank (排除最终层)
+            peak_ranks = [min(r[rank_key][1:-1]) for r in group if len(r[rank_key]) > 2]
 
-            print(f"    {lens}: sign_change={sign_change}/{len(group)}, "
+            print(f"    {lens_name}: sign_change={sign_change}/{len(group)}, "
                   f"peak_CIS={np.mean(peaks):.2f}, final_CIS={np.mean(finals):.2f}, "
                   f"mid-final_delta={np.mean(deltas):.2f}")
+            print(f"           peak_rank (excl final): median={np.median(peak_ranks):.0f}")
 
-    # 一致性: 两种 lens 是否给出相同方向
+    # 峰值层一致性
     consistent = 0
     total = 0
     for r in results:
@@ -244,10 +264,58 @@ def compare_raw_vs_tuned(results):
 
     if total > 0:
         print(f"\n  峰值层一致性 (±2层): {consistent}/{total} ({100*consistent/total:.1f}%)")
-        if consistent / total > 0.7:
-            print("  ✓ Tuned lens 与 raw logit lens 方向一致 → 现象不是 LM head artifact")
+
+    # === 关键: 在 tuned lens 下重算 8.5% ===
+    print(f"\n  --- Competitive-Decay Rate (rank≤5 AND CIS>0 AND final CIS<0) ---")
+    print(f"  {'Lens':<10} {'Count':<10} {'Rate':<10} {'95% CI'}")
+    print("  " + "-" * 45)
+
+    for lens_name, cis_key, rank_key in [("raw", "cis_raw", "correct_rank_raw"),
+                                           ("tuned", "cis_tuned", "correct_rank_tuned")]:
+        count = 0
+        for r in incorrect_samples:
+            cis = r[cis_key]
+            ranks = r[rank_key]
+            if len(cis) < 4 or len(ranks) < 4:
+                continue
+            mid_cis = cis[1:-1]
+            mid_ranks = ranks[1:-1]
+            has_competitive = any(
+                mid_cis[i] > 0 and mid_ranks[i] <= 5
+                for i in range(len(mid_cis))
+            )
+            if has_competitive and cis[-1] < 0:
+                count += 1
+
+        pct = 100 * count / len(incorrect_samples) if incorrect_samples else 0
+        # Bootstrap CI
+        boots = []
+        for _ in range(1000):
+            sample = np.random.choice(incorrect_samples, len(incorrect_samples), replace=True)
+            cnt = sum(1 for r in sample
+                      if any(c > 0 and rk <= 5 for c, rk in zip(r[cis_key][1:-1], r[rank_key][1:-1]))
+                      and r[cis_key][-1] < 0)
+            boots.append(100 * cnt / len(sample))
+        ci_low, ci_high = np.percentile(boots, [2.5, 97.5])
+        print(f"  {lens_name:<10} {count}/{len(incorrect_samples):<8} {pct:.1f}%     [{ci_low:.1f}, {ci_high:.1f}]")
+
+    # 判断
+    raw_count = sum(1 for r in incorrect_samples
+                    if any(c > 0 and rk <= 5 for c, rk in zip(r["cis_raw"][1:-1], r["correct_rank_raw"][1:-1]))
+                    and r["cis_raw"][-1] < 0)
+    tuned_count = sum(1 for r in incorrect_samples
+                      if any(c > 0 and rk <= 5 for c, rk in zip(r["cis_tuned"][1:-1], r["correct_rank_tuned"][1:-1]))
+                      and r["cis_tuned"][-1] < 0)
+    print(f"\n  判断:")
+    if tuned_count > 0:
+        ratio = raw_count / tuned_count if tuned_count > 0 else 0
+        print(f"  Raw: {raw_count}, Tuned: {tuned_count}, ratio: {ratio:.1f}x")
+        if ratio < 2:
+            print(f"  ✓ Tuned lens 下 8.5% 仍然存在 (ratio < 2x)")
         else:
-            print("  ? 两种 lens 方向不一致 → 需要进一步分析")
+            print(f"  ? Raw 夸大了 {ratio:.1f}x, tuned 下比例显著降低")
+    else:
+        print(f"  ✗ Tuned lens 下 competitive-decay 为 0 → 核心结论可能不成立")
 
 
 def main():
