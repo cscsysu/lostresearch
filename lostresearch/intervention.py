@@ -128,6 +128,11 @@ class ActivationPatcher:
         clean_seq_len = clean_hiddens[patch_layer].shape[0]
         if actual_pos >= clean_seq_len:
             actual_pos = clean_seq_len - 1
+        # 保险: 确保 actual_pos 不超过 corrupted run 的 seq_len
+        if actual_pos >= seq_len:
+            actual_pos = seq_len - 1
+        if actual_pos < 0:
+            actual_pos = 0
 
         self._patch_value = clean_hiddens[patch_layer][actual_pos].clone()
         self._patch_layer = patch_layer
@@ -140,7 +145,18 @@ class ActivationPatcher:
             else:
                 h = output
                 rest = ()
-            h[0, actual_pos] = self._patch_value.to(h.device).to(h.dtype)
+            # h 可能是 [batch, seq, hidden] 或 [batch, hidden]
+            if h.dim() == 3:
+                if h.dim() == 3:
+                h[0, actual_pos] = self._patch_value.to(h.device).to(h.dtype)
+            elif h.dim() == 2:
+                h[0] = self._patch_value.to(h.device).to(h.dtype)
+            else:
+                raise ValueError(f"Unexpected h dim: {h.dim()}")
+            elif h.dim() == 2:
+                h[0] = self._patch_value.to(h.device).to(h.dtype)
+            else:
+                raise ValueError(f"Unexpected h dim: {h.dim()}")
             if rest:
                 return (h,) + rest
             return h
@@ -199,7 +215,12 @@ class ActivationPatcher:
                 h = output
                 rest = ()
             for pos in range(patch_len):
-                h[0, pos] = clean_hiddens[patch_layer][pos].to(h.device).to(h.dtype)
+                if h.dim() == 3:
+                    h[0, pos] = clean_hiddens[patch_layer][pos].to(h.device).to(h.dtype)
+                elif h.dim() == 2:
+                    h[0] = clean_hiddens[patch_layer][pos].to(h.device).to(h.dtype)
+                else:
+                    raise ValueError(f"Unexpected h dim: {h.dim()}")
             if rest:
                 return (h,) + rest
             return h
@@ -251,7 +272,12 @@ class ActivationPatcher:
             else:
                 h = output
                 rest = ()
-            h[0, actual_pos] = self._patch_value.to(h.device).to(h.dtype)
+            if h.dim() == 3:
+                h[0, actual_pos] = self._patch_value.to(h.device).to(h.dtype)
+            elif h.dim() == 2:
+                h[0] = self._patch_value.to(h.device).to(h.dtype)
+            else:
+                raise ValueError(f"Unexpected h dim: {h.dim()}")
             if rest:
                 return (h,) + rest
             return h
@@ -308,7 +334,12 @@ class ActivationPatcher:
                 h = output
                 rest = ()
             for pos in range(patch_len):
-                h[0, pos] = clean_hiddens[patch_layer][pos].to(h.device).to(h.dtype)
+                if h.dim() == 3:
+                    h[0, pos] = clean_hiddens[patch_layer][pos].to(h.device).to(h.dtype)
+                elif h.dim() == 2:
+                    h[0] = clean_hiddens[patch_layer][pos].to(h.device).to(h.dtype)
+                else:
+                    raise ValueError(f"Unexpected h dim: {h.dim()}")
             if rest:
                 return (h,) + rest
             return h
@@ -364,7 +395,12 @@ class ActivationPatcher:
             else:
                 h = output
                 rest = ()
-            h[0, actual_pos] = self._patch_value.to(h.device).to(h.dtype)
+            if h.dim() == 3:
+                h[0, actual_pos] = self._patch_value.to(h.device).to(h.dtype)
+            elif h.dim() == 2:
+                h[0] = self._patch_value.to(h.device).to(h.dtype)
+            else:
+                raise ValueError(f"Unexpected h dim: {h.dim()}")
             if rest:
                 return (h,) + rest
             return h
@@ -557,6 +593,10 @@ def run_patch_experiment(patcher: ActivationPatcher,
             device = patcher.model.device
 
             clean_hiddens = patcher.collect_hiddens(prompt_ids)
+            if i == 0:
+                sample_layer_shape = clean_hiddens[0].shape
+                print(f"    [diag] clean_hiddens[0].shape={sample_layer_shape}, "
+                      f"prompt_len={len(prompt_ids)}, corr_ids_len={len(corr_ids) if 'corr_ids' in dir() else '?'}")
             clean_out = patcher.model(
                 torch.tensor([prompt_ids], dtype=torch.long, device=device),
                 use_cache=False
