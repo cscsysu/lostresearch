@@ -154,10 +154,19 @@ def compute_cis_with_tuned_lens(model, translators, samples, n_samples=200):
         # 用 tuned lens 解码
         cis_tuned = []
         cis_raw = []
+        # 从 generated 文本重新 tokenize gen_token
+        gen_text = s.get("generated", "")
+        if gen_text:
+            gen_full = tokenizer.encode(s["prompt_text"] + gen_text, add_special_tokens=False)
+            prompt_len = len(s["prompt_ids"])
+            gen_ids = gen_full[prompt_len:]
+            gen_token = gen_ids[0] if gen_ids else s["primary_answer_ids"][0]
+        else:
+            gen_token = s["primary_answer_ids"][0]
+        target_token = s["primary_answer_ids"][0]
+
         for l in range(num_layers):
             h = hidden_buffer[l].to(device).float()
-            target_token = s["primary_answer_ids"][0]
-            gen_token = s.get("generated_token_ids", [target_token])[0]
 
             # Raw logit lens (用 float32)
             normed_raw = final_norm(h)

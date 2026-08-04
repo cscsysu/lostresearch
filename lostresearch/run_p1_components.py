@@ -43,19 +43,20 @@ def get_attn_mlp_modules(model, layer_idx):
 
 
 def collect_component_hiddens(model, prompt_ids):
-    """采集每层的 pre-attn, post-attn, post-mlp 的 hidden state.
+    """采集每层的 post_mlp (layer output), attn_out, mlp_out.
+
+    策略 (不依赖 forward_pre_hook):
+    - post_mlp: layer 的 forward hook 输出
+    - attn_out: attn 子模块的 forward hook 输出
+    - mlp_out: mlp 子模块的 forward hook 输出
+    - pre_attn: 上一层的 post_mlp (或 embedding for layer 0)
 
     Qwen3 layer 结构:
         h = input
         attn_out = self_attn(input)
-        h_mid = input + attn_out   (post-attn residual)
+        h_mid = input + attn_out   (post_attn)
         mlp_out = mlp(norm(h_mid))
-        h_out = h_mid + mlp_out    (post-mlp = layer output)
-
-    用 hook 采集:
-    - pre-attn: layer input (h)
-    - post-attn: h + attn_out
-    - post-mlp: layer output (h_out)
+        h_out = h_mid + mlp_out    (post_mlp = layer output)
     """
     layers = get_residual_layers(model)
     num_layers = len(layers)
@@ -65,13 +66,13 @@ def collect_component_hiddens(model, prompt_ids):
     components = {i: {"pre_attn": None, "attn_out": None, "post_attn": None,
                        "mlp_out": None, "post_mlp": None} for i in range(num_layers)}
 
-    # forward_pre_hook 默认签名: hook(module, input) 其中 input 是 tuple
-    # 不用 with_kwargs, 用最稳的写法
-    def make_pre_hook(idx):
-        def hook(module, input):
-            # input 通常是 (hidden_states,) tuple
-            h_in = input[0] if isinstance(input, tuple) else input
-            components[idx]["pre_attn"] = h_in[0, -1, :].detach().clone()
+    def make_post_hook(idx):
+        def hook(module, input, output):
+            if isinstance(output, tuple):
+                h_out = output[0]
+            else:
+                h_out = output
+            components[idx]["post_mlp"] = h_out[0, -1, :].detach().clone()
         return hook
 
     def make_attn_hook(idx):
@@ -88,19 +89,9 @@ def collect_component_hiddens(model, prompt_ids):
             components[idx]["mlp_out"] = output[0, -1, :].detach().clone()
         return hook
 
-    def make_post_hook(idx):
-        def hook(module, input, output):
-            if isinstance(output, tuple):
-                h_out = output[0]
-            else:
-                h_out = output
-            components[idx]["post_mlp"] = h_out[0, -1, :].detach().clone()
-        return hook
-
     hooks = []
     for i, layer in enumerate(layers):
         hooks.append(layer.register_forward_hook(make_post_hook(i)))
-        hooks.append(layer.register_forward_pre_hook(make_pre_hook(i)))
         attn, mlp, _ = get_attn_mlp_modules(model, i)
         if attn is not None:
             hooks.append(attn.register_forward_hook(make_attn_hook(i)))
@@ -113,21 +104,29 @@ def collect_component_hiddens(model, prompt_ids):
     for h in hooks:
         h.remove()
 
-    # 计算 post_attn = pre_attn + attn_out
+    # 计算 pre_attn: 上一层的 post_mlp (或 embedding)
+    # 用 post_mlp[l-1] 作为 pre_attn[l], post_mlp[-1] 用 embedding (近似用 post_mlp[0])
     for i in range(num_layers):
+        if i == 0:
+            # layer 0 的输入是 embedding, 用 attn_out 反推: pre_attn = post_mlp - attn_out - mlp_out
+            if components[i]["post_mlp"] is not None and components[i]["attn_out"] is not None and components[i]["mlp_out"] is not None:
+                components[i]["pre_attn"] = components[i]["post_mlp"] - components[i]["attn_out"] - components[i]["mlp_out"]
+        else:
+            # pre_attn[i] = post_mlp[i-1]
+            if components[i-1]["post_mlp"] is not None:
+                components[i]["pre_attn"] = components[i-1]["post_mlp"].clone()
+        # post_attn = pre_attn + attn_out
         if components[i]["pre_attn"] is not None and components[i]["attn_out"] is not None:
-            components[i]["post_attn"] = (
-                components[i]["pre_attn"] + components[i]["attn_out"]
-            )
+            components[i]["post_attn"] = components[i]["pre_attn"] + components[i]["attn_out"]
 
     return components, num_layers
 
 
 def logit_lens_cis(hidden, target_token, gen_token, final_norm, unembed):
-    """对单个 hidden state 用 logit lens 算 CIS."""
-    h = hidden.to(unembed.device).to(unembed.dtype)
+    """对单个 hidden state 用 logit lens 算 CIS (用 float32)."""
+    h = hidden.to(unembed.device).float()
     normed = final_norm(h)
-    logits = F.linear(normed, unembed)
+    logits = F.linear(normed, unembed.float())
     log_probs = F.log_softmax(logits, dim=-1)
     if target_token >= logits.shape[-1] or gen_token >= logits.shape[-1]:
         return 0.0
@@ -152,7 +151,14 @@ def run_component_decomposition(model, tokenizer, prepared, all_results, n_sampl
 
             prompt_ids = s["prompt_ids"]
             target_token = s["primary_answer_ids"][0]
-            gen_token = result.get("generated_token_ids", [target_token])[0]
+            # 从 generated 文本重新 tokenize gen_token
+            gen_text = result.get("generated", "")
+            if gen_text:
+                gen_full = tokenizer.encode(s["prompt_text"] + gen_text, add_special_tokens=False)
+                gen_ids = gen_full[len(prompt_ids):]
+                gen_token = gen_ids[0] if gen_ids else target_token
+            else:
+                gen_token = target_token
 
             components, num_layers = collect_component_hiddens(model, prompt_ids)
 
