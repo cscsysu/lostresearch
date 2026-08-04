@@ -1,12 +1,12 @@
 #!/bin/bash
 # 后台运行 Step 1 (1000 题前向采集) + Step 2 (因果干预)
 # 用法: bash run_all_background.sh
-# 日志: outputs/experiment.log
+# 日志: outputs/experiment_2.log
 
 set -e
 cd "$(dirname "$0")"
 
-LOG="outputs/experiment.log"
+LOG="outputs/experiment_all.log"
 
 echo "Starting full experiment (Step 1 + Step 2) in background..."
 echo "Log: $LOG"

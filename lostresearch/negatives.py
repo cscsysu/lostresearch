@@ -14,6 +14,7 @@ from typing import List, Dict
 import numpy as np
 import torch
 import torch.nn.functional as F
+from scipy import stats
 
 import config
 from trajectory_collector import TrajectoryCollector
@@ -118,7 +119,7 @@ def run_negative_controls(prepared_samples: List[Dict], all_results: List[Dict],
     print("=" * 70)
 
     results = []
-    n_control = min(20, len(prepared_samples))
+    n_control = min(50, len(prepared_samples))
 
     # 1. 随机标签
     try:
@@ -150,14 +151,28 @@ def run_negative_controls(prepared_samples: List[Dict], all_results: List[Dict],
     # 对比: 真实样本的信号
     real_mid_max = [max(s["correct_logprob"][1:-1])
                     for s in all_results if len(s["correct_logprob"]) > 2]
-    print(f"\n  真实样本 mid_max_logprob: {np.mean(real_mid_max):.2f} "
-          f"± {np.std(real_mid_max):.2f}")
-    print("\n  判据: 负对照的信号应显著弱于真实样本")
+    real_mean = np.mean(real_mid_max)
+    real_std = np.std(real_mid_max)
+    print(f"\n  真实样本 mid_max_logprob: {real_mean:.2f} "
+          f"± {real_std:.2f} (n={len(real_mid_max)})")
+    print(f"\n  统计检验 (t-test vs 真实样本):")
     for r in results:
         if r["control"] in ["random_label", "shuffled_answer"]:
-            if r["mid_max_logprob_mean"] < np.mean(real_mid_max) - 2 * np.std(real_mid_max):
-                print(f"  ✓ {r['control']} 信号显著弱于真实 (通过)")
+            ctrl_mean = r["mid_max_logprob_mean"]
+            ctrl_std = r["mid_max_logprob_std"]
+            ctrl_n = r["n"]
+            t_stat, p_val = stats.ttest_ind_from_stats(
+                ctrl_mean, ctrl_std, ctrl_n,
+                real_mean, real_std, len(real_mid_max)
+            )
+            cohens_d = (real_mean - ctrl_mean) / np.sqrt((ctrl_std**2 + real_std**2) / 2)
+            print(f"  {r['control']}: t={t_stat:.2f}, p={p_val:.4f}, "
+                  f"Cohen's d={cohens_d:.2f}")
+            if p_val < 0.01 and cohens_d > 0.5:
+                print(f"    ✓ 信号显著弱于真实 (p<0.01, d={cohens_d:.2f})")
+            elif p_val < 0.05:
+                print(f"    ~ 信号弱于真实但效果量较小 (p={p_val:.4f}, d={cohens_d:.2f})")
             else:
-                print(f"  ? {r['control']} 信号未显著弱于真实 (需检查)")
+                print(f"    ? 差异不显著 (p={p_val:.4f})")
 
     return results

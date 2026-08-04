@@ -1,5 +1,6 @@
 """Data loader: 多数据集加载, 精确 token 对齐."""
 import re
+import random
 from typing import List, Dict
 
 from datasets import load_dataset
@@ -126,6 +127,18 @@ def load_all_datasets() -> List[Dict]:
         except Exception as e:
             print(f"  Failed to load {label}: {e}")
     print(f"Total: {len(all_samples)} samples")
+
+    # 为每个样本添加 wrong_answer (用于 patching 实验的等长 corrupted prompt)
+    random.seed(42)
+    for i, s in enumerate(all_samples):
+        candidates = [o["answer"] for j, o in enumerate(all_samples)
+                      if o["task"] == s["task"] and j != i
+                      and o["answer"].lower() != s["answer"].lower()]
+        if candidates:
+            s["wrong_answer"] = random.choice(candidates)
+        else:
+            s["wrong_answer"] = "something else"
+
     return all_samples
 
 

@@ -105,9 +105,6 @@ def run_prediction_task(all_samples: List[Dict]) -> Dict:
 
     feature_names = list(features_list[0].keys())
     X = np.array([[f[k] for k in feature_names] for f in features_list])
-    # Scale features for MLP
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
     y_decay = np.array([t["will_decay"] for t in targets_list])
     y_correct = np.array([t["final_correct"] for t in targets_list])
     y_cis = np.array([t["final_cis_value"] for t in targets_list])
@@ -117,89 +114,95 @@ def run_prediction_task(all_samples: List[Dict]) -> Dict:
     print(f"  Target 'will_decay': {y_decay.sum()}/{len(y_decay)} positive")
     print(f"  Target 'final_correct': {y_correct.sum()}/{len(y_correct)} positive")
 
+    X_train, X_test, y_decay_train, y_decay_test, y_correct_train, y_correct_test, y_cis_train, y_cis_test = \
+        train_test_split(X, y_decay, y_correct, y_cis, test_size=0.2, random_state=42, stratify=y_decay)
+
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+
+    print(f"  Train: {len(X_train)}, Test: {len(X_test)}")
+
     results = {}
 
     # === 基线 1: Random ===
     np.random.seed(42)
-    y_pred_random = np.random.rand(len(y_decay))
     results["random"] = {
         "will_decay_auc": 0.5,
         "final_correct_auc": 0.5,
-        "final_cis_mae": float(np.mean(np.abs(y_cis - np.mean(y_cis)))),
+        "final_cis_mae": float(np.mean(np.abs(y_cis_test - np.mean(y_cis_train)))),
     }
 
     # === 基线 2: Persistence (用当前 CIS 直接预测) ===
-    cis_at_t0 = X[:, feature_names.index("cis_at_t0")]
+    cis_at_t0_test = X_test[:, feature_names.index("cis_at_t0")]
     results["persistence"] = {
-        "will_decay_auc": roc_auc_score(y_decay, -cis_at_t0) if y_decay.sum() > 0 else 0.5,
-        "final_correct_auc": roc_auc_score(y_correct, cis_at_t0) if y_correct.sum() > 0 else 0.5,
-        "final_cis_mae": float(np.mean(np.abs(y_cis - cis_at_t0))),
+        "will_decay_auc": roc_auc_score(y_decay_test, -cis_at_t0_test) if y_decay_test.sum() > 0 and y_decay_test.sum() < len(y_decay_test) else 0.5,
+        "final_correct_auc": roc_auc_score(y_correct_test, cis_at_t0_test) if y_correct_test.sum() > 0 and y_correct_test.sum() < len(y_correct_test) else 0.5,
+        "final_cis_mae": float(np.mean(np.abs(y_cis_test - cis_at_t0_test))),
     }
 
     # === 基线 3: Current CIS + slope ===
-    cis_slope = X[:, feature_names.index("cis_slope")]
-    persistence_plus = cis_at_t0 + 2 * cis_slope  # 简单线性外推
+    cis_slope_test = X_test[:, feature_names.index("cis_slope")]
+    persistence_plus_test = cis_at_t0_test + 2 * cis_slope_test
     results["persistence_plus"] = {
-        "will_decay_auc": roc_auc_score(y_decay, -persistence_plus) if y_decay.sum() > 0 else 0.5,
-        "final_correct_auc": roc_auc_score(y_correct, persistence_plus) if y_correct.sum() > 0 else 0.5,
-        "final_cis_mae": float(np.mean(np.abs(y_cis - persistence_plus))),
+        "will_decay_auc": roc_auc_score(y_decay_test, -persistence_plus_test) if y_decay_test.sum() > 0 and y_decay_test.sum() < len(y_decay_test) else 0.5,
+        "final_correct_auc": roc_auc_score(y_correct_test, persistence_plus_test) if y_correct_test.sum() > 0 and y_correct_test.sum() < len(y_correct_test) else 0.5,
+        "final_cis_mae": float(np.mean(np.abs(y_cis_test - persistence_plus_test))),
     }
 
     # === 基线 4: Linear Regression / Logistic ===
-    if len(X) >= 20:
-        # 回归
+    if len(X_train) >= 20:
         lr = LinearRegression()
-        lr.fit(X, y_cis)
-        y_pred_cis_lr = lr.predict(X)
-        # 分类
+        lr.fit(X_train, y_cis_train)
+        y_pred_cis_lr = lr.predict(X_test)
+
         clf_decay = LogisticRegression(max_iter=1000, random_state=42)
         clf_correct = LogisticRegression(max_iter=1000, random_state=42)
-        if y_decay.sum() > 0 and y_decay.sum() < len(y_decay):
-            clf_decay.fit(X, y_decay)
-            y_pred_decay_lr = clf_decay.predict_proba(X)[:, 1]
-            auc_decay_lr = roc_auc_score(y_decay, y_pred_decay_lr)
+        if y_decay_train.sum() > 0 and y_decay_train.sum() < len(y_decay_train):
+            clf_decay.fit(X_train, y_decay_train)
+            y_pred_decay_lr = clf_decay.predict_proba(X_test)[:, 1]
+            auc_decay_lr = roc_auc_score(y_decay_test, y_pred_decay_lr)
         else:
             auc_decay_lr = 0.5
-        if y_correct.sum() > 0 and y_correct.sum() < len(y_correct):
-            clf_correct.fit(X, y_correct)
-            y_pred_correct_lr = clf_correct.predict_proba(X)[:, 1]
-            auc_correct_lr = roc_auc_score(y_correct, y_pred_correct_lr)
+        if y_correct_train.sum() > 0 and y_correct_train.sum() < len(y_correct_train):
+            clf_correct.fit(X_train, y_correct_train)
+            y_pred_correct_lr = clf_correct.predict_proba(X_test)[:, 1]
+            auc_correct_lr = roc_auc_score(y_correct_test, y_pred_correct_lr)
         else:
             auc_correct_lr = 0.5
         results["linear"] = {
             "will_decay_auc": auc_decay_lr,
             "final_correct_auc": auc_correct_lr,
-            "final_cis_mae": float(np.mean(np.abs(y_cis - y_pred_cis_lr))),
+            "final_cis_mae": float(np.mean(np.abs(y_cis_test - y_pred_cis_lr))),
         }
 
     # === 基线 5: MLP (with scaling) ===
-    if len(X) >= 30:
-        # 回归
+    if len(X_train) >= 30:
         mlp_reg = MLPRegressor(hidden_layer_sizes=(64, 32), max_iter=1000,
                                random_state=42, early_stopping=True)
-        mlp_reg.fit(X_scaled, y_cis)
-        y_pred_cis_mlp = mlp_reg.predict(X_scaled)
-        # 分类
-        if y_decay.sum() > 0 and y_decay.sum() < len(y_decay):
+        mlp_reg.fit(X_train_scaled, y_cis_train)
+        y_pred_cis_mlp = mlp_reg.predict(X_test_scaled)
+
+        if y_decay_train.sum() > 0 and y_decay_train.sum() < len(y_decay_train):
             mlp_clf = MLPClassifier(hidden_layer_sizes=(64, 32), max_iter=1000,
                                      random_state=42, early_stopping=True)
-            mlp_clf.fit(X_scaled, y_decay)
-            y_pred_decay_mlp = mlp_clf.predict_proba(X_scaled)[:, 1]
-            auc_decay_mlp = roc_auc_score(y_decay, y_pred_decay_mlp)
+            mlp_clf.fit(X_train_scaled, y_decay_train)
+            y_pred_decay_mlp = mlp_clf.predict_proba(X_test_scaled)[:, 1]
+            auc_decay_mlp = roc_auc_score(y_decay_test, y_pred_decay_mlp)
         else:
             auc_decay_mlp = 0.5
-        if y_correct.sum() > 0 and y_correct.sum() < len(y_correct):
+        if y_correct_train.sum() > 0 and y_correct_train.sum() < len(y_correct_train):
             mlp_clf2 = MLPClassifier(hidden_layer_sizes=(64, 32), max_iter=1000,
                                       random_state=42, early_stopping=True)
-            mlp_clf2.fit(X_scaled, y_correct)
-            y_pred_correct_mlp = mlp_clf2.predict_proba(X_scaled)[:, 1]
-            auc_correct_mlp = roc_auc_score(y_correct, y_pred_correct_mlp)
+            mlp_clf2.fit(X_train_scaled, y_correct_train)
+            y_pred_correct_mlp = mlp_clf2.predict_proba(X_test_scaled)[:, 1]
+            auc_correct_mlp = roc_auc_score(y_correct_test, y_pred_correct_mlp)
         else:
             auc_correct_mlp = 0.5
         results["mlp"] = {
             "will_decay_auc": auc_decay_mlp,
             "final_correct_auc": auc_correct_mlp,
-            "final_cis_mae": float(np.mean(np.abs(y_cis - y_pred_cis_mlp))),
+            "final_cis_mae": float(np.mean(np.abs(y_cis_test - y_pred_cis_mlp))),
         }
 
     # === 打印结果 ===
