@@ -266,7 +266,7 @@ def main():
     samples = load_all_datasets()
     prepared = prepare_samples(samples, tokenizer)
 
-    # 加载已有结果 (为了拿 generated_token_ids)
+    # 加载已有结果 (为了拿 generated 文本和 final_correct)
     results_file = os.path.join(config.DATA_DIR, "full_results_Qwen3-8B.json")
     if os.path.exists(results_file):
         with open(results_file) as f:
@@ -274,7 +274,7 @@ def main():
         for s in prepared:
             if s["id"] in existing:
                 s["final_correct"] = existing[s["id"]]["final_correct"]
-                s["generated_token_ids"] = existing[s["id"]].get("generated_token_ids", [])
+                s["generated"] = existing[s["id"]].get("generated", "")
 
     # 1. 采集 hiddens + final logits
     hiddens, final_logits, num_layers = collect_all_hiddens(model, prepared, n_samples=200)
