@@ -106,7 +106,17 @@ def run_multitoken_cis(model, tokenizer, prepared, all_results, n_samples=200):
 
             prompt_ids = s["prompt_ids"]
             gold_ids = s["primary_answer_ids"]
-            gen_ids = result.get("generated_token_ids", gold_ids)
+            # result 里没有 generated_token_ids, 从 generated 文本重新 tokenize
+            gen_text = result.get("generated", "")
+            if not gen_text:
+                skipped += 1
+                continue
+            # 用 prompt + generated text 的方式精确对齐
+            prompt_text = s["prompt_text"]
+            gen_full_ids = tokenizer.encode(prompt_text + gen_text, add_special_tokens=False)
+            prompt_ids_check = tokenizer.encode(prompt_text, add_special_tokens=False)
+            gen_ids = gen_full_ids[len(prompt_ids_check):]
+            gen_ids = gen_ids[:config.MAX_ANSWER_TOKENS]
 
             if len(gold_ids) <= 1 or len(gen_ids) <= 1:
                 skipped += 1

@@ -1,0 +1,27 @@
+{
+  "random": {
+    "will_decay_auc": 0.5,
+    "final_correct_auc": 0.5,
+    "final_cis_mae": 7.595231457233428
+  },
+  "persistence": {
+    "will_decay_auc": 0.6503331801470589,
+    "final_correct_auc": 0.692258064516129,
+    "final_cis_mae": 8.502523527741433
+  },
+  "persistence_plus": {
+    "will_decay_auc": 0.6560202205882352,
+    "final_correct_auc": 0.6836559139784946,
+    "final_cis_mae": 8.455307815935875
+  },
+  "linear": {
+    "will_decay_auc": 0.9278492647058824,
+    "final_correct_auc": 0.8273835125448029,
+    "final_cis_mae": 5.416910354004877
+  },
+  "mlp": {
+    "will_decay_auc": 0.9192325367647058,
+    "final_correct_auc": 0.8365591397849462,
+    "final_cis_mae": 4.59561109331276
+  }
+}

@@ -1,0 +1,334 @@
+Starting P0 experiments...
+=== P0-1+2: Top-k Sensitivity (no model needed) ===
+Loaded 1000 samples
+
+======================================================================
+P0-1: Top-k Sensitivity Analysis
+======================================================================
+
+错误样本数: 705
+
+k      信号丢失占比          95% CI              
+---------------------------------------------
+1      2.7%           [1.6, 4.0]
+3      1.6%           [0.7, 2.6]
+5      0.9%           [0.3, 1.6]
+10     0.7%           [0.1, 1.4]
+20     1.1%           [0.4, 2.0]
+50     0.4%           [0.0, 1.0]
+
+Saved: /data2/css2025/lostresearch/lostresearch/outputs/figures/topk_sensitivity_Qwen3-8B.png
+
+✓ 现象在 k=1..50 下稳定 (变化 < 10pp)
+Saved: /data2/css2025/lostresearch/lostresearch/outputs/data/topk_sensitivity_Qwen3-8B.json
+
+=== P0-3+5: Strong Baselines + Cross-task Transfer (no model) ===
+/data2/css2025/envs/cscllm/lib/python3.12/site-packages/sklearn/linear_model/_logistic.py:406: ConvergenceWarning: lbfgs failed to converge after 2000 iteration(s) (status=1):
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT
+
+Increase the number of iterations to improve the convergence (max_iter=2000).
+You might also want to scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+Please also refer to the documentation for alternative solver options:
+    https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
+  n_iter_i = _check_optimize_result(
+/data2/css2025/envs/cscllm/lib/python3.12/site-packages/sklearn/linear_model/_logistic.py:406: ConvergenceWarning: lbfgs failed to converge after 2000 iteration(s) (status=1):
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT
+
+Increase the number of iterations to improve the convergence (max_iter=2000).
+You might also want to scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+Please also refer to the documentation for alternative solver options:
+    https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
+  n_iter_i = _check_optimize_result(
+Loaded 1000 samples
+
+======================================================================
+P0-3: Strong Baselines
+======================================================================
+
+  Baseline                  Decay AUC    Correct AUC   
+  ---------------------------------------------------
+  cis_at_t0                 0.690        0.681         
+  cis_max_before            0.461        0.549         
+  cis_slope                 0.635        0.617         
+  rank_at_t0                0.327        0.348         
+  rank_min_before           0.324        0.338         
+  logprob_at_t0             0.674        0.653         
+  logprob_max_before        0.676        0.662         
+  entropy_at_t0             0.266        0.268         
+  question_length           0.262        0.271         
+
+  cis_only                  0.690        0.681           (1 feats)
+  cis_plus_slope            0.689        0.682           (2 feats)
+  rank_only                 0.673        0.652           (1 feats)
+  rank_plus_cis             0.693        0.685           (2 feats)
+  max_sofar                 0.539        0.549           (1 feats)
+  max_plus_slope            0.656        0.618           (2 feats)
+  all_trajectory            0.955        0.860           (14 feats)
+  mlp_all                   0.925        0.885           (14 feats)
+
+======================================================================
+P0-5: Cross-Task Predictor Transfer
+======================================================================
+  Tasks: {'hotpotqa', 'triviaqa', 'gsm8k'}
+  hotpotqa: 250 samples, decay rate=0.74
+  triviaqa: 500 samples, decay rate=0.50
+  gsm8k: 250 samples, decay rate=0.98
+
+  Train        Test         Decay AUC    Correct AUC   
+  --------------------------------------------------
+  hotpotqa     triviaqa     0.795        0.716         
+  hotpotqa     gsm8k        1.000        0.650         
+  triviaqa     hotpotqa     0.935        0.804         
+  triviaqa     gsm8k        0.955        0.574         
+  gsm8k        hotpotqa     0.978        0.633         
+  gsm8k        triviaqa     0.677        0.491         
+
+  Leave-one-task-out:
+  Hold hotpotqa    : decay AUC = 0.947
+  Hold triviaqa    : decay AUC = 0.775
+  Hold gsm8k       : decay AUC = 0.966
+
+Saved: /data2/css2025/lostresearch/lostresearch/outputs/data/p0_baselines_transfer_Qwen3-8B.json
+
+=== P0-1: Multi-token Sequence-level CIS (needs model) ===
+Loading model...
+Loading weights:   0%|          | 0/399 [00:00<?, ?it/s]Loading weights:   0%|          | 1/399 [00:00<03:18,  2.01it/s]Loading weights:   4%|▍         | 15/399 [00:00<00:12, 30.65it/s]Loading weights:   7%|▋         | 26/399 [00:00<00:07, 46.89it/s]Loading weights:   9%|▉         | 37/399 [00:00<00:06, 58.82it/s]Loading weights:  12%|█▏        | 48/399 [00:01<00:05, 66.44it/s]Loading weights:  14%|█▍        | 57/399 [00:01<00:04, 69.85it/s]Loading weights:  17%|█▋        | 66/399 [00:01<00:04, 69.39it/s]Loading weights:  19%|█▊        | 74/399 [00:01<00:04, 65.56it/s]Loading weights:  21%|██        | 82/399 [00:01<00:04, 67.81it/s]Loading weights:  23%|██▎       | 92/399 [00:01<00:04, 75.21it/s]Loading weights:  25%|██▌       | 100/399 [00:01<00:03, 76.24it/s]Loading weights:  27%|██▋       | 108/399 [00:01<00:04, 71.86it/s]Loading weights:  29%|██▉       | 116/399 [00:01<00:04, 66.59it/s]Loading weights:  32%|███▏      | 126/399 [00:02<00:03, 74.02it/s]Loading weights:  34%|███▍      | 136/399 [00:02<00:03, 78.91it/s]Loading weights:  36%|███▋      | 145/399 [00:02<00:03, 80.47it/s]Loading weights:  39%|███▊      | 154/399 [00:02<00:03, 76.20it/s]Loading weights:  41%|████      | 162/399 [00:02<00:03, 71.64it/s]Loading weights:  43%|████▎     | 170/399 [00:02<00:03, 71.84it/s]Loading weights:  45%|████▌     | 180/399 [00:02<00:03, 69.70it/s]Loading weights:  48%|████▊     | 191/399 [00:02<00:02, 77.75it/s]Loading weights:  50%|████▉     | 199/399 [00:03<00:02, 77.66it/s]Loading weights:  52%|█████▏    | 207/399 [00:03<00:02, 77.52it/s]Loading weights:  54%|█████▍    | 215/399 [00:03<00:02, 72.11it/s]Loading weights:  56%|█████▋    | 225/399 [00:03<00:02, 77.98it/s]Loading weights:  59%|█████▉    | 235/399 [00:03<00:01, 82.34it/s]Loading weights:  61%|██████    | 244/399 [00:03<00:01, 82.79it/s]Loading weights:  63%|██████▎   | 253/399 [00:03<00:01, 75.57it/s]Loading weights:  65%|██████▌   | 261/399 [00:03<00:01, 73.06it/s]Loading weights:  67%|██████▋   | 269/399 [00:03<00:01, 70.24it/s]Loading weights:  70%|██████▉   | 279/399 [00:04<00:01, 76.32it/s]Loading weights:  72%|███████▏  | 287/399 [00:04<00:01, 70.16it/s]Loading weights:  74%|███████▍  | 295/399 [00:04<00:01, 69.32it/s]Loading weights:  76%|███████▌  | 303/399 [00:04<00:01, 64.80it/s]Loading weights:  78%|███████▊  | 313/399 [00:04<00:01, 71.99it/s]Loading weights:  80%|████████  | 321/399 [00:04<00:01, 72.61it/s]Loading weights:  82%|████████▏ | 329/399 [00:04<00:01, 68.57it/s]Loading weights:  84%|████████▍ | 336/399 [00:04<00:00, 63.50it/s]Loading weights:  87%|████████▋ | 346/399 [00:05<00:00, 71.56it/s]Loading weights:  89%|████████▉ | 356/399 [00:05<00:00, 77.26it/s]Loading weights:  91%|█████████ | 364/399 [00:05<00:00, 77.50it/s]Loading weights:  93%|█████████▎| 372/399 [00:05<00:00, 77.09it/s]Loading weights:  95%|█████████▌| 380/399 [00:05<00:00, 71.62it/s]Loading weights:  98%|█████████▊| 390/399 [00:05<00:00, 77.05it/s]Loading weights: 100%|██████████| 399/399 [00:05<00:00, 69.99it/s]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading data...
+Loading triviaqa (n=500) ...
+  Loaded 500 samples
+Loading hotpotqa (n=250) ...
+  Loaded 250 samples
+Loading gsm8k (n=250) ...
+  Loaded 250 samples
+Total: 1000 samples
+Tokenizing:   0%|          | 0/1000 [00:00<?, ?it/s]Tokenizing:   2%|▏         | 19/1000 [00:00<00:05, 173.85it/s]Tokenizing:   4%|▍         | 42/1000 [00:00<00:04, 205.33it/s]Tokenizing:   8%|▊         | 79/1000 [00:00<00:03, 267.01it/s]Tokenizing:  12%|█▏        | 119/1000 [00:00<00:02, 316.97it/s]Tokenizing:  16%|█▌        | 156/1000 [00:00<00:02, 334.08it/s]Tokenizing:  19%|█▉        | 190/1000 [00:00<00:02, 323.12it/s]Tokenizing:  22%|██▏       | 223/1000 [00:00<00:02, 264.14it/s]Tokenizing:  25%|██▌       | 252/1000 [00:00<00:02, 266.48it/s]Tokenizing:  28%|██▊       | 280/1000 [00:01<00:02, 252.55it/s]Tokenizing:  31%|███       | 309/1000 [00:01<00:02, 260.55it/s]Tokenizing:  35%|███▍      | 349/1000 [00:01<00:02, 296.14it/s]Tokenizing:  38%|███▊      | 380/1000 [00:01<00:02, 294.49it/s]Tokenizing:  42%|████▏     | 421/1000 [00:01<00:01, 325.60it/s]Tokenizing:  46%|████▌     | 460/1000 [00:01<00:01, 339.38it/s]Tokenizing:  50%|████▉     | 499/1000 [00:01<00:01, 351.40it/s]Tokenizing:  69%|██████▉   | 688/1000 [00:01<00:00, 796.78it/s]Tokenizing:  84%|████████▍ | 840/1000 [00:01<00:00, 1008.21it/s]Tokenizing:  97%|█████████▋| 969/1000 [00:01<00:00, 1089.69it/s]Tokenizing: 100%|██████████| 1000/1000 [00:01<00:00, 503.51it/s]
+Prepared 1000 samples (skipped 0)
+
+======================================================================
+P0-1: Multi-token Sequence-level CIS
+======================================================================
+Multi-token CIS:   0%|          | 0/200 [00:00<?, ?it/s]Multi-token CIS:   0%|          | 1/200 [00:01<04:29,  1.35s/it]Multi-token CIS:   1%|          | 2/200 [00:02<03:27,  1.05s/it]Multi-token CIS:   2%|▏         | 3/200 [00:03<03:07,  1.05it/s]Multi-token CIS:   2%|▏         | 4/200 [00:04<03:25,  1.05s/it]Multi-token CIS:   2%|▎         | 5/200 [00:04<02:56,  1.10it/s]Multi-token CIS:   3%|▎         | 6/200 [00:05<02:39,  1.22it/s]Multi-token CIS:   4%|▎         | 7/200 [00:06<02:39,  1.21it/s]Multi-token CIS:   4%|▍         | 8/200 [00:07<02:39,  1.21it/s]Multi-token CIS:   4%|▍         | 9/200 [00:07<02:27,  1.29it/s]Multi-token CIS:   5%|▌         | 10/200 [00:08<02:42,  1.17it/s]Multi-token CIS:   6%|▌         | 11/200 [00:09<02:50,  1.11it/s]Multi-token CIS:   6%|▌         | 12/200 [00:10<02:35,  1.21it/s]Multi-token CIS:   6%|▋         | 13/200 [00:11<02:55,  1.06it/s]Multi-token CIS:   7%|▋         | 14/200 [00:13<03:29,  1.13s/it]Multi-token CIS:   8%|▊         | 15/200 [00:15<04:11,  1.36s/it]Multi-token CIS:   8%|▊         | 16/200 [00:16<04:11,  1.37s/it]Multi-token CIS:   8%|▊         | 17/200 [00:18<04:19,  1.42s/it]Multi-token CIS:   9%|▉         | 18/200 [00:20<04:54,  1.62s/it]Multi-token CIS:  10%|▉         | 19/200 [00:21<04:29,  1.49s/it]Multi-token CIS:  10%|█         | 21/200 [00:22<02:50,  1.05it/s]Multi-token CIS:  11%|█         | 22/200 [00:22<02:36,  1.14it/s]Multi-token CIS:  12%|█▏        | 23/200 [00:23<02:33,  1.15it/s]Multi-token CIS:  12%|█▏        | 24/200 [00:24<02:22,  1.23it/s]Multi-token CIS:  12%|█▎        | 25/200 [00:24<02:14,  1.30it/s]Multi-token CIS:  13%|█▎        | 26/200 [00:25<02:08,  1.36it/s]Multi-token CIS:  14%|█▎        | 27/200 [00:26<02:03,  1.40it/s]Multi-token CIS:  14%|█▍        | 28/200 [00:26<01:59,  1.44it/s]Multi-token CIS:  14%|█▍        | 29/200 [00:27<02:06,  1.36it/s]Multi-token CIS:  15%|█▌        | 30/200 [00:28<02:10,  1.30it/s]Multi-token CIS:  16%|█▌        | 31/200 [00:29<02:39,  1.06it/s]Multi-token CIS:  16%|█▌        | 32/200 [00:31<02:50,  1.02s/it]Multi-token CIS:  16%|█▋        | 33/200 [00:32<02:58,  1.07s/it]Multi-token CIS:  17%|█▋        | 34/200 [00:34<03:47,  1.37s/it]Multi-token CIS:  18%|█▊        | 35/200 [00:36<04:21,  1.58s/it]Multi-token CIS:  18%|█▊        | 37/200 [00:38<03:38,  1.34s/it]Multi-token CIS:  19%|█▉        | 38/200 [00:39<03:25,  1.27s/it]Multi-token CIS:  20%|█▉        | 39/200 [00:41<03:58,  1.48s/it]Multi-token CIS:  20%|██        | 40/200 [00:43<04:23,  1.65s/it]Multi-token CIS:  20%|██        | 41/200 [00:44<03:38,  1.37s/it]Multi-token CIS:  21%|██        | 42/200 [00:45<03:12,  1.22s/it]Multi-token CIS:  22%|██▏       | 43/200 [00:47<03:50,  1.47s/it]Multi-token CIS:  22%|██▏       | 44/200 [00:48<03:52,  1.49s/it]Multi-token CIS:  22%|██▎       | 45/200 [00:49<03:21,  1.30s/it]Multi-token CIS:  23%|██▎       | 46/200 [00:50<03:15,  1.27s/it]Multi-token CIS:  24%|██▎       | 47/200 [00:51<02:45,  1.08s/it]Multi-token CIS:  24%|██▍       | 48/200 [00:52<02:41,  1.06s/it]Multi-token CIS:  24%|██▍       | 49/200 [00:53<02:30,  1.01it/s]Multi-token CIS:  25%|██▌       | 50/200 [00:54<02:37,  1.05s/it]Multi-token CIS:  26%|██▌       | 52/200 [00:55<01:52,  1.32it/s]Multi-token CIS:  26%|██▋       | 53/200 [00:57<02:30,  1.02s/it]Multi-token CIS:  27%|██▋       | 54/200 [00:57<02:15,  1.08it/s]Multi-token CIS:  28%|██▊       | 55/200 [00:58<02:17,  1.05it/s]Multi-token CIS:  28%|██▊       | 56/200 [00:59<02:04,  1.15it/s]Multi-token CIS:  28%|██▊       | 57/200 [01:00<02:02,  1.16it/s]Multi-token CIS:  29%|██▉       | 58/200 [01:01<01:53,  1.25it/s]Multi-token CIS:  30%|██▉       | 59/200 [01:02<02:01,  1.16it/s]Multi-token CIS:  30%|███       | 60/200 [01:03<02:06,  1.10it/s]Multi-token CIS:  30%|███       | 61/200 [01:05<02:54,  1.25s/it]Multi-token CIS:  31%|███       | 62/200 [01:06<02:43,  1.18s/it]Multi-token CIS:  32%|███▏      | 63/200 [01:06<02:20,  1.03s/it]Multi-token CIS:  32%|███▏      | 64/200 [01:07<02:04,  1.09it/s]Multi-token CIS:  32%|███▎      | 65/200 [01:08<01:53,  1.19it/s]Multi-token CIS:  34%|███▎      | 67/200 [01:09<01:25,  1.55it/s]Multi-token CIS:  34%|███▍      | 68/200 [01:09<01:26,  1.53it/s]Multi-token CIS:  34%|███▍      | 69/200 [01:10<01:44,  1.26it/s]Multi-token CIS:  35%|███▌      | 70/200 [01:11<01:38,  1.32it/s]Multi-token CIS:  36%|███▌      | 71/200 [01:12<01:47,  1.20it/s]Multi-token CIS:  36%|███▌      | 72/200 [01:13<01:46,  1.20it/s]Multi-token CIS:  36%|███▋      | 73/200 [01:14<01:59,  1.06it/s]Multi-token CIS:  37%|███▋      | 74/200 [01:15<01:48,  1.16it/s]Multi-token CIS:  38%|███▊      | 75/200 [01:16<01:46,  1.17it/s]Multi-token CIS:  38%|███▊      | 76/200 [01:16<01:38,  1.26it/s]Multi-token CIS:  38%|███▊      | 77/200 [01:17<01:39,  1.24it/s]Multi-token CIS:  39%|███▉      | 78/200 [01:18<01:45,  1.15it/s]Multi-token CIS:  40%|████      | 80/200 [01:19<01:14,  1.61it/s]Multi-token CIS:  40%|████      | 81/200 [01:20<01:20,  1.49it/s]Multi-token CIS:  41%|████      | 82/200 [01:20<01:18,  1.49it/s]Multi-token CIS:  42%|████▏     | 83/200 [01:21<01:17,  1.50it/s]Multi-token CIS:  42%|████▏     | 84/200 [01:22<01:28,  1.31it/s]Multi-token CIS:  43%|████▎     | 86/200 [01:23<01:18,  1.45it/s]Multi-token CIS:  44%|████▎     | 87/200 [01:24<01:36,  1.17it/s]Multi-token CIS:  44%|████▍     | 88/200 [01:25<01:34,  1.18it/s]Multi-token CIS:  44%|████▍     | 89/200 [01:27<01:44,  1.07it/s]Multi-token CIS:  45%|████▌     | 90/200 [01:27<01:34,  1.16it/s]Multi-token CIS:  46%|████▌     | 91/200 [01:28<01:33,  1.17it/s]Multi-token CIS:  46%|████▌     | 92/200 [01:29<01:26,  1.25it/s]Multi-token CIS:  46%|████▋     | 93/200 [01:30<01:32,  1.16it/s]Multi-token CIS:  47%|████▋     | 94/200 [01:30<01:24,  1.25it/s]Multi-token CIS:  48%|████▊     | 95/200 [01:31<01:19,  1.32it/s]Multi-token CIS:  48%|████▊     | 96/200 [01:32<01:15,  1.37it/s]Multi-token CIS:  48%|████▊     | 97/200 [01:33<01:23,  1.23it/s]Multi-token CIS:  49%|████▉     | 98/200 [01:34<01:34,  1.08it/s]Multi-token CIS:  50%|████▉     | 99/200 [01:35<01:25,  1.18it/s]Multi-token CIS:  50%|█████     | 100/200 [01:35<01:18,  1.27it/s]Multi-token CIS:  50%|█████     | 101/200 [01:36<01:24,  1.17it/s]Multi-token CIS:  51%|█████     | 102/200 [01:37<01:18,  1.25it/s]Multi-token CIS:  52%|█████▏    | 103/200 [01:38<01:18,  1.24it/s]Multi-token CIS:  52%|█████▏    | 104/200 [01:39<01:28,  1.08it/s]Multi-token CIS:  52%|█████▎    | 105/200 [01:40<01:20,  1.18it/s]Multi-token CIS:  53%|█████▎    | 106/200 [01:40<01:14,  1.26it/s]Multi-token CIS:  54%|█████▎    | 107/200 [01:41<01:20,  1.16it/s]Multi-token CIS:  54%|█████▍    | 108/200 [01:42<01:18,  1.17it/s]Multi-token CIS:  55%|█████▍    | 109/200 [01:43<01:22,  1.10it/s]Multi-token CIS:  55%|█████▌    | 110/200 [01:44<01:15,  1.20it/s]Multi-token CIS:  56%|█████▌    | 111/200 [01:45<01:14,  1.20it/s]Multi-token CIS:  56%|█████▌    | 112/200 [01:45<01:09,  1.27it/s]Multi-token CIS:  56%|█████▋    | 113/200 [01:46<01:04,  1.34it/s]Multi-token CIS:  57%|█████▋    | 114/200 [01:47<01:06,  1.29it/s]Multi-token CIS:  57%|█████▊    | 115/200 [01:48<01:21,  1.05it/s]Multi-token CIS:  58%|█████▊    | 116/200 [01:49<01:26,  1.03s/it]Multi-token CIS:  58%|█████▊    | 117/200 [01:50<01:24,  1.02s/it]Multi-token CIS:  59%|█████▉    | 118/200 [01:51<01:19,  1.03it/s]Multi-token CIS:  60%|█████▉    | 119/200 [01:52<01:15,  1.08it/s]Multi-token CIS:  60%|██████    | 120/200 [01:53<01:07,  1.18it/s]Multi-token CIS:  60%|██████    | 121/200 [01:53<01:02,  1.26it/s]Multi-token CIS:  61%|██████    | 122/200 [01:54<01:02,  1.24it/s]Multi-token CIS:  62%|██████▏   | 123/200 [01:55<00:58,  1.31it/s]Multi-token CIS:  62%|██████▎   | 125/200 [01:56<00:48,  1.55it/s]Multi-token CIS:  63%|██████▎   | 126/200 [01:57<00:55,  1.34it/s]Multi-token CIS:  64%|██████▎   | 127/200 [01:58<00:56,  1.29it/s]Multi-token CIS:  64%|██████▍   | 128/200 [01:58<00:54,  1.33it/s]Multi-token CIS:  64%|██████▍   | 129/200 [01:59<00:55,  1.27it/s]Multi-token CIS:  65%|██████▌   | 130/200 [02:00<00:52,  1.33it/s]Multi-token CIS:  66%|██████▌   | 131/200 [02:01<01:01,  1.11it/s]Multi-token CIS:  66%|██████▌   | 132/200 [02:02<00:57,  1.19it/s]Multi-token CIS:  66%|██████▋   | 133/200 [02:03<01:08,  1.02s/it]Multi-token CIS:  67%|██████▋   | 134/200 [02:04<01:02,  1.05it/s]Multi-token CIS:  68%|██████▊   | 135/200 [02:06<01:11,  1.10s/it]Multi-token CIS:  68%|██████▊   | 136/200 [02:06<01:04,  1.01s/it]Multi-token CIS:  69%|██████▉   | 138/200 [02:08<00:52,  1.18it/s]Multi-token CIS:  70%|██████▉   | 139/200 [02:09<00:52,  1.15it/s]Multi-token CIS:  70%|███████   | 140/200 [02:10<00:52,  1.14it/s]Multi-token CIS:  70%|███████   | 141/200 [02:12<01:09,  1.17s/it]Multi-token CIS:  71%|███████   | 142/200 [02:14<01:21,  1.40s/it]Multi-token CIS:  72%|███████▏  | 144/200 [02:15<00:56,  1.01s/it]Multi-token CIS:  72%|███████▎  | 145/200 [02:16<01:00,  1.10s/it]Multi-token CIS:  73%|███████▎  | 146/200 [02:17<01:03,  1.17s/it]Multi-token CIS:  74%|███████▎  | 147/200 [02:19<01:13,  1.40s/it]Multi-token CIS:  74%|███████▍  | 148/200 [02:23<01:46,  2.05s/it]Multi-token CIS:  74%|███████▍  | 149/200 [02:25<01:40,  1.96s/it]Multi-token CIS:  75%|███████▌  | 150/200 [02:27<01:35,  1.90s/it]Multi-token CIS:  76%|███████▌  | 151/200 [02:28<01:30,  1.86s/it]Multi-token CIS:  76%|███████▌  | 152/200 [02:30<01:27,  1.82s/it]Multi-token CIS:  76%|███████▋  | 153/200 [02:31<01:18,  1.68s/it]Multi-token CIS:  77%|███████▋  | 154/200 [02:33<01:12,  1.58s/it]Multi-token CIS:  78%|███████▊  | 155/200 [02:35<01:23,  1.86s/it]Multi-token CIS:  78%|███████▊  | 157/200 [02:37<00:59,  1.37s/it]Multi-token CIS:  79%|███████▉  | 158/200 [02:38<00:59,  1.43s/it]Multi-token CIS:  80%|███████▉  | 159/200 [02:40<01:00,  1.47s/it]Multi-token CIS:  80%|████████  | 160/200 [02:42<00:59,  1.50s/it]Multi-token CIS:  80%|████████  | 161/200 [02:43<00:59,  1.53s/it]Multi-token CIS:  81%|████████  | 162/200 [02:46<01:13,  1.94s/it]Multi-token CIS:  82%|████████▏ | 163/200 [02:48<01:08,  1.85s/it]Multi-token CIS:  82%|████████▏ | 164/200 [02:50<01:13,  2.06s/it]Multi-token CIS:  82%|████████▎ | 165/200 [02:55<01:41,  2.91s/it]Multi-token CIS:  83%|████████▎ | 166/200 [02:58<01:35,  2.81s/it]Multi-token CIS:  84%|████████▎ | 167/200 [03:01<01:39,  3.01s/it]Multi-token CIS:  84%|████████▍ | 168/200 [03:04<01:27,  2.74s/it]Multi-token CIS:  84%|████████▍ | 169/200 [03:06<01:19,  2.55s/it]Multi-token CIS:  85%|████████▌ | 170/200 [03:09<01:20,  2.70s/it]Multi-token CIS:  86%|████████▌ | 171/200 [03:12<01:21,  2.80s/it]Multi-token CIS:  86%|████████▌ | 172/200 [03:14<01:12,  2.58s/it]Multi-token CIS:  86%|████████▋ | 173/200 [03:16<01:09,  2.58s/it]Multi-token CIS:  87%|████████▋ | 174/200 [03:19<01:06,  2.57s/it]Multi-token CIS:  88%|████████▊ | 175/200 [03:21<00:57,  2.29s/it]Multi-token CIS:  88%|████████▊ | 176/200 [03:22<00:50,  2.09s/it]Multi-token CIS:  89%|████████▉ | 178/200 [03:24<00:35,  1.61s/it]Multi-token CIS:  90%|█████████ | 180/200 [03:26<00:27,  1.39s/it]Multi-token CIS:  91%|█████████ | 182/200 [03:29<00:24,  1.35s/it]Multi-token CIS:  92%|█████████▏| 183/200 [03:32<00:30,  1.79s/it]Multi-token CIS:  92%|█████████▏| 184/200 [03:34<00:28,  1.75s/it]Multi-token CIS:  92%|█████████▎| 185/200 [03:36<00:25,  1.73s/it]Multi-token CIS:  93%|█████████▎| 186/200 [03:38<00:25,  1.82s/it]Multi-token CIS:  94%|█████████▎| 187/200 [03:39<00:23,  1.77s/it]Multi-token CIS:  94%|█████████▍| 188/200 [03:41<00:20,  1.74s/it]Multi-token CIS:  94%|█████████▍| 189/200 [03:44<00:23,  2.11s/it]Multi-token CIS:  95%|█████████▌| 190/200 [03:46<00:19,  1.97s/it]Multi-token CIS:  96%|█████████▌| 192/200 [03:47<00:11,  1.44s/it]Multi-token CIS:  97%|█████████▋| 194/200 [03:50<00:08,  1.47s/it]Multi-token CIS:  98%|█████████▊| 195/200 [03:53<00:09,  1.82s/it]Multi-token CIS:  98%|█████████▊| 196/200 [03:55<00:07,  1.78s/it]Multi-token CIS:  99%|█████████▉| 198/200 [03:57<00:02,  1.40s/it]Multi-token CIS: 100%|█████████▉| 199/200 [03:59<00:01,  1.56s/it]Multi-token CIS: 100%|██████████| 200/200 [04:00<00:00,  1.58s/it]Multi-token CIS: 100%|██████████| 200/200 [04:00<00:00,  1.20s/it]
+/data2/css2025/envs/cscllm/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:3023: RuntimeWarning: invalid value encountered in divide
+  c /= stddev[:, None]
+
+  Computed: 184, Skipped (single token): 16
+
+  Comparison: Sequence-level vs First-token CIS
+  Metric                         Seq-level    First-token 
+  ------------------------------------------------------
+  Correct (n=56):
+    Peak CIS                     0.000        0.000       
+    Final CIS                    0.000        0.000       
+  Incorrect (n=128):
+    Peak CIS                     0.000        0.000       
+    Final CIS                    0.000        0.000       
+
+  Final CIS correlation (seq vs first-token): nan
+  ! 低相关 → multi-token 与 first-token 给出不同结论
+
+Saved: /data2/css2025/lostresearch/lostresearch/outputs/data/multitoken_cis_Qwen3-8B.json
+
+=== P0-4: Tuned Lens Comparison (needs model, slow) ===
+Loading model...
+Loading weights:   0%|          | 0/399 [00:00<?, ?it/s]Loading weights:   0%|          | 1/399 [00:00<01:10,  5.64it/s]Loading weights:   1%|          | 2/399 [00:00<01:32,  4.30it/s]Loading weights:   3%|▎         | 11/399 [00:00<00:14, 26.46it/s]Loading weights:   4%|▍         | 17/399 [00:00<00:10, 35.38it/s]Loading weights:   7%|▋         | 27/399 [00:00<00:07, 52.64it/s]Loading weights:   9%|▉         | 37/399 [00:00<00:05, 65.06it/s]Loading weights:  11%|█▏        | 45/399 [00:00<00:05, 69.18it/s]Loading weights:  13%|█▎        | 53/399 [00:01<00:04, 69.88it/s]Loading weights:  15%|█▌        | 61/399 [00:01<00:05, 65.67it/s]Loading weights:  18%|█▊        | 71/399 [00:01<00:04, 72.61it/s]Loading weights:  20%|██        | 81/399 [00:01<00:04, 70.86it/s]Loading weights:  23%|██▎       | 92/399 [00:01<00:03, 79.04it/s]Loading weights:  25%|██▌       | 101/399 [00:01<00:03, 80.44it/s]Loading weights:  28%|██▊       | 110/399 [00:01<00:03, 76.83it/s]Loading weights:  30%|██▉       | 118/399 [00:01<00:03, 71.82it/s]Loading weights:  32%|███▏      | 126/399 [00:02<00:04, 66.23it/s]Loading weights:  34%|███▍      | 137/399 [00:02<00:03, 75.58it/s]Loading weights:  37%|███▋      | 147/399 [00:02<00:03, 79.71it/s]Loading weights:  39%|███▉      | 156/399 [00:02<00:03, 80.42it/s]Loading weights:  41%|████▏     | 165/399 [00:02<00:03, 76.64it/s]Loading weights:  43%|████▎     | 173/399 [00:02<00:03, 71.45it/s]Loading weights:  45%|████▌     | 181/399 [00:02<00:03, 71.34it/s]Loading weights:  48%|████▊     | 191/399 [00:02<00:02, 76.62it/s]Loading weights:  50%|████▉     | 199/399 [00:03<00:02, 76.13it/s]Loading weights:  52%|█████▏    | 207/399 [00:03<00:02, 73.08it/s]Loading weights:  54%|█████▍    | 215/399 [00:03<00:02, 69.33it/s]Loading weights:  57%|█████▋    | 226/399 [00:03<00:02, 74.67it/s]Loading weights:  59%|█████▉    | 237/399 [00:03<00:02, 77.21it/s]Loading weights:  62%|██████▏   | 247/399 [00:03<00:01, 81.55it/s]Loading weights:  64%|██████▍   | 257/399 [00:03<00:01, 84.80it/s]Loading weights:  67%|██████▋   | 266/399 [00:03<00:01, 84.97it/s]Loading weights:  69%|██████▉   | 275/399 [00:03<00:01, 78.54it/s]Loading weights:  71%|███████   | 283/399 [00:04<00:01, 72.86it/s]Loading weights:  73%|███████▎  | 291/399 [00:04<00:01, 72.88it/s]Loading weights:  75%|███████▌  | 301/399 [00:04<00:01, 78.20it/s]Loading weights:  77%|███████▋  | 309/399 [00:04<00:01, 77.54it/s]Loading weights:  79%|███████▉  | 317/399 [00:04<00:01, 73.79it/s]Loading weights:  81%|████████▏ | 325/399 [00:04<00:01, 66.97it/s]Loading weights:  84%|████████▍ | 335/399 [00:04<00:00, 73.73it/s]Loading weights:  86%|████████▋ | 345/399 [00:04<00:00, 78.84it/s]Loading weights:  89%|████████▊ | 354/399 [00:05<00:00, 79.88it/s]Loading weights:  91%|█████████ | 363/399 [00:05<00:00, 73.89it/s]Loading weights:  93%|█████████▎| 371/399 [00:05<00:00, 71.83it/s]Loading weights:  95%|█████████▍| 379/399 [00:05<00:00, 72.43it/s]Loading weights:  97%|█████████▋| 389/399 [00:05<00:00, 79.71it/s]Loading weights: 100%|█████████▉| 398/399 [00:05<00:00, 77.58it/s]Loading weights: 100%|██████████| 399/399 [00:05<00:00, 70.80it/s]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading data...
+Loading triviaqa (n=500) ...
+  Loaded 500 samples
+Loading hotpotqa (n=250) ...
+  Loaded 250 samples
+Loading gsm8k (n=250) ...
+  Loaded 250 samples
+Total: 1000 samples
+Tokenizing:   0%|          | 0/1000 [00:00<?, ?it/s]Tokenizing:   2%|▏         | 19/1000 [00:00<00:05, 173.53it/s]Tokenizing:   4%|▍         | 42/1000 [00:00<00:04, 205.08it/s]Tokenizing:   8%|▊         | 79/1000 [00:00<00:03, 276.24it/s]Tokenizing:  12%|█▏        | 119/1000 [00:00<00:02, 324.11it/s]Tokenizing:  16%|█▌        | 156/1000 [00:00<00:02, 336.42it/s]Tokenizing:  19%|█▉        | 190/1000 [00:00<00:02, 330.41it/s]Tokenizing:  22%|██▏       | 224/1000 [00:00<00:02, 267.29it/s]Tokenizing:  25%|██▌       | 253/1000 [00:00<00:02, 268.82it/s]Tokenizing:  28%|██▊       | 282/1000 [00:01<00:02, 258.52it/s]Tokenizing:  31%|███       | 310/1000 [00:01<00:02, 263.55it/s]Tokenizing:  35%|███▍      | 349/1000 [00:01<00:02, 298.09it/s]Tokenizing:  38%|███▊      | 380/1000 [00:01<00:02, 296.81it/s]Tokenizing:  42%|████▏     | 421/1000 [00:01<00:01, 328.36it/s]Tokenizing:  46%|████▌     | 460/1000 [00:01<00:01, 341.23it/s]Tokenizing:  50%|████▉     | 499/1000 [00:01<00:01, 353.79it/s]Tokenizing:  69%|██████▉   | 690/1000 [00:01<00:00, 806.83it/s]Tokenizing:  84%|████████▍ | 840/1000 [00:01<00:00, 1009.50it/s]Tokenizing:  97%|█████████▋| 967/1000 [00:01<00:00, 1085.43it/s]Tokenizing: 100%|██████████| 1000/1000 [00:01<00:00, 507.88it/s]
+Prepared 1000 samples (skipped 0)
+Collecting hiddens for 200 samples...
+  0%|          | 0/200 [00:00<?, ?it/s]  0%|          | 1/200 [00:00<01:56,  1.71it/s]  2%|▏         | 3/200 [00:00<00:39,  5.01it/s]  2%|▎         | 5/200 [00:00<00:25,  7.70it/s]  4%|▎         | 7/200 [00:00<00:19,  9.83it/s]  4%|▍         | 9/200 [00:01<00:16, 11.34it/s]  6%|▌         | 11/200 [00:01<00:15, 12.54it/s]  6%|▋         | 13/200 [00:01<00:14, 12.65it/s]  8%|▊         | 15/200 [00:01<00:17, 10.52it/s]  8%|▊         | 17/200 [00:01<00:17, 10.57it/s] 10%|▉         | 19/200 [00:01<00:16, 11.26it/s] 10%|█         | 21/200 [00:02<00:14, 12.01it/s] 12%|█▏        | 23/200 [00:02<00:13, 12.78it/s] 12%|█▎        | 25/200 [00:02<00:12, 13.53it/s] 14%|█▎        | 27/200 [00:02<00:12, 13.78it/s] 14%|█▍        | 29/200 [00:02<00:18,  9.04it/s] 16%|█▌        | 31/200 [00:03<00:16, 10.34it/s] 16%|█▋        | 33/200 [00:03<00:14, 11.48it/s] 18%|█▊        | 35/200 [00:03<00:13, 12.36it/s] 18%|█▊        | 37/200 [00:03<00:12, 13.15it/s] 20%|█▉        | 39/200 [00:03<00:11, 13.60it/s] 20%|██        | 41/200 [00:03<00:11, 13.88it/s] 22%|██▏       | 43/200 [00:03<00:10, 14.40it/s] 22%|██▎       | 45/200 [00:03<00:10, 14.62it/s] 24%|██▎       | 47/200 [00:04<00:10, 14.78it/s] 24%|██▍       | 49/200 [00:04<00:10, 14.99it/s] 26%|██▌       | 51/200 [00:04<00:10, 14.83it/s] 26%|██▋       | 53/200 [00:04<00:09, 14.81it/s] 28%|██▊       | 55/200 [00:04<00:09, 14.91it/s] 28%|██▊       | 57/200 [00:04<00:09, 15.03it/s] 30%|██▉       | 59/200 [00:04<00:09, 14.94it/s] 30%|███       | 61/200 [00:05<00:09, 15.14it/s] 32%|███▏      | 63/200 [00:05<00:09, 15.00it/s] 32%|███▎      | 65/200 [00:05<00:08, 15.08it/s] 34%|███▎      | 67/200 [00:05<00:08, 15.13it/s] 34%|███▍      | 69/200 [00:05<00:08, 15.00it/s] 36%|███▌      | 71/200 [00:05<00:08, 15.19it/s] 36%|███▋      | 73/200 [00:05<00:08, 15.05it/s] 38%|███▊      | 75/200 [00:05<00:08, 15.11it/s] 38%|███▊      | 77/200 [00:06<00:08, 15.15it/s] 40%|███▉      | 79/200 [00:06<00:07, 15.13it/s] 40%|████      | 81/200 [00:06<00:07, 15.19it/s] 42%|████▏     | 83/200 [00:06<00:07, 15.18it/s] 42%|████▎     | 85/200 [00:06<00:07, 15.17it/s] 44%|████▎     | 87/200 [00:06<00:07, 14.95it/s] 44%|████▍     | 89/200 [00:06<00:07, 15.00it/s] 46%|████▌     | 91/200 [00:07<00:07, 14.93it/s] 46%|████▋     | 93/200 [00:07<00:07, 14.88it/s] 48%|████▊     | 95/200 [00:07<00:07, 14.94it/s] 48%|████▊     | 97/200 [00:07<00:06, 14.93it/s] 50%|████▉     | 99/200 [00:07<00:06, 15.02it/s] 50%|█████     | 101/200 [00:07<00:06, 15.17it/s] 52%|█████▏    | 103/200 [00:07<00:06, 14.99it/s] 52%|█████▎    | 105/200 [00:07<00:06, 14.90it/s] 54%|█████▎    | 107/200 [00:08<00:06, 14.94it/s] 55%|█████▍    | 109/200 [00:08<00:06, 15.12it/s] 56%|█████▌    | 111/200 [00:08<00:05, 15.20it/s] 56%|█████▋    | 113/200 [00:08<00:05, 15.29it/s] 57%|█████▊    | 115/200 [00:08<00:05, 15.35it/s] 58%|█████▊    | 117/200 [00:08<00:05, 15.41it/s] 60%|█████▉    | 119/200 [00:08<00:05, 15.50it/s] 60%|██████    | 121/200 [00:08<00:05, 15.46it/s] 62%|██████▏   | 123/200 [00:09<00:04, 15.49it/s] 62%|██████▎   | 125/200 [00:09<00:04, 15.50it/s] 64%|██████▎   | 127/200 [00:09<00:04, 15.59it/s] 64%|██████▍   | 129/200 [00:09<00:04, 15.60it/s] 66%|██████▌   | 131/200 [00:09<00:04, 15.64it/s] 66%|██████▋   | 133/200 [00:09<00:04, 15.58it/s] 68%|██████▊   | 135/200 [00:09<00:04, 15.60it/s] 68%|██████▊   | 137/200 [00:10<00:04, 15.55it/s] 70%|██████▉   | 139/200 [00:10<00:03, 15.54it/s] 70%|███████   | 141/200 [00:10<00:03, 15.58it/s] 72%|███████▏  | 143/200 [00:10<00:03, 15.55it/s] 72%|███████▎  | 145/200 [00:10<00:03, 15.56it/s] 74%|███████▎  | 147/200 [00:10<00:03, 15.53it/s] 74%|███████▍  | 149/200 [00:10<00:03, 15.57it/s] 76%|███████▌  | 151/200 [00:10<00:03, 15.51it/s] 76%|███████▋  | 153/200 [00:11<00:03, 15.55it/s] 78%|███████▊  | 155/200 [00:11<00:02, 15.53it/s] 78%|███████▊  | 157/200 [00:11<00:02, 15.56it/s] 80%|███████▉  | 159/200 [00:11<00:02, 15.55it/s] 80%|████████  | 161/200 [00:11<00:02, 15.53it/s] 82%|████████▏ | 163/200 [00:11<00:02, 15.53it/s] 82%|████████▎ | 165/200 [00:11<00:02, 15.35it/s] 84%|████████▎ | 167/200 [00:11<00:02, 15.38it/s] 84%|████████▍ | 169/200 [00:12<00:02, 15.47it/s] 86%|████████▌ | 171/200 [00:12<00:01, 15.45it/s] 86%|████████▋ | 173/200 [00:12<00:01, 15.57it/s] 88%|████████▊ | 175/200 [00:12<00:01, 15.55it/s] 88%|████████▊ | 177/200 [00:12<00:01, 15.60it/s] 90%|████████▉ | 179/200 [00:12<00:01, 15.61it/s] 90%|█████████ | 181/200 [00:12<00:01, 15.53it/s] 92%|█████████▏| 183/200 [00:12<00:01, 15.58it/s] 92%|█████████▎| 185/200 [00:13<00:00, 15.49it/s] 94%|█████████▎| 187/200 [00:13<00:00, 15.41it/s] 94%|█████████▍| 189/200 [00:13<00:00, 15.48it/s] 96%|█████████▌| 191/200 [00:13<00:00, 15.42it/s] 96%|█████████▋| 193/200 [00:13<00:00, 15.49it/s] 98%|█████████▊| 195/200 [00:13<00:00, 15.44it/s] 98%|█████████▊| 197/200 [00:13<00:00, 15.49it/s]100%|█████████▉| 199/200 [00:14<00:00, 15.55it/s]100%|██████████| 200/200 [00:14<00:00, 14.20it/s]
+Training tuned lens translators...
+Traceback (most recent call last):
+  File "/data2/css2025/lostresearch/lostresearch/run_p0_tuned_lens.py", line 287, in <module>
+    main()
+  File "/data2/css2025/lostresearch/lostresearch/run_p0_tuned_lens.py", line 271, in main
+    translators = train_tuned_lens(model, hiddens, final_logits, num_layers, epochs=300)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data2/css2025/lostresearch/lostresearch/run_p0_tuned_lens.py", line 108, in train_tuned_lens
+    logits = F.linear(normed, unembed)  # [n, vocab]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: expected mat1 and mat2 to have the same dtype, but got: float != c10::BFloat16
+
+=== P0-5+6: Strict Patching Controls + Mediation (needs model) ===
+Loading model...
+Loading weights:   0%|          | 0/399 [00:00<?, ?it/s]Loading weights:   0%|          | 1/399 [00:00<01:25,  4.67it/s]Loading weights:   1%|          | 2/399 [00:00<01:34,  4.20it/s]Loading weights:   4%|▍         | 15/399 [00:00<00:10, 36.12it/s]Loading weights:   7%|▋         | 26/399 [00:00<00:06, 55.04it/s]Loading weights:   9%|▉         | 37/399 [00:00<00:05, 64.92it/s]Loading weights:  11%|█▏        | 45/399 [00:00<00:05, 68.66it/s]Loading weights:  13%|█▎        | 53/399 [00:01<00:05, 68.36it/s]Loading weights:  15%|█▌        | 61/399 [00:01<00:05, 63.41it/s]Loading weights:  18%|█▊        | 70/399 [00:01<00:04, 69.32it/s]Loading weights:  20%|██        | 81/399 [00:01<00:04, 78.00it/s]Loading weights:  23%|██▎       | 92/399 [00:01<00:03, 79.76it/s]Loading weights:  26%|██▌       | 103/399 [00:01<00:03, 82.61it/s]Loading weights:  28%|██▊       | 112/399 [00:01<00:03, 83.49it/s]Loading weights:  30%|███       | 121/399 [00:01<00:03, 77.92it/s]Loading weights:  32%|███▏      | 129/399 [00:02<00:03, 74.92it/s]Loading weights:  34%|███▍      | 137/399 [00:02<00:03, 75.26it/s]Loading weights:  37%|███▋      | 147/399 [00:02<00:03, 80.22it/s]Loading weights:  39%|███▉      | 156/399 [00:02<00:02, 81.88it/s]Loading weights:  41%|████▏     | 165/399 [00:02<00:03, 75.38it/s]Loading weights:  43%|████▎     | 173/399 [00:02<00:03, 74.02it/s]Loading weights:  45%|████▌     | 181/399 [00:02<00:02, 74.65it/s]Loading weights:  48%|████▊     | 191/399 [00:02<00:02, 79.02it/s]Loading weights:  50%|████▉     | 199/399 [00:02<00:02, 77.88it/s]Loading weights:  52%|█████▏    | 207/399 [00:03<00:02, 71.76it/s]Loading weights:  54%|█████▍    | 215/399 [00:03<00:02, 67.84it/s]Loading weights:  56%|█████▋    | 225/399 [00:03<00:02, 74.90it/s]Loading weights:  59%|█████▉    | 235/399 [00:03<00:02, 79.52it/s]Loading weights:  61%|██████    | 244/399 [00:03<00:01, 81.25it/s]Loading weights:  63%|██████▎   | 253/399 [00:03<00:01, 77.23it/s]Loading weights:  65%|██████▌   | 261/399 [00:03<00:01, 73.05it/s]Loading weights:  68%|██████▊   | 270/399 [00:03<00:01, 72.29it/s]Loading weights:  70%|███████   | 281/399 [00:04<00:01, 75.15it/s]Loading weights:  73%|███████▎  | 291/399 [00:04<00:01, 79.53it/s]Loading weights:  75%|███████▌  | 301/399 [00:04<00:01, 82.79it/s]Loading weights:  78%|███████▊  | 310/399 [00:04<00:01, 82.78it/s]Loading weights:  80%|███████▉  | 319/399 [00:04<00:01, 78.20it/s]Loading weights:  82%|████████▏ | 327/399 [00:04<00:00, 72.45it/s]Loading weights:  84%|████████▍ | 335/399 [00:04<00:00, 69.49it/s]Loading weights:  86%|████████▋ | 345/399 [00:04<00:00, 75.60it/s]Loading weights:  88%|████████▊ | 353/399 [00:04<00:00, 75.54it/s]Loading weights:  90%|█████████ | 361/399 [00:05<00:00, 72.35it/s]Loading weights:  92%|█████████▏| 369/399 [00:05<00:00, 66.17it/s]Loading weights:  95%|█████████▍| 379/399 [00:05<00:00, 72.94it/s]Loading weights:  97%|█████████▋| 389/399 [00:05<00:00, 78.25it/s]Loading weights:  99%|█████████▉| 397/399 [00:05<00:00, 77.40it/s]Loading weights: 100%|██████████| 399/399 [00:05<00:00, 72.00it/s]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading data...
+Loading triviaqa (n=500) ...
+  Loaded 500 samples
+Loading hotpotqa (n=250) ...
+  Loaded 250 samples
+Loading gsm8k (n=250) ...
+  Loaded 250 samples
+Total: 1000 samples
+Tokenizing:   0%|          | 0/1000 [00:00<?, ?it/s]Tokenizing:   2%|▏         | 17/1000 [00:00<00:05, 168.62it/s]Tokenizing:   4%|▍         | 41/1000 [00:00<00:04, 194.87it/s]Tokenizing:   8%|▊         | 78/1000 [00:00<00:03, 268.98it/s]Tokenizing:  11%|█▏        | 113/1000 [00:00<00:03, 295.64it/s]Tokenizing:  15%|█▍        | 147/1000 [00:00<00:02, 309.13it/s]Tokenizing:  18%|█▊        | 181/1000 [00:00<00:02, 303.27it/s]Tokenizing:  21%|██        | 212/1000 [00:00<00:02, 266.25it/s]Tokenizing:  24%|██▍       | 240/1000 [00:00<00:03, 252.47it/s]Tokenizing:  27%|██▋       | 266/1000 [00:01<00:03, 243.69it/s]Tokenizing:  29%|██▉       | 291/1000 [00:01<00:03, 234.64it/s]Tokenizing:  32%|███▎      | 325/1000 [00:01<00:02, 259.03it/s]Tokenizing:  36%|███▌      | 358/1000 [00:01<00:02, 274.13it/s]Tokenizing:  40%|███▉      | 399/1000 [00:01<00:01, 311.64it/s]Tokenizing:  44%|████▎     | 437/1000 [00:01<00:01, 319.49it/s]Tokenizing:  47%|████▋     | 472/1000 [00:01<00:01, 323.72it/s]Tokenizing:  57%|█████▊    | 575/1000 [00:01<00:00, 524.32it/s]Tokenizing:  74%|███████▍  | 740/1000 [00:01<00:00, 849.18it/s]Tokenizing:  87%|████████▋ | 870/1000 [00:01<00:00, 980.52it/s]Tokenizing: 100%|█████████▉| 996/1000 [00:02<00:00, 1062.71it/s]Tokenizing: 100%|██████████| 1000/1000 [00:02<00:00, 481.38it/s]
+Prepared 1000 samples (skipped 0)
+
+======================================================================
+P0-5: Strict Patching Controls
+======================================================================
+Strict patching:   0%|          | 0/30 [00:00<?, ?it/s]Strict patching:   3%|▎         | 1/30 [00:02<01:22,  2.86s/it]Strict patching:   7%|▋         | 2/30 [00:04<01:06,  2.38s/it]Strict patching:  10%|█         | 3/30 [00:06<01:00,  2.22s/it]Strict patching:  13%|█▎        | 4/30 [00:09<00:58,  2.25s/it]Strict patching:  17%|█▋        | 5/30 [00:11<00:54,  2.17s/it]Strict patching:  20%|██        | 6/30 [00:13<00:50,  2.12s/it]Strict patching:  23%|██▎       | 7/30 [00:15<00:48,  2.09s/it]Strict patching:  27%|██▋       | 8/30 [00:17<00:45,  2.07s/it]Strict patching:  30%|███       | 9/30 [00:19<00:43,  2.05s/it]Strict patching:  33%|███▎      | 10/30 [00:21<00:40,  2.04s/it]Strict patching:  37%|███▋      | 11/30 [00:23<00:39,  2.06s/it]Strict patching:  40%|████      | 12/30 [00:25<00:37,  2.06s/it]Strict patching:  43%|████▎     | 13/30 [00:27<00:35,  2.07s/it]Strict patching:  47%|████▋     | 14/30 [00:29<00:33,  2.07s/it]Strict patching:  50%|█████     | 15/30 [00:31<00:30,  2.06s/it]Strict patching:  53%|█████▎    | 16/30 [00:33<00:28,  2.05s/it]Strict patching:  57%|█████▋    | 17/30 [00:35<00:26,  2.04s/it]Strict patching:  60%|██████    | 18/30 [00:37<00:24,  2.04s/it]Strict patching:  63%|██████▎   | 19/30 [00:39<00:22,  2.03s/it]Strict patching:  67%|██████▋   | 20/30 [00:41<00:20,  2.03s/it]Strict patching:  70%|███████   | 21/30 [00:43<00:18,  2.03s/it]Strict patching:  73%|███████▎  | 22/30 [00:45<00:16,  2.03s/it]Strict patching:  77%|███████▋  | 23/30 [00:47<00:14,  2.02s/it]Strict patching:  80%|████████  | 24/30 [00:49<00:12,  2.02s/it]Strict patching:  83%|████████▎ | 25/30 [00:51<00:10,  2.02s/it]Strict patching:  87%|████████▋ | 26/30 [00:54<00:08,  2.05s/it]Strict patching:  90%|█████████ | 27/30 [00:56<00:06,  2.05s/it]Strict patching:  93%|█████████▎| 28/30 [00:58<00:04,  2.06s/it]Strict patching:  97%|█████████▋| 29/30 [01:00<00:02,  2.06s/it]Strict patching: 100%|██████████| 30/30 [01:02<00:00,  2.05s/it]Strict patching: 100%|██████████| 30/30 [01:02<00:00,  2.08s/it]
+
+======================================================================
+STRICT PATCHING ANALYSIS
+======================================================================
+
+  Layer 28:
+    clean→corr:    mean=-0.008
+    random example: mean=0.011
+    wrong layer:    mean=-0.022
+    norm-matched:   mean=0.291
+    CIS-only:       mean=0.371
+    ? Clean patching 未优于对照
+
+  Layer 31:
+    clean→corr:    mean=0.001
+    random example: mean=0.007
+    wrong layer:    mean=-0.022
+    norm-matched:   mean=0.226
+    CIS-only:       mean=0.299
+    ? Clean patching 未优于对照
+
+  Layer 33:
+    clean→corr:    mean=-0.003
+    random example: mean=0.005
+    wrong layer:    mean=-0.022
+    norm-matched:   mean=0.217
+    CIS-only:       mean=0.213
+    ? Clean patching 未优于对照
+
+  Layer 35:
+    clean→corr:    mean=0.000
+    random example: mean=0.000
+    wrong layer:    mean=-0.022
+    norm-matched:   mean=0.000
+    CIS-only:       mean=0.000
+    ? Clean patching 未优于对照
+
+======================================================================
+P0-6: Mediation Analysis
+======================================================================
+Mediation:   0%|          | 0/30 [00:00<?, ?it/s]Mediation:   3%|▎         | 1/30 [00:01<00:32,  1.10s/it]Mediation:   7%|▋         | 2/30 [00:02<00:34,  1.22s/it]Mediation:  10%|█         | 3/30 [00:03<00:34,  1.29s/it]Mediation:  13%|█▎        | 4/30 [00:05<00:33,  1.31s/it]Mediation:  17%|█▋        | 5/30 [00:06<00:33,  1.33s/it]Mediation:  20%|██        | 6/30 [00:07<00:32,  1.34s/it]Mediation:  23%|██▎       | 7/30 [00:09<00:30,  1.35s/it]Mediation:  27%|██▋       | 8/30 [00:10<00:29,  1.35s/it]Mediation:  30%|███       | 9/30 [00:11<00:28,  1.35s/it]Mediation:  33%|███▎      | 10/30 [00:13<00:27,  1.35s/it]Mediation:  37%|███▋      | 11/30 [00:14<00:25,  1.34s/it]Mediation:  40%|████      | 12/30 [00:15<00:24,  1.35s/it]Mediation:  43%|████▎     | 13/30 [00:17<00:22,  1.35s/it]Mediation:  47%|████▋     | 14/30 [00:18<00:21,  1.36s/it]Mediation:  50%|█████     | 15/30 [00:20<00:20,  1.36s/it]Mediation:  53%|█████▎    | 16/30 [00:21<00:19,  1.36s/it]Mediation:  57%|█████▋    | 17/30 [00:22<00:17,  1.36s/it]Mediation:  60%|██████    | 18/30 [00:24<00:16,  1.40s/it]Mediation:  63%|██████▎   | 19/30 [00:25<00:15,  1.38s/it]Mediation:  67%|██████▋   | 20/30 [00:27<00:14,  1.40s/it]Mediation:  70%|███████   | 21/30 [00:28<00:12,  1.42s/it]Mediation:  73%|███████▎  | 22/30 [00:29<00:11,  1.44s/it]Mediation:  77%|███████▋  | 23/30 [00:31<00:09,  1.41s/it]Mediation:  80%|████████  | 24/30 [00:32<00:08,  1.40s/it]Mediation:  83%|████████▎ | 25/30 [00:34<00:07,  1.41s/it]Mediation:  87%|████████▋ | 26/30 [00:35<00:05,  1.39s/it]Mediation:  90%|█████████ | 27/30 [00:36<00:04,  1.41s/it]Mediation:  93%|█████████▎| 28/30 [00:38<00:02,  1.40s/it]Mediation:  97%|█████████▋| 29/30 [00:39<00:01,  1.42s/it]Mediation: 100%|██████████| 30/30 [00:41<00:00,  1.44s/it]Mediation: 100%|██████████| 30/30 [00:41<00:00,  1.38s/it]
+
+  Mediation Summary:
+  Mean Δ(final target logprob): 1.798
+  Mean Δ(post-patch layers): 1.538
+  ✓ Patch 提高了后续层 target logprob → mediation 链成立
+
+Saved: /data2/css2025/lostresearch/lostresearch/outputs/data/p0_strict_patching_Qwen3-8B.json
+
+=== P1: Component-level Decomposition (attention vs MLP, per-head) ===
+Loading model...
+Loading weights:   0%|          | 0/399 [00:00<?, ?it/s]Loading weights:   0%|          | 1/399 [00:00<03:14,  2.05it/s]Loading weights:   4%|▍         | 15/399 [00:00<00:12, 31.96it/s]Loading weights:   7%|▋         | 26/399 [00:00<00:07, 48.70it/s]Loading weights:   9%|▉         | 37/399 [00:00<00:06, 59.60it/s]Loading weights:  12%|█▏        | 46/399 [00:00<00:05, 66.40it/s]Loading weights:  14%|█▍        | 55/399 [00:01<00:05, 67.55it/s]Loading weights:  16%|█▌        | 63/399 [00:01<00:05, 64.95it/s]Loading weights:  18%|█▊        | 71/399 [00:01<00:04, 66.94it/s]Loading weights:  20%|██        | 81/399 [00:01<00:04, 73.41it/s]Loading weights:  22%|██▏       | 89/399 [00:01<00:04, 74.77it/s]Loading weights:  24%|██▍       | 97/399 [00:01<00:04, 73.67it/s]Loading weights:  26%|██▋       | 105/399 [00:01<00:04, 68.89it/s]Loading weights:  29%|██▉       | 115/399 [00:01<00:03, 76.59it/s]Loading weights:  31%|███▏      | 125/399 [00:01<00:03, 82.45it/s]Loading weights:  34%|███▎      | 134/399 [00:02<00:03, 82.87it/s]Loading weights:  36%|███▌      | 143/399 [00:02<00:03, 78.82it/s]Loading weights:  38%|███▊      | 152/399 [00:02<00:03, 74.94it/s]Loading weights:  40%|████      | 160/399 [00:02<00:03, 68.75it/s]Loading weights:  43%|████▎     | 170/399 [00:02<00:03, 75.06it/s]Loading weights:  45%|████▌     | 181/399 [00:02<00:02, 78.08it/s]Loading weights:  48%|████▊     | 192/399 [00:02<00:02, 79.08it/s]Loading weights:  51%|█████     | 202/399 [00:02<00:02, 82.45it/s]Loading weights:  53%|█████▎    | 211/399 [00:03<00:02, 82.29it/s]Loading weights:  55%|█████▌    | 220/399 [00:03<00:02, 76.02it/s]Loading weights:  57%|█████▋    | 228/399 [00:03<00:02, 73.43it/s]Loading weights:  59%|█████▉    | 236/399 [00:03<00:02, 72.99it/s]Loading weights:  62%|██████▏   | 246/399 [00:03<00:01, 78.53it/s]Loading weights:  64%|██████▎   | 254/399 [00:03<00:01, 77.47it/s]Loading weights:  66%|██████▌   | 262/399 [00:03<00:01, 73.88it/s]Loading weights:  68%|██████▊   | 270/399 [00:03<00:01, 67.80it/s]Loading weights:  70%|███████   | 280/399 [00:04<00:01, 74.20it/s]Loading weights:  73%|███████▎  | 290/399 [00:04<00:01, 78.89it/s]Loading weights:  75%|███████▍  | 299/399 [00:04<00:01, 79.99it/s]Loading weights:  77%|███████▋  | 308/399 [00:04<00:01, 75.98it/s]Loading weights:  79%|███████▉  | 316/399 [00:04<00:01, 70.44it/s]Loading weights:  81%|████████  | 324/399 [00:04<00:01, 72.32it/s]Loading weights:  84%|████████▎ | 334/399 [00:04<00:00, 77.94it/s]Loading weights:  86%|████████▌ | 342/399 [00:04<00:00, 76.86it/s]Loading weights:  88%|████████▊ | 350/399 [00:04<00:00, 75.37it/s]Loading weights:  90%|████████▉ | 358/399 [00:05<00:00, 70.88it/s]Loading weights:  92%|█████████▏| 368/399 [00:05<00:00, 76.76it/s]Loading weights:  95%|█████████▍| 378/399 [00:05<00:00, 80.56it/s]Loading weights:  97%|█████████▋| 387/399 [00:05<00:00, 80.44it/s]Loading weights:  99%|█████████▉| 396/399 [00:05<00:00, 76.37it/s]Loading weights: 100%|██████████| 399/399 [00:05<00:00, 71.44it/s]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading data...
+Loading triviaqa (n=500) ...
+  Loaded 500 samples
+Loading hotpotqa (n=250) ...
+  Loaded 250 samples
+Loading gsm8k (n=250) ...
+  Loaded 250 samples
+Total: 1000 samples
+Tokenizing:   0%|          | 0/1000 [00:00<?, ?it/s]Tokenizing:   2%|▏         | 16/1000 [00:00<00:06, 159.23it/s]Tokenizing:   4%|▍         | 41/1000 [00:00<00:04, 195.90it/s]Tokenizing:   8%|▊         | 78/1000 [00:00<00:03, 270.96it/s]Tokenizing:  11%|█         | 112/1000 [00:00<00:03, 294.42it/s]Tokenizing:  15%|█▍        | 147/1000 [00:00<00:02, 308.57it/s]Tokenizing:  18%|█▊        | 181/1000 [00:00<00:02, 309.41it/s]Tokenizing:  21%|██▏       | 213/1000 [00:00<00:02, 272.76it/s]Tokenizing:  24%|██▍       | 242/1000 [00:00<00:02, 264.09it/s]Tokenizing:  27%|██▋       | 269/1000 [00:01<00:03, 240.96it/s]Tokenizing:  29%|██▉       | 294/1000 [00:01<00:02, 241.04it/s]Tokenizing:  33%|███▎      | 328/1000 [00:01<00:02, 266.25it/s]Tokenizing:  36%|███▌      | 358/1000 [00:01<00:02, 275.37it/s]Tokenizing:  40%|███▉      | 398/1000 [00:01<00:01, 309.20it/s]Tokenizing:  44%|████▎     | 437/1000 [00:01<00:01, 320.66it/s]Tokenizing:  47%|████▋     | 471/1000 [00:01<00:01, 323.29it/s]Tokenizing:  56%|█████▌    | 560/1000 [00:01<00:00, 485.41it/s]Tokenizing:  74%|███████▍  | 743/1000 [00:01<00:00, 874.61it/s]Tokenizing:  88%|████████▊ | 876/1000 [00:01<00:00, 1007.04it/s]Tokenizing: 100%|██████████| 1000/1000 [00:02<00:00, 485.95it/s]
+Prepared 1000 samples (skipped 0)
+
+======================================================================
+P1: Component-level Decomposition
+======================================================================
+Components:   0%|          | 0/50 [00:00<?, ?it/s]Components:   2%|▏         | 1/50 [00:00<00:11,  4.15it/s]Components:   8%|▊         | 4/50 [00:00<00:06,  7.46it/s]Components: 100%|██████████| 50/50 [00:00<00:00, 76.73it/s]
+  Error on triviaqa_0000: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0001: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0002: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0003: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0004: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0005: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0006: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0007: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0008: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0009: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0010: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0011: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0012: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0013: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0014: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0015: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0016: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0017: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0018: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0019: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0020: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0021: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0022: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0023: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0024: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0025: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0026: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0027: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0028: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0029: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0030: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0031: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0032: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0033: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0034: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0035: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0036: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0037: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0038: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0039: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0040: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0041: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0042: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0043: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0044: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0045: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0046: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0047: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0048: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0049: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+
+======================================================================
+COMPONENT ANALYSIS
+======================================================================
+
+======================================================================
+P1: Per-Head Direct Effect
+======================================================================
+Per-head:   0%|          | 0/20 [00:00<?, ?it/s]Per-head: 100%|██████████| 20/20 [00:00<00:00, 848.73it/s]
+  Error on triviaqa_0000: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0001: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0002: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0003: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0004: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0005: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0006: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0007: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0008: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0009: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0010: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0011: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0012: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0013: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0014: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0015: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0016: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0017: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0018: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+  Error on triviaqa_0019: collect_component_hiddens.<locals>.make_layer_hook.<locals>.hook() missing 1 required positional argument: 'output'
+
+  Per-head analysis (simplified: attn output CIS per layer):
+
+Saved: /data2/css2025/lostresearch/lostresearch/outputs/data/p1_components_Qwen3-8B.json
+
+=== ALL P0+P1 DONE ===
+Tue Aug  4 01:48:27 PM CST 2026

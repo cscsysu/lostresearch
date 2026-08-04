@@ -1,0 +1,97 @@
+======================================================================
+Step 2: Causal Intervention (Chapter 5)
+======================================================================
+Loading weights:   0%|          | 0/399 [00:00<?, ?it/s]Loading weights:   0%|          | 1/399 [00:00<01:30,  4.38it/s]Loading weights:   1%|          | 2/399 [00:00<01:39,  4.00it/s]Loading weights:   4%|▎         | 14/399 [00:00<00:12, 31.98it/s]Loading weights:   7%|▋         | 26/399 [00:00<00:07, 51.85it/s]Loading weights:   9%|▉         | 37/399 [00:00<00:05, 61.94it/s]Loading weights:  12%|█▏        | 48/399 [00:00<00:05, 69.00it/s]Loading weights:  15%|█▍        | 59/399 [00:01<00:04, 73.00it/s]Loading weights:  18%|█▊        | 70/399 [00:01<00:04, 76.35it/s]Loading weights:  20%|██        | 81/399 [00:01<00:04, 78.33it/s]Loading weights:  23%|██▎       | 92/399 [00:01<00:03, 80.19it/s]Loading weights:  26%|██▌       | 103/399 [00:01<00:03, 81.62it/s]Loading weights:  28%|██▊       | 113/399 [00:01<00:03, 79.94it/s]Loading weights:  31%|███       | 122/399 [00:01<00:03, 81.08it/s]Loading weights:  33%|███▎      | 131/399 [00:02<00:03, 74.78it/s]Loading weights:  35%|███▍      | 139/399 [00:02<00:03, 73.08it/s]Loading weights:  37%|███▋      | 148/399 [00:02<00:03, 75.82it/s]Loading weights:  40%|███▉      | 158/399 [00:02<00:03, 80.29it/s]Loading weights:  42%|████▏     | 167/399 [00:02<00:02, 80.58it/s]Loading weights:  44%|████▍     | 176/399 [00:02<00:02, 76.16it/s]Loading weights:  46%|████▌     | 184/399 [00:02<00:03, 70.40it/s]Loading weights:  48%|████▊     | 192/399 [00:02<00:02, 71.14it/s]Loading weights:  51%|█████     | 202/399 [00:02<00:02, 76.02it/s]Loading weights:  53%|█████▎    | 210/399 [00:03<00:02, 76.00it/s]Loading weights:  55%|█████▍    | 218/399 [00:03<00:02, 73.15it/s]Loading weights:  57%|█████▋    | 226/399 [00:03<00:02, 67.09it/s]Loading weights:  59%|█████▉    | 236/399 [00:03<00:02, 75.14it/s]Loading weights:  62%|██████▏   | 247/399 [00:03<00:02, 72.34it/s]Loading weights:  65%|██████▍   | 258/399 [00:03<00:01, 80.82it/s]Loading weights:  67%|██████▋   | 267/399 [00:03<00:01, 81.50it/s]Loading weights:  69%|██████▉   | 276/399 [00:03<00:01, 82.47it/s]Loading weights:  71%|███████▏  | 285/399 [00:04<00:01, 79.14it/s]Loading weights:  74%|███████▎  | 294/399 [00:04<00:01, 75.13it/s]Loading weights:  76%|███████▌  | 302/399 [00:04<00:01, 75.03it/s]Loading weights:  78%|███████▊  | 312/399 [00:04<00:01, 80.09it/s]Loading weights:  80%|████████  | 321/399 [00:04<00:00, 80.61it/s]Loading weights:  83%|████████▎ | 330/399 [00:04<00:00, 76.57it/s]Loading weights:  85%|████████▍ | 338/399 [00:04<00:00, 71.38it/s]Loading weights:  87%|████████▋ | 346/399 [00:04<00:00, 71.65it/s]Loading weights:  89%|████████▉ | 356/399 [00:04<00:00, 77.18it/s]Loading weights:  91%|█████████ | 364/399 [00:05<00:00, 76.64it/s]Loading weights:  93%|█████████▎| 372/399 [00:05<00:00, 72.98it/s]Loading weights:  95%|█████████▌| 380/399 [00:05<00:00, 66.43it/s]Loading weights:  98%|█████████▊| 390/399 [00:05<00:00, 72.66it/s]Loading weights: 100%|██████████| 399/399 [00:05<00:00, 71.92it/s]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+[1/3] Loading data...
+Loading triviaqa (n=500) ...
+  Loaded 500 samples
+Loading hotpotqa (n=250) ...
+  Loaded 250 samples
+Loading gsm8k (n=250) ...
+  Loaded 250 samples
+Total: 1000 samples
+Tokenizing:   0%|          | 0/1000 [00:00<?, ?it/s]Tokenizing:   2%|▏         | 19/1000 [00:00<00:05, 180.45it/s]Tokenizing:   4%|▍         | 45/1000 [00:00<00:04, 225.08it/s]Tokenizing:   7%|▋         | 74/1000 [00:00<00:03, 252.70it/s]Tokenizing:  11%|█         | 111/1000 [00:00<00:02, 297.10it/s]Tokenizing:  15%|█▍        | 146/1000 [00:00<00:02, 315.49it/s]Tokenizing:  18%|█▊        | 181/1000 [00:00<00:02, 313.08it/s]Tokenizing:  21%|██▏       | 213/1000 [00:00<00:02, 283.38it/s]Tokenizing:  24%|██▍       | 242/1000 [00:00<00:02, 271.19it/s]Tokenizing:  27%|██▋       | 270/1000 [00:01<00:02, 249.48it/s]Tokenizing:  30%|██▉       | 297/1000 [00:01<00:02, 253.02it/s]Tokenizing:  33%|███▎      | 334/1000 [00:01<00:02, 283.51it/s]Tokenizing:  36%|███▋      | 363/1000 [00:01<00:02, 282.47it/s]Tokenizing:  40%|████      | 404/1000 [00:01<00:01, 317.58it/s]Tokenizing:  44%|████▍     | 444/1000 [00:01<00:01, 341.00it/s]Tokenizing:  48%|████▊     | 479/1000 [00:01<00:01, 339.23it/s]Tokenizing:  61%|██████▏   | 613/1000 [00:01<00:00, 630.12it/s]Tokenizing:  79%|███████▉  | 790/1000 [00:01<00:00, 963.20it/s]Tokenizing:  92%|█████████▎| 925/1000 [00:01<00:00, 1074.22it/s]Tokenizing: 100%|██████████| 1000/1000 [00:01<00:00, 503.97it/s]
+Prepared 1000 samples (skipped 0)
+
+[2/3] Loading Step 1 results...
+  Loaded 1000 samples
+
+[3/3] Running intervention...
+
+======================================================================
+CHAPTER 5: CAUSAL INTERVENTION
+======================================================================
+
+[5.1] Necessity Experiment
+
+  [5.1] Necessity: 消融正确答案方向
+Necessity:   0%|          | 0/50 [00:00<?, ?it/s]Necessity:   2%|▏         | 1/50 [00:03<02:47,  3.42s/it]Necessity:   4%|▍         | 2/50 [00:05<02:18,  2.88s/it]Necessity:   6%|▌         | 3/50 [00:08<02:07,  2.72s/it]Necessity:   8%|▊         | 4/50 [00:11<02:04,  2.70s/it]Necessity:  10%|█         | 5/50 [00:13<02:00,  2.67s/it]Necessity:  12%|█▏        | 6/50 [00:16<01:55,  2.63s/it]Necessity:  14%|█▍        | 7/50 [00:18<01:52,  2.61s/it]Necessity:  16%|█▌        | 8/50 [00:21<01:48,  2.59s/it]Necessity:  18%|█▊        | 9/50 [00:24<01:46,  2.60s/it]Necessity:  20%|██        | 10/50 [00:26<01:43,  2.60s/it]Necessity:  22%|██▏       | 11/50 [00:29<01:41,  2.60s/it]Necessity:  24%|██▍       | 12/50 [00:31<01:38,  2.59s/it]Necessity:  26%|██▌       | 13/50 [00:34<01:35,  2.58s/it]Necessity:  28%|██▊       | 14/50 [00:36<01:32,  2.56s/it]Necessity:  30%|███       | 15/50 [00:39<01:30,  2.58s/it]Necessity:  32%|███▏      | 16/50 [00:42<01:27,  2.59s/it]Necessity:  34%|███▍      | 17/50 [00:44<01:25,  2.58s/it]Necessity:  36%|███▌      | 18/50 [00:47<01:22,  2.57s/it]Necessity:  38%|███▊      | 19/50 [00:49<01:19,  2.57s/it]Necessity:  40%|████      | 20/50 [00:52<01:16,  2.56s/it]Necessity:  42%|████▏     | 21/50 [00:54<01:14,  2.59s/it]Necessity:  44%|████▍     | 22/50 [00:57<01:12,  2.59s/it]Necessity:  46%|████▌     | 23/50 [01:00<01:10,  2.60s/it]Necessity:  48%|████▊     | 24/50 [01:02<01:07,  2.58s/it]Necessity:  50%|█████     | 25/50 [01:05<01:03,  2.56s/it]Necessity:  52%|█████▏    | 26/50 [01:07<01:01,  2.55s/it]Necessity:  54%|█████▍    | 27/50 [01:10<00:59,  2.58s/it]Necessity:  56%|█████▌    | 28/50 [01:12<00:56,  2.58s/it]Necessity:  58%|█████▊    | 29/50 [01:15<00:54,  2.58s/it]Necessity:  60%|██████    | 30/50 [01:18<00:53,  2.65s/it]Necessity:  62%|██████▏   | 31/50 [01:20<00:49,  2.61s/it]Necessity:  64%|██████▍   | 32/50 [01:23<00:46,  2.59s/it]Necessity:  66%|██████▌   | 33/50 [01:26<00:44,  2.61s/it]Necessity:  68%|██████▊   | 34/50 [01:28<00:41,  2.60s/it]Necessity:  70%|███████   | 35/50 [01:31<00:38,  2.59s/it]Necessity:  72%|███████▏  | 36/50 [01:33<00:35,  2.57s/it]Necessity:  74%|███████▍  | 37/50 [01:36<00:33,  2.55s/it]Necessity:  76%|███████▌  | 38/50 [01:38<00:30,  2.54s/it]Necessity:  78%|███████▊  | 39/50 [01:41<00:28,  2.59s/it]Necessity:  80%|████████  | 40/50 [01:44<00:26,  2.61s/it]Necessity:  82%|████████▏ | 41/50 [01:46<00:23,  2.59s/it]Necessity:  84%|████████▍ | 42/50 [01:49<00:20,  2.57s/it]Necessity:  86%|████████▌ | 43/50 [01:51<00:17,  2.56s/it]Necessity:  88%|████████▊ | 44/50 [01:54<00:15,  2.57s/it]Necessity:  90%|█████████ | 45/50 [01:56<00:12,  2.58s/it]Necessity:  92%|█████████▏| 46/50 [01:59<00:10,  2.59s/it]Necessity:  94%|█████████▍| 47/50 [02:02<00:07,  2.58s/it]Necessity:  96%|█████████▌| 48/50 [02:04<00:05,  2.56s/it]Necessity:  98%|█████████▊| 49/50 [02:07<00:02,  2.55s/it]Necessity: 100%|██████████| 50/50 [02:09<00:00,  2.58s/it]Necessity: 100%|██████████| 50/50 [02:09<00:00,  2.60s/it]
+    5/50
+    10/50
+    15/50
+    20/50
+    25/50
+    30/50
+    35/50
+    40/50
+    45/50
+    50/50
+
+[5.2+5.3] Patching Experiment
+
+  [5.2+5.3] Patching (3 strategies, key layers only)
+Patching:   0%|          | 0/50 [00:00<?, ?it/s][transformers] The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Patching:   2%|▏         | 1/50 [00:05<04:51,  5.96s/it]Patching:   4%|▍         | 2/50 [00:11<04:36,  5.76s/it]Patching:   6%|▌         | 3/50 [00:17<04:41,  5.99s/it]Patching:   8%|▊         | 4/50 [00:23<04:37,  6.03s/it]Patching:  10%|█         | 5/50 [00:29<04:28,  5.97s/it]Patching:  12%|█▏        | 6/50 [00:35<04:22,  5.97s/it]Patching:  14%|█▍        | 7/50 [00:41<04:19,  6.04s/it]Patching:  16%|█▌        | 8/50 [00:47<04:11,  6.00s/it]Patching:  18%|█▊        | 9/50 [00:53<04:00,  5.87s/it]Patching:  20%|██        | 10/50 [00:59<03:54,  5.86s/it]Patching:  22%|██▏       | 11/50 [01:06<03:58,  6.13s/it]Patching:  24%|██▍       | 12/50 [01:12<03:51,  6.10s/it]Patching:  26%|██▌       | 13/50 [01:18<03:47,  6.14s/it]Patching:  28%|██▊       | 14/50 [01:24<03:43,  6.20s/it]Patching:  30%|███       | 15/50 [01:30<03:35,  6.15s/it]Patching:  32%|███▏      | 16/50 [01:38<03:44,  6.60s/it]Patching:  34%|███▍      | 17/50 [01:43<03:27,  6.29s/it]Patching:  36%|███▌      | 18/50 [01:49<03:17,  6.18s/it]Patching:  38%|███▊      | 19/50 [01:55<03:11,  6.17s/it]Patching:  40%|████      | 20/50 [02:01<02:59,  5.99s/it]Patching:  42%|████▏     | 21/50 [02:07<02:50,  5.89s/it]Patching:  44%|████▍     | 22/50 [02:13<02:45,  5.92s/it]Patching:  46%|████▌     | 23/50 [02:20<02:47,  6.19s/it]Patching:  48%|████▊     | 24/50 [02:27<02:54,  6.70s/it]Patching:  50%|█████     | 25/50 [02:33<02:42,  6.49s/it]Patching:  52%|█████▏    | 26/50 [02:39<02:29,  6.23s/it]Patching:  54%|█████▍    | 27/50 [02:45<02:20,  6.12s/it]Patching:  56%|█████▌    | 28/50 [02:52<02:19,  6.32s/it]Patching:  58%|█████▊    | 29/50 [02:58<02:09,  6.18s/it]Patching:  60%|██████    | 30/50 [03:04<02:04,  6.22s/it]Patching:  62%|██████▏   | 31/50 [03:10<01:59,  6.27s/it]Patching:  64%|██████▍   | 32/50 [03:17<01:53,  6.28s/it]Patching:  66%|██████▌   | 33/50 [03:23<01:49,  6.43s/it]Patching:  68%|██████▊   | 34/50 [03:30<01:42,  6.43s/it]Patching:  70%|███████   | 35/50 [03:38<01:42,  6.83s/it]Patching:  72%|███████▏  | 36/50 [03:43<01:31,  6.54s/it]Patching:  74%|███████▍  | 37/50 [03:50<01:25,  6.59s/it]Patching:  76%|███████▌  | 38/50 [03:56<01:17,  6.49s/it]Patching:  78%|███████▊  | 39/50 [04:02<01:09,  6.31s/it]Patching:  80%|████████  | 40/50 [04:08<01:02,  6.21s/it]Patching:  82%|████████▏ | 41/50 [04:15<00:56,  6.29s/it]Patching:  84%|████████▍ | 42/50 [04:21<00:49,  6.21s/it]Patching:  86%|████████▌ | 43/50 [04:26<00:42,  6.04s/it]Patching:  88%|████████▊ | 44/50 [04:32<00:36,  6.03s/it]Patching:  90%|█████████ | 45/50 [04:38<00:29,  5.95s/it]Patching:  92%|█████████▏| 46/50 [04:44<00:23,  5.95s/it]Patching:  94%|█████████▍| 47/50 [04:50<00:17,  5.96s/it]Patching:  96%|█████████▌| 48/50 [04:56<00:11,  5.99s/it]Patching:  98%|█████████▊| 49/50 [05:02<00:06,  6.04s/it]Patching: 100%|██████████| 50/50 [05:08<00:00,  6.09s/it]Patching: 100%|██████████| 50/50 [05:08<00:00,  6.18s/it]
+    [diag] clean_hiddens[0].shape=torch.Size([28, 4096]), prompt_len=28, corr_ids_len=?
+    5/50
+    10/50
+    15/50
+    20/50
+    25/50
+    30/50
+    35/50
+    40/50
+    45/50
+    50/50
+
+======================================================================
+CAUSAL INTERVENTION ANALYSIS
+======================================================================
+
+--- 5.1 Necessity ---
+  消融后 target logprob 下降最多的层 (top 5):
+    Layer 35: delta=17.45 (正=消融后下降)
+    Layer 34: delta=9.71 (正=消融后下降)
+    Layer 33: delta=6.27 (正=消融后下降)
+    Layer 32: delta=4.86 (正=消融后下降)
+    Layer 31: delta=3.38 (正=消融后下降)
+
+  总样本数: 50
+  至少一层消融有效 (delta>1): 50/50
+
+--- 5.2 Patching: Logprob Recovery ---
+  Strategy A (单位置, 前缀):
+    最佳层: Layer 31, recovery=0.0137
+    High-risk mean recovery: 0.0054
+    Low-risk mean recovery:  0.0019
+  Strategy B (多位置, 前缀):
+    最佳层: Layer 34, recovery=0.0039
+    High-risk mean recovery: -0.0023
+    Low-risk mean recovery:  -0.0044
+  Strategy C (等长, 末位):
+    最佳层: Layer 31, recovery=-8.0387
+    High-risk mean recovery: -7.3637
+    Low-risk mean recovery:  -9.0397
+
+--- 5.3 Generation Test (Gold Standard) ---
+  (clean answer → corrupted answer → patched answer)
+  Corrupted prompt 改变了答案: 10/50
+  多位置 patch 后答案恢复: 0/50
+  等长 patch 后答案恢复: 0/50
+  ⚠ 两种策略均未恢复答案 → 说明信号是分布式的, 需要 patch 更多层
+
+Saved: /data2/css2025/lostresearch/lostresearch/outputs/data/intervention_Qwen3-8B.json
+
+Done!

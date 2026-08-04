@@ -1,0 +1,122 @@
+[
+  {
+    "id": "triviaqa_0000",
+    "question": "Who was the man behind The Chipmunks?",
+    "answer": "David Seville",
+    "generated": "David Seville",
+    "correct": true,
+    "final_argmax_token": 22286,
+    "final_argmax_decoded": "David",
+    "generated_first_token_id": 22286,
+    "generated_first_token_decoded": "David",
+    "sanity_passed": true
+  },
+  {
+    "id": "triviaqa_0001",
+    "question": "What star sign is Jamie Lee Curtis?",
+    "answer": "Scorpio",
+    "generated": "Gemini",
+    "correct": false,
+    "final_argmax_token": 95040,
+    "final_argmax_decoded": "Gem",
+    "generated_first_token_id": 95040,
+    "generated_first_token_decoded": "Gem",
+    "sanity_passed": true
+  },
+  {
+    "id": "triviaqa_0002",
+    "question": "Which Lloyd Webber musical premiered in the US on ",
+    "answer": "Sunset Boulevard",
+    "generated": "The Phantom of the Opera",
+    "correct": false,
+    "final_argmax_token": 785,
+    "final_argmax_decoded": "The",
+    "generated_first_token_id": 785,
+    "generated_first_token_decoded": "The",
+    "sanity_passed": true
+  },
+  {
+    "id": "triviaqa_0003",
+    "question": "Who was the next British Prime Minister after Arth",
+    "answer": "Campbell-Bannerman",
+    "generated": "H.H. Asquith",
+    "correct": false,
+    "final_argmax_token": 39,
+    "final_argmax_decoded": "H",
+    "generated_first_token_id": 39,
+    "generated_first_token_decoded": "H",
+    "sanity_passed": true
+  },
+  {
+    "id": "triviaqa_0004",
+    "question": "Who had a 70s No 1 hit with Kiss You All Over?",
+    "answer": "Exile",
+    "generated": "Bread",
+    "correct": false,
+    "final_argmax_token": 33,
+    "final_argmax_decoded": "B",
+    "generated_first_token_id": 33,
+    "generated_first_token_decoded": "B",
+    "sanity_passed": true
+  },
+  {
+    "id": "triviaqa_0005",
+    "question": "What claimed the life of singer Kathleen Ferrier?",
+    "answer": "Cancer",
+    "generated": "Pneumonia",
+    "correct": false,
+    "final_argmax_token": 47,
+    "final_argmax_decoded": "P",
+    "generated_first_token_id": 47,
+    "generated_first_token_decoded": "P",
+    "sanity_passed": true
+  },
+  {
+    "id": "triviaqa_0006",
+    "question": "Rita Coolidge sang the title song for which Bond f",
+    "answer": "Octopussy",
+    "generated": "The Man with the Golden Gun",
+    "correct": false,
+    "final_argmax_token": 785,
+    "final_argmax_decoded": "The",
+    "generated_first_token_id": 785,
+    "generated_first_token_decoded": "The",
+    "sanity_passed": true
+  },
+  {
+    "id": "triviaqa_0007",
+    "question": "To the nearest million what is the population of A",
+    "answer": "18 million",
+    "generated": "30 million",
+    "correct": false,
+    "final_argmax_token": 18,
+    "final_argmax_decoded": "3",
+    "generated_first_token_id": 18,
+    "generated_first_token_decoded": "3",
+    "sanity_passed": true
+  },
+  {
+    "id": "triviaqa_0008",
+    "question": "What was the last US state to reintroduce alcohol ",
+    "answer": "Utah",
+    "generated": "Kentucky",
+    "correct": false,
+    "final_argmax_token": 84756,
+    "final_argmax_decoded": "Kent",
+    "generated_first_token_id": 84756,
+    "generated_first_token_decoded": "Kent",
+    "sanity_passed": true
+  },
+  {
+    "id": "triviaqa_0009",
+    "question": "Which actress was voted Miss Greenwich Village in ",
+    "answer": "Lauren Bacall",
+    "generated": "Audrey Hepburn",
+    "correct": false,
+    "final_argmax_token": 52949,
+    "final_argmax_decoded": "Aud",
+    "generated_first_token_id": 52949,
+    "generated_first_token_decoded": "Aud",
+    "sanity_passed": true
+  }
+]

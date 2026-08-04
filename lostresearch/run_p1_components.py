@@ -65,16 +65,17 @@ def collect_component_hiddens(model, prompt_ids):
     components = {i: {"pre_attn": None, "attn_out": None, "post_attn": None,
                        "mlp_out": None, "post_mlp": None} for i in range(num_layers)}
 
-    def make_layer_hook(idx):
-        def hook(module, args, kwargs):
-            # forward_pre_hook: args = (input,) kwargs = {}
-            h_in = args[0]
-            components[idx]["pre_attn"] = h_in[0, -1, :].detach().clone()  # last token
+    # forward_pre_hook 默认签名: hook(module, input) 其中 input 是 tuple
+    # 不用 with_kwargs, 用最稳的写法
+    def make_pre_hook(idx):
+        def hook(module, input):
+            # input 通常是 (hidden_states,) tuple
+            h_in = input[0] if isinstance(input, tuple) else input
+            components[idx]["pre_attn"] = h_in[0, -1, :].detach().clone()
         return hook
 
     def make_attn_hook(idx):
         def hook(module, input, output):
-            # attn output: (attn_out, ...) or just attn_out
             if isinstance(output, tuple):
                 attn_out = output[0]
             else:
@@ -99,18 +100,7 @@ def collect_component_hiddens(model, prompt_ids):
     hooks = []
     for i, layer in enumerate(layers):
         hooks.append(layer.register_forward_hook(make_post_hook(i)))
-        # forward_pre_hook 的回调签名: (module, args) 或 (module, args, kwargs)
-        # 用 with_kwargs=True 方式 (transformers >= 4.40)
-        try:
-            hooks.append(layer.register_forward_pre_hook(make_layer_hook(i), with_kwargs=True))
-        except TypeError:
-            # 旧版 transformers 不支持 with_kwargs
-            def make_simple_hook(idx):
-                def hook(module, input):
-                    h_in = input[0] if isinstance(input, tuple) else input
-                    components[idx]["pre_attn"] = h_in[0, -1, :].detach().clone()
-                return hook
-            hooks.append(layer.register_forward_pre_hook(make_simple_hook(i)))
+        hooks.append(layer.register_forward_pre_hook(make_pre_hook(i)))
         attn, mlp, _ = get_attn_mlp_modules(model, i)
         if attn is not None:
             hooks.append(attn.register_forward_hook(make_attn_hook(i)))

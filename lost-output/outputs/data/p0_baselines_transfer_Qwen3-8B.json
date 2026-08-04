@@ -1,0 +1,115 @@
+{
+  "strong_baselines": {
+    "single_cis_at_t0": {
+      "decay_auc": 0.6896574740263028,
+      "correct_auc": 0.6807308570741676
+    },
+    "single_cis_max_before": {
+      "decay_auc": 0.4608311583095116,
+      "correct_auc": 0.5485442961894458
+    },
+    "single_cis_slope": {
+      "decay_auc": 0.6348560801697669,
+      "correct_auc": 0.6170357014064191
+    },
+    "single_rank_at_t0": {
+      "decay_auc": 0.3268773102435566,
+      "correct_auc": 0.3479120086548864
+    },
+    "single_rank_min_before": {
+      "decay_auc": 0.32449514129599194,
+      "correct_auc": 0.3384276956364948
+    },
+    "single_logprob_at_t0": {
+      "decay_auc": 0.6743471476116167,
+      "correct_auc": 0.6531578314701286
+    },
+    "single_logprob_max_before": {
+      "decay_auc": 0.6756291457795333,
+      "correct_auc": 0.6620603437913211
+    },
+    "single_entropy_at_t0": {
+      "decay_auc": 0.265537035246894,
+      "correct_auc": 0.2677244861161197
+    },
+    "single_question_length": {
+      "decay_auc": 0.26206160035721027,
+      "correct_auc": 0.27100132227431184
+    },
+    "cis_only": {
+      "decay_auc": 0.6896574740263028,
+      "correct_auc": 0.6807308570741676,
+      "n_features": 1
+    },
+    "cis_plus_slope": {
+      "decay_auc": 0.6894088998752526,
+      "correct_auc": 0.6823272027887968,
+      "n_features": 2
+    },
+    "rank_only": {
+      "decay_auc": 0.6731226897564434,
+      "correct_auc": 0.6520879913451136,
+      "n_features": 1
+    },
+    "rank_plus_cis": {
+      "decay_auc": 0.693337752429352,
+      "correct_auc": 0.684553431902873,
+      "n_features": 2
+    },
+    "max_sofar": {
+      "decay_auc": 0.5391688416904884,
+      "correct_auc": 0.5485442961894458,
+      "n_features": 1
+    },
+    "max_plus_slope": {
+      "decay_auc": 0.6560677410593861,
+      "correct_auc": 0.6182810433946387,
+      "n_features": 2
+    },
+    "all_trajectory": {
+      "decay_auc": 0.9553579237613873,
+      "correct_auc": 0.8602668589974757,
+      "n_features": 14
+    },
+    "mlp_all": {
+      "decay_auc": 0.9254737869351267,
+      "correct_auc": 0.8849429017910806,
+      "n_features": 14
+    }
+  },
+  "cross_task_transfer": {
+    "hotpotqa_to_triviaqa": {
+      "decay_auc": 0.795344,
+      "correct_auc": 0.7164840897235263
+    },
+    "hotpotqa_to_gsm8k": {
+      "decay_auc": 1.0,
+      "correct_auc": 0.6502620186830713
+    },
+    "triviaqa_to_hotpotqa": {
+      "decay_auc": 0.9347278225806452,
+      "correct_auc": 0.8041228070175439
+    },
+    "triviaqa_to_gsm8k": {
+      "decay_auc": 0.9551020408163265,
+      "correct_auc": 0.5741626794258373
+    },
+    "gsm8k_to_hotpotqa": {
+      "decay_auc": 0.9778225806451613,
+      "correct_auc": 0.6328947368421052
+    },
+    "gsm8k_to_triviaqa": {
+      "decay_auc": 0.67704,
+      "correct_auc": 0.49062663015127805
+    },
+    "LOTO_hotpotqa": {
+      "decay_auc": 0.9467405913978495
+    },
+    "LOTO_triviaqa": {
+      "decay_auc": 0.77496
+    },
+    "LOTO_gsm8k": {
+      "decay_auc": 0.9657142857142857
+    }
+  }
+}

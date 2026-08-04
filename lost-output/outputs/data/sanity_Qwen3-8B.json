@@ -1,0 +1,2002 @@
+[
+  {
+    "id": "triviaqa_0000",
+    "question": "Who was the man behind The Chipmunks?",
+    "answer": "David Seville",
+    "generated": "David Seville",
+    "correct": true,
+    "final_argmax": 22286,
+    "generated_first": 22286,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0001",
+    "question": "What star sign is Jamie Lee Curtis?",
+    "answer": "Scorpio",
+    "generated": "Gemini",
+    "correct": false,
+    "final_argmax": 95040,
+    "generated_first": 95040,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0002",
+    "question": "Which Lloyd Webber musical premiered in the US on ",
+    "answer": "Sunset Boulevard",
+    "generated": "The Phantom of the Opera",
+    "correct": false,
+    "final_argmax": 785,
+    "generated_first": 785,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0003",
+    "question": "Who was the next British Prime Minister after Arth",
+    "answer": "Campbell-Bannerman",
+    "generated": "H.H. Asquith",
+    "correct": false,
+    "final_argmax": 39,
+    "generated_first": 39,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0004",
+    "question": "Who had a 70s No 1 hit with Kiss You All Over?",
+    "answer": "Exile",
+    "generated": "Bread",
+    "correct": false,
+    "final_argmax": 33,
+    "generated_first": 33,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0005",
+    "question": "What claimed the life of singer Kathleen Ferrier?",
+    "answer": "Cancer",
+    "generated": "Pneumonia",
+    "correct": false,
+    "final_argmax": 47,
+    "generated_first": 47,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0006",
+    "question": "Rita Coolidge sang the title song for which Bond f",
+    "answer": "Octopussy",
+    "generated": "The Man with the Golden Gun",
+    "correct": false,
+    "final_argmax": 785,
+    "generated_first": 785,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0007",
+    "question": "To the nearest million what is the population of A",
+    "answer": "18 million",
+    "generated": "30 million",
+    "correct": false,
+    "final_argmax": 18,
+    "generated_first": 18,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0008",
+    "question": "What was the last US state to reintroduce alcohol ",
+    "answer": "Utah",
+    "generated": "Kentucky",
+    "correct": false,
+    "final_argmax": 84756,
+    "generated_first": 84756,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0009",
+    "question": "Which actress was voted Miss Greenwich Village in ",
+    "answer": "Lauren Bacall",
+    "generated": "Audrey Hepburn",
+    "correct": false,
+    "final_argmax": 52949,
+    "generated_first": 52949,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0010",
+    "question": "What is the Japanese share index called?",
+    "answer": "Nikkei",
+    "generated": "Nikkei 225",
+    "correct": true,
+    "final_argmax": 45,
+    "generated_first": 45,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0011",
+    "question": "What was the name of Michael Jackson's autobiograp",
+    "answer": "Moonwalk",
+    "generated": "Bad: The Life of Michael Jacks",
+    "correct": false,
+    "final_argmax": 17082,
+    "generated_first": 17082,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0012",
+    "question": "In which decade did stereo records first go on sal",
+    "answer": "1930s",
+    "generated": "1940s",
+    "correct": false,
+    "final_argmax": 16,
+    "generated_first": 16,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0013",
+    "question": "What was golfing great Ben Hogan's famous reply wh",
+    "answer": "Hit the ball closer to the hole",
+    "generated": "Practice until you can't pract",
+    "correct": false,
+    "final_argmax": 88492,
+    "generated_first": 88492,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0014",
+    "question": "In what year's Olympics were electric timing devic",
+    "answer": "In 1912, in Stockholm",
+    "generated": "1936",
+    "correct": false,
+    "final_argmax": 16,
+    "generated_first": 16,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0015",
+    "question": "Why is the site of a boxing match called a ring wh",
+    "answer": "Boxing rings were originally circular",
+    "generated": "Because it's a square ring.",
+    "correct": false,
+    "final_argmax": 17949,
+    "generated_first": 17949,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0016",
+    "question": "In the very first Boston Marathon, 15 runners comp",
+    "answer": "$85,000",
+    "generated": "15",
+    "correct": false,
+    "final_argmax": 16,
+    "generated_first": 16,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0017",
+    "question": "\"How many different animal shapes are there in the",
+    "answer": "Eighteen--two bears (one walking, one seated), a bison, camel, cougar, elephant, giraffe, gorilla, hippopotamus, hyena , kangaroo, lion, monkey, rhinoceros, seal, sheep, tier, and zebra",
+    "generated": "6",
+    "correct": false,
+    "final_argmax": 21,
+    "generated_first": 21,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0018",
+    "question": "Which volcano in Tanzania is the highest mountain ",
+    "answer": "Kilimanjaro",
+    "generated": "Mount Kilimanjaro",
+    "correct": true,
+    "final_argmax": 16284,
+    "generated_first": 16284,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0019",
+    "question": "The flag of Libya is a plain rectangle of which co",
+    "answer": "Green",
+    "generated": "Green",
+    "correct": true,
+    "final_argmax": 19576,
+    "generated_first": 19576,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0020",
+    "question": "Of which African country is Niamey the capital?",
+    "answer": "Niger",
+    "generated": "Niger",
+    "correct": true,
+    "final_argmax": 45,
+    "generated_first": 45,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0021",
+    "question": "Who was the director of the CIA from 1976-81?",
+    "answer": "George Bush",
+    "generated": "William J. Casey",
+    "correct": false,
+    "final_argmax": 44787,
+    "generated_first": 44787,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0022",
+    "question": "Which musical featured the song The Street Where Y",
+    "answer": "My Fair Lady",
+    "generated": "The Street Where You Live is f",
+    "correct": false,
+    "final_argmax": 785,
+    "generated_first": 785,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0023",
+    "question": "\"Who was the target of the failed \"\"Bomb Plot\"\" of",
+    "answer": "Hitler",
+    "generated": "The target of the failed \"Bomb",
+    "correct": false,
+    "final_argmax": 785,
+    "generated_first": 785,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0024",
+    "question": "Who had an 80s No 1 hit with Hold On To The Nights",
+    "answer": "Richard Marx",
+    "generated": "Tina Turner",
+    "correct": false,
+    "final_argmax": 51,
+    "generated_first": 51,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0025",
+    "question": "Who directed the classic 30s western Stagecoach?",
+    "answer": "John Ford",
+    "generated": "John Ford",
+    "correct": true,
+    "final_argmax": 13079,
+    "generated_first": 13079,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0026",
+    "question": "Dave Gilmore and Roger Waters were in which rock g",
+    "answer": "Pink Floyd",
+    "generated": "Pink Floyd",
+    "correct": true,
+    "final_argmax": 71352,
+    "generated_first": 71352,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0027",
+    "question": "Which highway was Revisited in a classic 60s album",
+    "answer": "61",
+    "generated": "Highway 61 Revisited",
+    "correct": true,
+    "final_argmax": 11976,
+    "generated_first": 11976,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0028",
+    "question": "Which was the only eastern bloc country to partici",
+    "answer": "Rumania",
+    "generated": "East Germany",
+    "correct": false,
+    "final_argmax": 36340,
+    "generated_first": 36340,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0029",
+    "question": "Which 90s sci fi series with James Belushi was bas",
+    "answer": "Wild Palms",
+    "generated": "The Equalizer",
+    "correct": false,
+    "final_argmax": 785,
+    "generated_first": 785,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0030",
+    "question": "If I Were A Rich Man Was a big hit from which stag",
+    "answer": "Fiddler on the Roof",
+    "generated": "Fiddler on the Roof",
+    "correct": true,
+    "final_argmax": 37,
+    "generated_first": 37,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0031",
+    "question": "Men Against the Sea and Pitcairn's Island were two",
+    "answer": "Mutiny On The Bounty",
+    "generated": "Moby-Dick",
+    "correct": false,
+    "final_argmax": 44,
+    "generated_first": 44,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0032",
+    "question": "What is the only novel to top the best-seller list",
+    "answer": "Jonathan Livingston Seagull",
+    "generated": "\"Ulysses\" by James Joyce",
+    "correct": false,
+    "final_argmax": 1,
+    "generated_first": 1,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0033",
+    "question": "To whom did Helen Keller dedicate her autobiograph",
+    "answer": "To inventor Alexander Graham Bell, who helped direct her education and considered himself, first and foremost, a teacher of the deaf",
+    "generated": "Her teacher, Anne Sullivan.",
+    "correct": false,
+    "final_argmax": 20705,
+    "generated_first": 20705,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0034",
+    "question": "\"Complete this Biblical quotation: \"\"It is easier ",
+    "answer": "...for a rich man to enter into the kingdom of God. The words are those of Jesus, from Matthew 19:24",
+    "generated": "for a rich man to enter the ki",
+    "correct": false,
+    "final_argmax": 1958,
+    "generated_first": 1958,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0035",
+    "question": "What was Truman Capote's last name before he was a",
+    "answer": "Persons",
+    "generated": "Capote",
+    "correct": false,
+    "final_argmax": 12903,
+    "generated_first": 12903,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0036",
+    "question": "What book knocked Henry Kissinger's White house Ye",
+    "answer": "Aunt Erma's Cope Book, by Erma Bombeck",
+    "generated": "\"Primary Colors\" by Anonymous",
+    "correct": false,
+    "final_argmax": 1,
+    "generated_first": 1,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0037",
+    "question": "In Lewis Carroll's poem The Hunting of the Snark, ",
+    "answer": "A boojum",
+    "generated": "A Boojum.",
+    "correct": true,
+    "final_argmax": 32,
+    "generated_first": 32,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0038",
+    "question": "In what state was playwright Tennessee Williams bo",
+    "answer": "In Mississippi, as Thomas Lanier Williams. He took the name Tennessee after his father's home state",
+    "generated": "Mississippi",
+    "correct": false,
+    "final_argmax": 35312,
+    "generated_first": 35312,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0039",
+    "question": "Who was the only Englishman to become Pope?",
+    "answer": "Nicholas Breakspear, who was Adrian IV from 1154 to 1159",
+    "generated": "Pius VI",
+    "correct": false,
+    "final_argmax": 47,
+    "generated_first": 47,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0040",
+    "question": "In the Bible, who did the sun and moon stand still",
+    "answer": "Joshua",
+    "generated": "Joshua",
+    "correct": true,
+    "final_argmax": 50744,
+    "generated_first": 50744,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0041",
+    "question": "What Michelle Pfeiffer movie got a boost from the ",
+    "answer": "Dangerous Minds",
+    "generated": "Dangerous Minds",
+    "correct": true,
+    "final_argmax": 97215,
+    "generated_first": 97215,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0042",
+    "question": "In the Bible, who saw the handwriting on the wall?",
+    "answer": "The Babylonian king Belshazzar (Daniel 5:1-5)",
+    "generated": "Daniel",
+    "correct": false,
+    "final_argmax": 40586,
+    "generated_first": 40586,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0043",
+    "question": "What comic strip character was named after heavywe",
+    "answer": "Jeff, of Mutt and Jeff",
+    "generated": "Barney Google",
+    "correct": false,
+    "final_argmax": 3428,
+    "generated_first": 3428,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0044",
+    "question": "What was President Gerald Ford's middle name?",
+    "answer": "Rudolph",
+    "generated": "Lynn",
+    "correct": false,
+    "final_argmax": 43,
+    "generated_first": 43,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0045",
+    "question": "Who recorded the When Harry Met Sally soundtrack?",
+    "answer": "Harry Connick Jnr",
+    "generated": "Norah Jones",
+    "correct": false,
+    "final_argmax": 32663,
+    "generated_first": 32663,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0046",
+    "question": "Art Garfunkel trained for which profession althoug",
+    "answer": "Architect",
+    "generated": "Actor",
+    "correct": false,
+    "final_argmax": 18870,
+    "generated_first": 18870,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0047",
+    "question": "Who was the last inmate of Spandau jail in Berlin?",
+    "answer": "Rudolf Hess",
+    "generated": "Ernst vom Rath",
+    "correct": false,
+    "final_argmax": 19462,
+    "generated_first": 19462,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0048",
+    "question": "What was Eddie Murphy's first movie?",
+    "answer": "48 Hours",
+    "generated": "48 Hours",
+    "correct": true,
+    "final_argmax": 19,
+    "generated_first": 19,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0049",
+    "question": "In the 80s who wrote the novel Empire of The Sun?",
+    "answer": "J. G. Ballard",
+    "generated": "J.G. Ballard",
+    "correct": true,
+    "final_argmax": 41,
+    "generated_first": 41,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0050",
+    "question": "Kagoshima international airport is in which countr",
+    "answer": "Japan",
+    "generated": "Japan",
+    "correct": true,
+    "final_argmax": 48752,
+    "generated_first": 48752,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0051",
+    "question": "In which sport could the Pacers take on the Piston",
+    "answer": "A: Basketball",
+    "generated": "Basketball",
+    "correct": true,
+    "final_argmax": 73649,
+    "generated_first": 73649,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0052",
+    "question": "Kim Carnes' nine weeks at No 1 with Bette Davis Ey",
+    "answer": "Stars on 45 medley",
+    "generated": "\"Bohemian Rhapsody\" by Queen",
+    "correct": false,
+    "final_argmax": 1,
+    "generated_first": 1,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0053",
+    "question": "Where in Canada is the Lion's Gate bridge?",
+    "answer": "Vancouver",
+    "generated": "Vancouver, British Columbia",
+    "correct": true,
+    "final_argmax": 53,
+    "generated_first": 53,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0054",
+    "question": "What was Walter Matthau's first movie?",
+    "answer": "The Kentuckian",
+    "generated": "\"The Prodigal Son\" (1947)",
+    "correct": false,
+    "final_argmax": 10022,
+    "generated_first": 10022,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0055",
+    "question": "Otis Barton was a pioneer in exploring where?",
+    "answer": "Underwater",
+    "generated": "The ocean depths",
+    "correct": false,
+    "final_argmax": 785,
+    "generated_first": 785,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0056",
+    "question": "Where in England was actor Nigel Hawthorne born?",
+    "answer": "Coventry",
+    "generated": "Bristol",
+    "correct": false,
+    "final_argmax": 33,
+    "generated_first": 33,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0057",
+    "question": "What would Kevin Scale have been called if it had ",
+    "answer": "William Scale",
+    "generated": "Kevin Scale",
+    "correct": false,
+    "final_argmax": 47681,
+    "generated_first": 47681,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0058",
+    "question": "What mythological beast has the head of a man, the",
+    "answer": "A manticore",
+    "generated": "Chimera",
+    "correct": false,
+    "final_argmax": 1143,
+    "generated_first": 1143,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0059",
+    "question": "In Greek mythology, who were Arges, Brontes and St",
+    "answer": "Cyclopes",
+    "generated": "Arges, Brontes, and Steropes w",
+    "correct": false,
+    "final_argmax": 2735,
+    "generated_first": 2735,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0060",
+    "question": "In Greek mythology, what were the names of Oedipus",
+    "answer": "Laius, King of Thebes, and his queen, Jocasta",
+    "generated": "Laius and Jocasta",
+    "correct": false,
+    "final_argmax": 43,
+    "generated_first": 43,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0061",
+    "question": "Which musician founded the Red Hot Peppers?",
+    "answer": "Jelly Roll Morton",
+    "generated": "Red Hot Chili Peppers.",
+    "correct": false,
+    "final_argmax": 6033,
+    "generated_first": 6033,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0062",
+    "question": "Where did the Shinning Path terrorists operate?",
+    "answer": "Peru",
+    "generated": "Peru",
+    "correct": true,
+    "final_argmax": 3889,
+    "generated_first": 3889,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0063",
+    "question": "How old was Jimi Hendrix when he died?",
+    "answer": "27",
+    "generated": "27 years old.",
+    "correct": true,
+    "final_argmax": 17,
+    "generated_first": 17,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0064",
+    "question": "Which Brit broke the land speed record in 1990 in ",
+    "answer": "Richard Noble",
+    "generated": "Richard Noble",
+    "correct": true,
+    "final_argmax": 41215,
+    "generated_first": 41215,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0065",
+    "question": "In which state was Gene Vincent born?",
+    "answer": "Virginia",
+    "generated": "Virginia",
+    "correct": true,
+    "final_argmax": 80596,
+    "generated_first": 80596,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0066",
+    "question": "How was the European Recovery Program in the 1940s",
+    "answer": "Marshall Plan",
+    "generated": "Marshall Plan",
+    "correct": true,
+    "final_argmax": 12061,
+    "generated_first": 12061,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0067",
+    "question": "Brandon Lee died during the making of which movie?",
+    "answer": "The Crow",
+    "generated": "The Crow",
+    "correct": true,
+    "final_argmax": 785,
+    "generated_first": 785,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0068",
+    "question": "Who had a 70s No 1 hit with Let's Do It Again?",
+    "answer": "The Staple Singers",
+    "generated": "The Beatles",
+    "correct": false,
+    "final_argmax": 785,
+    "generated_first": 785,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0069",
+    "question": "Who had a Too Legit To Quit Tour?",
+    "answer": "MC Hammer",
+    "generated": "MC Hammer",
+    "correct": true,
+    "final_argmax": 11604,
+    "generated_first": 11604,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0070",
+    "question": "\"According to Rudyard Kipling what were the \"\"two ",
+    "answer": "Triumph and Disaster",
+    "generated": "The two imposters were the \"Wh",
+    "correct": false,
+    "final_argmax": 785,
+    "generated_first": 785,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0071",
+    "question": "Who is the most successful UK solo artist in the U",
+    "answer": "Elton John",
+    "generated": "Elton John",
+    "correct": true,
+    "final_argmax": 6582,
+    "generated_first": 6582,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0072",
+    "question": "Where was horse racing's Breeder's Cup held in 198",
+    "answer": "Hollywood Park L.A",
+    "generated": "Del Mar Race Track",
+    "correct": false,
+    "final_argmax": 16532,
+    "generated_first": 16532,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0073",
+    "question": "Which country does the airline TAAG come from?",
+    "answer": "Angola",
+    "generated": "Angola",
+    "correct": true,
+    "final_argmax": 10743,
+    "generated_first": 10743,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0074",
+    "question": "Which US No 1 single came from Diana Ross's platin",
+    "answer": "Upside Down",
+    "generated": "I'm Just a Testimony",
+    "correct": false,
+    "final_argmax": 40,
+    "generated_first": 40,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0075",
+    "question": "River Phoenix died during the making of which movi",
+    "answer": "Dark Blood",
+    "generated": "The River Phoenix died during ",
+    "correct": false,
+    "final_argmax": 785,
+    "generated_first": 785,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0076",
+    "question": "Which artist David was born in Bradford UK?",
+    "answer": "Hockney",
+    "generated": "David Bowie",
+    "correct": false,
+    "final_argmax": 22286,
+    "generated_first": 22286,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0077",
+    "question": "What is Mel Gibson's middle name?",
+    "answer": "Columcille",
+    "generated": "Malcolm",
+    "correct": false,
+    "final_argmax": 29600,
+    "generated_first": 29600,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0078",
+    "question": "Richard Daley was mayor of which city for 21 years",
+    "answer": "Chicago",
+    "generated": "Chicago",
+    "correct": true,
+    "final_argmax": 46175,
+    "generated_first": 46175,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0079",
+    "question": "\"In which movie did Garbo say, \"\"I want to be alon",
+    "answer": "Grand Hotel",
+    "generated": "Ninotchka",
+    "correct": false,
+    "final_argmax": 45,
+    "generated_first": 45,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0080",
+    "question": "Robert Kirkpatrick of California grew the world's ",
+    "answer": "Head of garlic",
+    "generated": "watermelon",
+    "correct": false,
+    "final_argmax": 12987,
+    "generated_first": 12987,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0081",
+    "question": "What is Osbert Lancaster best known for producing?",
+    "answer": "Cartoons",
+    "generated": "The Dandy comic strip.",
+    "correct": false,
+    "final_argmax": 785,
+    "generated_first": 785,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0082",
+    "question": "Who was the defending champion when Martina Navrat",
+    "answer": "Virginia Wade",
+    "generated": "Billie Jean King",
+    "correct": false,
+    "final_argmax": 27476,
+    "generated_first": 27476,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0083",
+    "question": "Who was the first US-born winner of golf's British",
+    "answer": "Walter Hagen",
+    "generated": "Ben Hogan",
+    "correct": false,
+    "final_argmax": 24566,
+    "generated_first": 24566,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0084",
+    "question": "In which country is the Sky Train Rail bridge?",
+    "answer": "Canada",
+    "generated": "United States",
+    "correct": false,
+    "final_argmax": 22372,
+    "generated_first": 22372,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0085",
+    "question": "What was the Paramount Film Company originally cal",
+    "answer": "Famous Players Film Company",
+    "generated": "Lasky Co.",
+    "correct": false,
+    "final_argmax": 43,
+    "generated_first": 43,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0086",
+    "question": "Which founder of the company Triad was accused by ",
+    "answer": "Adnan Khashoggi",
+    "generated": "Paul Singer",
+    "correct": false,
+    "final_argmax": 25300,
+    "generated_first": 25300,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0087",
+    "question": "Who was the first person after Scott to reach the ",
+    "answer": "Edmond Hillary",
+    "generated": "Amundsen",
+    "correct": false,
+    "final_argmax": 6091,
+    "generated_first": 6091,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0088",
+    "question": "Which journalist first told the world about the My",
+    "answer": "Seymour Hersh",
+    "generated": "Michael Hoffman",
+    "correct": false,
+    "final_argmax": 25516,
+    "generated_first": 25516,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0089",
+    "question": "What is the name of Terence and Shirley Conran's d",
+    "answer": "Jasper",
+    "generated": "Tom Ford",
+    "correct": false,
+    "final_argmax": 24732,
+    "generated_first": 24732,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0090",
+    "question": "Which drink did The Spice Girls promote?",
+    "answer": "Pepsi",
+    "generated": "The Spice Girls promoted the V",
+    "correct": false,
+    "final_argmax": 785,
+    "generated_first": 785,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0091",
+    "question": "Who was the youngest brother in the Beach Boys?",
+    "answer": "Carl Wilson",
+    "generated": "Brian Wilson",
+    "correct": false,
+    "final_argmax": 50088,
+    "generated_first": 50088,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0092",
+    "question": "Which actress was called by the US Senate a 'power",
+    "answer": "Ingrid Bergman",
+    "generated": "Marilyn Monroe",
+    "correct": false,
+    "final_argmax": 44,
+    "generated_first": 44,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0093",
+    "question": "Who first hosted Family Feud?",
+    "answer": "Richard Dawson",
+    "generated": "Richard Dawson",
+    "correct": true,
+    "final_argmax": 41215,
+    "generated_first": 41215,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0094",
+    "question": "What did the Lone Ranger's title Kemo Sabe mean in",
+    "answer": "White Shirt",
+    "generated": "Friend.",
+    "correct": false,
+    "final_argmax": 41637,
+    "generated_first": 41637,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0095",
+    "question": "Who or what was Gentle Ben in the 60s TV series?",
+    "answer": "Bear cub",
+    "generated": "Gentle Ben was a gentle giant ",
+    "correct": false,
+    "final_argmax": 38,
+    "generated_first": 38,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0096",
+    "question": "Which 70s show was based on the British show Till ",
+    "answer": "All In The Family",
+    "generated": "All in the Family",
+    "correct": true,
+    "final_argmax": 2403,
+    "generated_first": 2403,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0097",
+    "question": "On what date in 1969 did Neil Armstrong first set ",
+    "answer": "July 20th",
+    "generated": "July 20, 1969",
+    "correct": true,
+    "final_argmax": 28427,
+    "generated_first": 28427,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0098",
+    "question": "Bandar Seri Begawan International airport is in wh",
+    "answer": "Brunei",
+    "generated": "Brunei",
+    "correct": true,
+    "final_argmax": 6828,
+    "generated_first": 6828,
+    "passed": true
+  },
+  {
+    "id": "triviaqa_0099",
+    "question": "What was the profession of Paul Strand (1890 - 197",
+    "answer": "Photographer",
+    "generated": "Photographer",
+    "correct": true,
+    "final_argmax": 52204,
+    "generated_first": 52204,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0000",
+    "question": "Were Scott Derrickson and Ed Wood of the same nati",
+    "answer": "yes",
+    "generated": "No.",
+    "correct": false,
+    "final_argmax": 2753,
+    "generated_first": 2753,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0001",
+    "question": "What government position was held by the woman who",
+    "answer": "Chief of Protocol",
+    "generated": "First Lady of the United State",
+    "correct": false,
+    "final_argmax": 5338,
+    "generated_first": 5338,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0002",
+    "question": "What science fantasy young adult series, told in f",
+    "answer": "Animorphs",
+    "generated": "The Expanse series",
+    "correct": false,
+    "final_argmax": 785,
+    "generated_first": 785,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0003",
+    "question": "Are the Laleli Mosque and Esma Sultan Mansion loca",
+    "answer": "no",
+    "generated": "Yes.",
+    "correct": false,
+    "final_argmax": 9454,
+    "generated_first": 9454,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0004",
+    "question": "The director of the romantic comedy \"Big Stone Gap",
+    "answer": "Greenwich Village, New York City",
+    "generated": "New York City",
+    "correct": false,
+    "final_argmax": 3564,
+    "generated_first": 3564,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0005",
+    "question": "2014 S/S is the debut album of a South Korean boy ",
+    "answer": "YG Entertainment",
+    "generated": "EXO",
+    "correct": false,
+    "final_argmax": 3257,
+    "generated_first": 3257,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0006",
+    "question": "Who was known by his stage name Aladin and helped ",
+    "answer": "Eenasul Fateh",
+    "generated": "Peter Drucker",
+    "correct": false,
+    "final_argmax": 36559,
+    "generated_first": 36559,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0007",
+    "question": "The arena where the Lewiston Maineiacs played thei",
+    "answer": "3,677 seated",
+    "generated": "7,225",
+    "correct": false,
+    "final_argmax": 22,
+    "generated_first": 22,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0008",
+    "question": "Who is older, Annie Morton or Terry Richardson?",
+    "answer": "Terry Richardson",
+    "generated": "Annie Morton is older.",
+    "correct": false,
+    "final_argmax": 2082,
+    "generated_first": 2082,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0009",
+    "question": "Are Local H and For Against both from the United S",
+    "answer": "yes",
+    "generated": "Yes.",
+    "correct": true,
+    "final_argmax": 9454,
+    "generated_first": 9454,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0010",
+    "question": "What is the name of the fight song of the universi",
+    "answer": "Kansas Song",
+    "generated": "\"Lawrence\"",
+    "correct": false,
+    "final_argmax": 1,
+    "generated_first": 1,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0011",
+    "question": "What screenwriter with credits for \"Evolution\" co-",
+    "answer": "David Weissman",
+    "generated": "Aaron Sorkin",
+    "correct": false,
+    "final_argmax": 74803,
+    "generated_first": 74803,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0012",
+    "question": "What year did Guns N Roses perform a promo for a m",
+    "answer": "1999",
+    "generated": "1991",
+    "correct": true,
+    "final_argmax": 16,
+    "generated_first": 16,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0013",
+    "question": "Are Random House Tower and 888 7th Avenue both use",
+    "answer": "no",
+    "generated": "No.",
+    "correct": true,
+    "final_argmax": 2753,
+    "generated_first": 2753,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0014",
+    "question": "The football manager who recruited David Beckham m",
+    "answer": "from 1986 to 2013",
+    "generated": "1999–2002",
+    "correct": false,
+    "final_argmax": 16,
+    "generated_first": 16,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0015",
+    "question": "Brown State Fishing Lake is in a country that has ",
+    "answer": "9,984",
+    "generated": "The question does not provide ",
+    "correct": false,
+    "final_argmax": 785,
+    "generated_first": 785,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0016",
+    "question": "The Vermont Catamounts men's soccer team currently",
+    "answer": "the North Atlantic Conference",
+    "generated": "America East Conference",
+    "correct": false,
+    "final_argmax": 31032,
+    "generated_first": 31032,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0017",
+    "question": "Are Giuseppe Verdi and Ambroise Thomas both Opera ",
+    "answer": "yes",
+    "generated": "Yes.",
+    "correct": true,
+    "final_argmax": 9454,
+    "generated_first": 9454,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0018",
+    "question": "Roger O. Egeberg was Assistant Secretary for Healt",
+    "answer": "1969 until 1974",
+    "generated": "1973–1977",
+    "correct": false,
+    "final_argmax": 16,
+    "generated_first": 16,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0019",
+    "question": "Which writer was from England, Henry Roth or Rober",
+    "answer": "Robert Erskine Childers DSC",
+    "generated": "Henry Roth",
+    "correct": false,
+    "final_argmax": 63363,
+    "generated_first": 63363,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0020",
+    "question": "Which other Mexican Formula One race car driver ha",
+    "answer": "Pedro Rodríguez",
+    "generated": "Sergio Pérez",
+    "correct": false,
+    "final_argmax": 50,
+    "generated_first": 50,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0021",
+    "question": "This singer of A Rather Blustery Day also voiced w",
+    "answer": "Sonic",
+    "generated": "Sonic the Hedgehog",
+    "correct": true,
+    "final_argmax": 50,
+    "generated_first": 50,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0022",
+    "question": "Aside from the Apple Remote, what other device can",
+    "answer": "keyboard function keys",
+    "generated": "iPhone",
+    "correct": false,
+    "final_argmax": 44740,
+    "generated_first": 44740,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0023",
+    "question": "Which performance act has a higher instrument to p",
+    "answer": "Badly Drawn Boy",
+    "generated": "Wolf Alice",
+    "correct": false,
+    "final_argmax": 95434,
+    "generated_first": 95434,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0024",
+    "question": "What was the father of Kasper Schmeichel voted to ",
+    "answer": "World's Best Goalkeeper",
+    "generated": "Best Goalkeeper of the Year",
+    "correct": false,
+    "final_argmax": 14470,
+    "generated_first": 14470,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0025",
+    "question": "Who was the writer of These Boots Are Made for Wal",
+    "answer": "Barton Lee Hazlewood",
+    "generated": "Nancy Sinatra",
+    "correct": false,
+    "final_argmax": 45,
+    "generated_first": 45,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0026",
+    "question": "The 2011–12 VCU Rams men's basketball team, led by",
+    "answer": "1838",
+    "generated": "1917",
+    "correct": false,
+    "final_argmax": 16,
+    "generated_first": 16,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0027",
+    "question": "Are both Dictyosperma, and Huernia described as a ",
+    "answer": "yes",
+    "generated": "Yes.",
+    "correct": true,
+    "final_argmax": 9454,
+    "generated_first": 9454,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0028",
+    "question": "Kaiser Ventures corporation was founded by an Amer",
+    "answer": "Henry J. Kaiser",
+    "generated": "Henry Kaiser",
+    "correct": false,
+    "final_argmax": 63363,
+    "generated_first": 63363,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0029",
+    "question": "What is the name for the adventure in \"Tunnels and",
+    "answer": "Arena of Khazan",
+    "generated": "The name for the adventure in ",
+    "correct": false,
+    "final_argmax": 785,
+    "generated_first": 785,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0030",
+    "question": "When was Poison's album \"Shut Up, Make Love\" relea",
+    "answer": "2000",
+    "generated": "1986",
+    "correct": true,
+    "final_argmax": 16,
+    "generated_first": 16,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0031",
+    "question": "Hayden is a singer-songwriter from Canada, but whe",
+    "answer": "Fujioka, Gunma",
+    "generated": "Japan",
+    "correct": false,
+    "final_argmax": 48752,
+    "generated_first": 48752,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0032",
+    "question": "Which  French ace pilot and adventurer fly L'Oisea",
+    "answer": "Charles Eugène",
+    "generated": "Louis Blériot",
+    "correct": false,
+    "final_argmax": 66115,
+    "generated_first": 66115,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0033",
+    "question": "Are Freakonomics and In the Realm of the Hackers b",
+    "answer": "no",
+    "generated": "No.",
+    "correct": true,
+    "final_argmax": 2753,
+    "generated_first": 2753,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0034",
+    "question": "Which band, Letters to Cleo or Screaming Trees, ha",
+    "answer": "Letters to Cleo",
+    "generated": "Letters to Cleo",
+    "correct": true,
+    "final_argmax": 72537,
+    "generated_first": 72537,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0035",
+    "question": "Alexander Kerensky was defeated and destroyed by t",
+    "answer": "October 1922",
+    "generated": "Red Army's victory in 1922.",
+    "correct": false,
+    "final_argmax": 6033,
+    "generated_first": 6033,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0036",
+    "question": "Seven Brief Lessons on Physics was written by an I",
+    "answer": "2000",
+    "generated": "1929",
+    "correct": false,
+    "final_argmax": 16,
+    "generated_first": 16,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0037",
+    "question": "The Livesey Hal War Memorial commemorates the fall",
+    "answer": "World War II",
+    "generated": "World War I",
+    "correct": false,
+    "final_argmax": 10134,
+    "generated_first": 10134,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0038",
+    "question": "Are both Elko Regional Airport and Gerald R. Ford ",
+    "answer": "no",
+    "generated": "No.",
+    "correct": true,
+    "final_argmax": 2753,
+    "generated_first": 2753,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0039",
+    "question": "Ralph Hefferline was a psychology professor at a u",
+    "answer": "New York City",
+    "generated": "Ann Arbor",
+    "correct": false,
+    "final_argmax": 27093,
+    "generated_first": 27093,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0040",
+    "question": "Which dog's ancestors include Gordon and Irish Set",
+    "answer": "Scotch Collie",
+    "generated": "Manchester Terrier",
+    "correct": false,
+    "final_argmax": 74243,
+    "generated_first": 74243,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0041",
+    "question": "Where is the company that Sachin Warrier worked fo",
+    "answer": "Mumbai",
+    "generated": "Silicon Valley, California",
+    "correct": false,
+    "final_argmax": 27571,
+    "generated_first": 27571,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0042",
+    "question": "A Japanese manga series based on a 16 year old hig",
+    "answer": "1962",
+    "generated": "1974",
+    "correct": true,
+    "final_argmax": 16,
+    "generated_first": 16,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0043",
+    "question": "The battle in which Giuseppe Arimondi lost his lif",
+    "answer": "sovereignty",
+    "generated": "Independence from Italian rule",
+    "correct": false,
+    "final_argmax": 63399,
+    "generated_first": 63399,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0044",
+    "question": "Alfred Balk served as the secretary of the Committ",
+    "answer": "Nelson Rockefeller",
+    "generated": "Alfred Balk served under Vice ",
+    "correct": false,
+    "final_argmax": 2101,
+    "generated_first": 2101,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0045",
+    "question": "A medieval fortress in Dirleton, East Lothian, Sco",
+    "answer": "Yellowcraig",
+    "generated": "Firth of Forth",
+    "correct": false,
+    "final_argmax": 37,
+    "generated_first": 37,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0046",
+    "question": "Who is the writer of this song that was inspired b",
+    "answer": "Phil Spector",
+    "generated": "Neil Young",
+    "correct": false,
+    "final_argmax": 61940,
+    "generated_first": 61940,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0047",
+    "question": "What type of forum did a former Soviet statesman i",
+    "answer": "Organizations could come together to address global issues",
+    "generated": "Cuban Missile Crisis",
+    "correct": false,
+    "final_argmax": 34,
+    "generated_first": 34,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0048",
+    "question": "Are Ferocactus and Silene both types of plant?",
+    "answer": "yes",
+    "generated": "Yes.",
+    "correct": true,
+    "final_argmax": 9454,
+    "generated_first": 9454,
+    "passed": true
+  },
+  {
+    "id": "hotpotqa_0049",
+    "question": "Which British first-generation jet-powered medium ",
+    "answer": "English Electric Canberra",
+    "generated": "Bristol Beaufort",
+    "correct": false,
+    "final_argmax": 33,
+    "generated_first": 33,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0000",
+    "question": "Janet’s ducks lay 16 eggs per day. She eats three ",
+    "answer": "18",
+    "generated": "First, calculate the total num",
+    "correct": false,
+    "final_argmax": 5338,
+    "generated_first": 5338,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0001",
+    "question": "A robe takes 2 bolts of blue fiber and half that m",
+    "answer": "3",
+    "generated": "3",
+    "correct": true,
+    "final_argmax": 18,
+    "generated_first": 18,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0002",
+    "question": "Josh decides to try flipping a house.  He buys a h",
+    "answer": "70000",
+    "generated": "To find the profit, we need to",
+    "correct": false,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0003",
+    "question": "James decides to run 3 sprints 3 times a week.  He",
+    "answer": "540",
+    "generated": "540",
+    "correct": true,
+    "final_argmax": 20,
+    "generated_first": 20,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0004",
+    "question": "Every day, Wendi feeds each of her chickens three ",
+    "answer": "20",
+    "generated": "To find out how many cups of f",
+    "correct": false,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0005",
+    "question": "Kylar went to the store to buy glasses for his new",
+    "answer": "64",
+    "generated": "To calculate the total cost fo",
+    "correct": false,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0006",
+    "question": "Toulouse has twice as many sheep as Charleston. Ch",
+    "answer": "260",
+    "generated": "We are given:\n\n- Seattle has *",
+    "correct": false,
+    "final_argmax": 1654,
+    "generated_first": 1654,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0007",
+    "question": "Carla is downloading a 200 GB file. Normally she c",
+    "answer": "160",
+    "generated": "To find out how long it takes ",
+    "correct": false,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0008",
+    "question": "John drives for 3 hours at a speed of 60 mph and t",
+    "answer": "45",
+    "generated": "We are given a scenario where ",
+    "correct": false,
+    "final_argmax": 1654,
+    "generated_first": 1654,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0009",
+    "question": "Eliza's rate per hour for the first 40 hours she w",
+    "answer": "460",
+    "generated": "To calculate Eliza's earnings ",
+    "correct": false,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0010",
+    "question": "A new program had 60 downloads in the first month.",
+    "answer": "366",
+    "generated": "First month: 60 downloads  \nSe",
+    "correct": false,
+    "final_argmax": 5338,
+    "generated_first": 5338,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0011",
+    "question": "Toula went to the bakery and bought various types ",
+    "answer": "694",
+    "generated": "To find the total cost, we cal",
+    "correct": false,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0012",
+    "question": "Carlos is planting a lemon tree. The tree will cos",
+    "answer": "13",
+    "generated": "To find out how many years it ",
+    "correct": false,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0013",
+    "question": "Melanie is a door-to-door saleswoman. She sold a t",
+    "answer": "18",
+    "generated": "We are told:\n\n- Melanie sold *",
+    "correct": false,
+    "final_argmax": 1654,
+    "generated_first": 1654,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0014",
+    "question": "In a dance class of 20 students, 20% enrolled in c",
+    "answer": "60",
+    "generated": "First, calculate the number of",
+    "correct": false,
+    "final_argmax": 5338,
+    "generated_first": 5338,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0015",
+    "question": "A merchant wants to make a choice of purchase betw",
+    "answer": "125",
+    "generated": "To determine the maximum profi",
+    "correct": false,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0016",
+    "question": "Two trains leave San Rafael at the same time. They",
+    "answer": "230",
+    "generated": "Each train travels **80 miles ",
+    "correct": false,
+    "final_argmax": 4854,
+    "generated_first": 4854,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0017",
+    "question": "Jill gets paid $20 per hour to teach and $30 to be",
+    "answer": "57500",
+    "generated": "To calculate Jill's annual sal",
+    "correct": false,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0018",
+    "question": "Claire makes a 3 egg omelet every morning for brea",
+    "answer": "7",
+    "generated": "To find how many **dozens of e",
+    "correct": false,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0019",
+    "question": "Marissa is hiking a 12-mile trail. She took 1 hour",
+    "answer": "6",
+    "generated": "We are given:\n\n- Total trail d",
+    "correct": false,
+    "final_argmax": 1654,
+    "generated_first": 1654,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0020",
+    "question": "I have 10 liters of orange drink that are two-thir",
+    "answer": "15",
+    "generated": "We are given:\n\n- **Orange drin",
+    "correct": true,
+    "final_argmax": 1654,
+    "generated_first": 1654,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0021",
+    "question": "Raymond and Samantha are cousins. Raymond was born",
+    "answer": "14",
+    "generated": "We are given:\n\n- Raymond and S",
+    "correct": false,
+    "final_argmax": 1654,
+    "generated_first": 1654,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0022",
+    "question": "Billy sells DVDs. He has 8 customers on Tuesday. H",
+    "answer": "7",
+    "generated": "Billy sold **8** DVDs on Tuesd",
+    "correct": false,
+    "final_argmax": 95903,
+    "generated_first": 95903,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0023",
+    "question": "A candle melts by 2 centimeters every hour that it",
+    "answer": "8",
+    "generated": "The candle burns from 1:00 PM ",
+    "correct": false,
+    "final_argmax": 785,
+    "generated_first": 785,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0024",
+    "question": "Kyle bought last year's best-selling book for $19.",
+    "answer": "26",
+    "generated": "To find the original price of ",
+    "correct": false,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0025",
+    "question": "Marie ordered one chicken meal that costs $12, 5 p",
+    "answer": "2",
+    "generated": "To find out how many boxes of ",
+    "correct": true,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0026",
+    "question": "Mishka bought 3 pairs of shorts, 3 pairs of pants,",
+    "answer": "243",
+    "generated": "To find the total amount Mishk",
+    "correct": false,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0027",
+    "question": "Cynthia eats one serving of ice cream every night.",
+    "answer": "16",
+    "generated": "To find out how much Cynthia w",
+    "correct": false,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0028",
+    "question": "Henry made two stops during his 60-mile bike trip.",
+    "answer": "25",
+    "generated": "To find how many miles Henry t",
+    "correct": false,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0029",
+    "question": "Gloria is shoe shopping when she comes across a pa",
+    "answer": "104",
+    "generated": "We are told:\n\n- Gloria is choo",
+    "correct": false,
+    "final_argmax": 1654,
+    "generated_first": 1654,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0030",
+    "question": "Darrell and Allen's ages are in the ratio of 7:11.",
+    "answer": "109",
+    "generated": "Let's solve the problem step b",
+    "correct": false,
+    "final_argmax": 10061,
+    "generated_first": 10061,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0031",
+    "question": "Gunter is trying to count the jelly beans in a jar",
+    "answer": "80",
+    "generated": "Let's break down the problem s",
+    "correct": true,
+    "final_argmax": 10061,
+    "generated_first": 10061,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0032",
+    "question": "John takes care of 10 dogs.  Each dog takes .5 hou",
+    "answer": "35",
+    "generated": "To find the total hours John s",
+    "correct": false,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0033",
+    "question": "Gretchen has 110 coins. There are 30 more gold coi",
+    "answer": "70",
+    "generated": "Let's solve the problem step b",
+    "correct": false,
+    "final_argmax": 10061,
+    "generated_first": 10061,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0034",
+    "question": "Siobhan has 2 fewer jewels than Aaron. Aaron has 5",
+    "answer": "23",
+    "generated": "We are given:\n\n- Raymond has *",
+    "correct": false,
+    "final_argmax": 1654,
+    "generated_first": 1654,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0035",
+    "question": "Mike plays ping pong for 40 minutes.  In the first",
+    "answer": "9",
+    "generated": "To find the total points Mike ",
+    "correct": false,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0036",
+    "question": "Terry eats 2 yogurts a day.  They are currently on",
+    "answer": "75",
+    "generated": "To find out how much Terry spe",
+    "correct": false,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0037",
+    "question": "John plans to sell all his toys and use the money ",
+    "answer": "2",
+    "generated": "John sells all his lego sets, ",
+    "correct": false,
+    "final_argmax": 13079,
+    "generated_first": 13079,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0038",
+    "question": "John runs 60 miles a week. He runs 3 days a week. ",
+    "answer": "10",
+    "generated": "To find how fast John runs, we",
+    "correct": false,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0039",
+    "question": "Dana can run at a rate of speed four times faster ",
+    "answer": "18",
+    "generated": "We are given:\n\n- Dana can **sk",
+    "correct": false,
+    "final_argmax": 1654,
+    "generated_first": 1654,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0040",
+    "question": "Brandon's iPhone is four times as old as Ben's iPh",
+    "answer": "8",
+    "generated": "We are given:\n\n- Suzy’s iPhone",
+    "correct": false,
+    "final_argmax": 1654,
+    "generated_first": 1654,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0041",
+    "question": "The great dragon, Perg, sat high atop mount Farbo,",
+    "answer": "200",
+    "generated": "We are told:\n\n- The dragon's f",
+    "correct": false,
+    "final_argmax": 1654,
+    "generated_first": 1654,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0042",
+    "question": "Grandma Jones baked 5 apple pies for the fireman's",
+    "answer": "26",
+    "generated": "Grandma Jones baked 5 pies, ea",
+    "correct": false,
+    "final_argmax": 40151,
+    "generated_first": 40151,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0043",
+    "question": "According to its nutritional info, a bag of chips ",
+    "answer": "48",
+    "generated": "To solve this, let's break it ",
+    "correct": false,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0044",
+    "question": "Charlie wants to sell beeswax candles.  For every ",
+    "answer": "20",
+    "generated": "To find Charlie's **net profit",
+    "correct": false,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0045",
+    "question": "Meredith is a freelance blogger who writes about h",
+    "answer": "104",
+    "generated": "To find the total number of ho",
+    "correct": false,
+    "final_argmax": 1249,
+    "generated_first": 1249,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0046",
+    "question": "Candice put 80 post-it notes in her purse before s",
+    "answer": "163",
+    "generated": "We are given:\n\n- Candice start",
+    "correct": false,
+    "final_argmax": 1654,
+    "generated_first": 1654,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0047",
+    "question": "John buys twice as many red ties as blue ties.  Th",
+    "answer": "800",
+    "generated": "We are given:\n\n- John buys **t",
+    "correct": false,
+    "final_argmax": 1654,
+    "generated_first": 1654,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0048",
+    "question": "Tracy used a piece of wire 4 feet long to support ",
+    "answer": "8",
+    "generated": "First, convert the total lengt",
+    "correct": true,
+    "final_argmax": 5338,
+    "generated_first": 5338,
+    "passed": true
+  },
+  {
+    "id": "gsm8k_0049",
+    "question": "Richard lives in an apartment building with 15 flo",
+    "answer": "30",
+    "generated": "First, calculate the total num",
+    "correct": false,
+    "final_argmax": 5338,
+    "generated_first": 5338,
+    "passed": true
+  }
+]

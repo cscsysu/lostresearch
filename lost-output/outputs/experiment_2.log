@@ -1,0 +1,295 @@
+nohup: ignoring input
+/data2/css2025/envs/cscllm/lib/python3.12/site-packages/sklearn/linear_model/_logistic.py:406: ConvergenceWarning: lbfgs failed to converge after 1000 iteration(s) (status=1):
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT
+
+Increase the number of iterations to improve the convergence (max_iter=1000).
+You might also want to scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+Please also refer to the documentation for alternative solver options:
+    https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
+  n_iter_i = _check_optimize_result(
+/data2/css2025/envs/cscllm/lib/python3.12/site-packages/sklearn/linear_model/_logistic.py:406: ConvergenceWarning: lbfgs failed to converge after 1000 iteration(s) (status=1):
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT
+
+Increase the number of iterations to improve the convergence (max_iter=1000).
+You might also want to scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+Please also refer to the documentation for alternative solver options:
+    https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
+  n_iter_i = _check_optimize_result(
+======================================================================
+Analysis Fix: Prediction + Negative Controls (using saved trajectories)
+======================================================================
+
+[1/4] Loading saved trajectories from /data2/css2025/lostresearch/lostresearch/outputs/data/full_results_Qwen3-8B.json ...
+  Loaded 1000 samples
+
+[2/4] Computing metrics...
+
+[3/4] Prediction task (with train/test split)...
+
+======================================================================
+PREDICTION TASK
+======================================================================
+  Samples: 1000
+  Features: 12
+  Target 'will_decay': 681/1000 positive
+  Target 'final_correct': 295/1000 positive
+  Train: 800, Test: 200
+
+  Baseline             Decay AUC    Correct AUC    CIS MAE   
+  --------------------------------------------------------
+  random               0.500        0.500          7.595     
+  persistence          0.650        0.692          8.503     
+  persistence_plus     0.656        0.684          8.455     
+  linear               0.928        0.827          5.417     
+  mlp                  0.919        0.837          4.596     
+
+  关键判据:
+  ✓ MLP 比 Persistence 提升 0.269 AUC → 轨迹历史有额外预测力
+  Saved: /data2/css2025/lostresearch/lostresearch/outputs/data/prediction_results_Qwen3-8B.json (2s)
+
+[4/4] Negative controls (n=50 + t-test)...
+Loading weights:   0%|          | 0/399 [00:00<?, ?it/s]Loading weights:   0%|          | 1/399 [00:00<01:36,  4.14it/s]Loading weights:   1%|          | 2/399 [00:00<01:49,  3.61it/s]Loading weights:   3%|▎         | 10/399 [00:00<00:18, 21.39it/s]Loading weights:   5%|▌         | 21/399 [00:00<00:08, 42.89it/s]Loading weights:   7%|▋         | 28/399 [00:00<00:07, 49.11it/s]Loading weights:  10%|▉         | 39/399 [00:00<00:05, 60.79it/s]Loading weights:  13%|█▎        | 50/399 [00:01<00:05, 68.92it/s]Loading weights:  15%|█▌        | 61/399 [00:01<00:04, 73.77it/s]Loading weights:  18%|█▊        | 72/399 [00:01<00:04, 77.51it/s]Loading weights:  21%|██        | 83/399 [00:01<00:03, 79.81it/s]Loading weights:  24%|██▎       | 94/399 [00:01<00:03, 82.02it/s]Loading weights:  26%|██▋       | 105/399 [00:01<00:03, 83.82it/s]Loading weights:  29%|██▉       | 116/399 [00:01<00:03, 84.73it/s]Loading weights:  32%|███▏      | 127/399 [00:02<00:03, 85.38it/s]Loading weights:  35%|███▍      | 138/399 [00:02<00:03, 86.43it/s]Loading weights:  37%|███▋      | 149/399 [00:02<00:02, 86.41it/s]Loading weights:  40%|████      | 160/399 [00:02<00:02, 86.12it/s]Loading weights:  43%|████▎     | 171/399 [00:02<00:02, 86.22it/s]Loading weights:  46%|████▌     | 182/399 [00:02<00:02, 86.58it/s]Loading weights:  48%|████▊     | 193/399 [00:02<00:02, 86.69it/s]Loading weights:  51%|█████     | 204/399 [00:02<00:02, 86.46it/s]Loading weights:  54%|█████▎    | 214/399 [00:02<00:02, 89.38it/s]Loading weights:  56%|█████▌    | 224/399 [00:03<00:01, 91.41it/s]Loading weights:  59%|█████▊    | 234/399 [00:03<00:01, 93.01it/s]Loading weights:  61%|██████    | 244/399 [00:03<00:01, 88.41it/s]Loading weights:  63%|██████▎   | 253/399 [00:03<00:01, 82.50it/s]Loading weights:  66%|██████▌   | 262/399 [00:03<00:01, 83.55it/s]Loading weights:  68%|██████▊   | 271/399 [00:03<00:01, 79.38it/s]Loading weights:  70%|███████   | 281/399 [00:03<00:01, 79.56it/s]Loading weights:  73%|███████▎  | 292/399 [00:03<00:01, 81.46it/s]Loading weights:  76%|███████▌  | 303/399 [00:04<00:01, 83.16it/s]Loading weights:  79%|███████▊  | 314/399 [00:04<00:01, 84.66it/s]Loading weights:  81%|████████▏ | 325/399 [00:04<00:00, 85.38it/s]Loading weights:  84%|████████▍ | 336/399 [00:04<00:00, 86.27it/s]Loading weights:  87%|████████▋ | 347/399 [00:04<00:00, 83.30it/s]Loading weights:  89%|████████▉ | 357/399 [00:04<00:00, 81.12it/s]Loading weights:  92%|█████████▏| 369/399 [00:04<00:00, 85.11it/s]Loading weights:  95%|█████████▌| 380/399 [00:04<00:00, 85.52it/s]Loading weights:  98%|█████████▊| 391/399 [00:05<00:00, 85.83it/s]Loading weights: 100%|██████████| 399/399 [00:05<00:00, 77.88it/s]
+'[Errno 104] Connection reset by peer' thrown while requesting HEAD https://huggingface.co/datasets/mandarjoshi/trivia_qa/resolve/0f7faf33a3908546c6fd5b73a660e0f8ff173c2f/trivia_qa.py
+Retrying in 1s [Retry 1/5].
+Using the latest cached version of the dataset since mandarjoshi/trivia_qa couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'unfiltered.nocontext' at /home/css2025/.cache/huggingface/datasets/mandarjoshi___trivia_qa/unfiltered.nocontext/0.0.0/0f7faf33a3908546c6fd5b73a660e0f8ff173c2f (last modified on Mon Aug  3 21:42:19 2026).
+'[Errno 104] Connection reset by peer' thrown while requesting HEAD https://huggingface.co/datasets/hotpotqa/hotpot_qa/resolve/1908d6afbbead072334abe2965f91bd2709910ab/hotpot_qa.py
+Retrying in 1s [Retry 1/5].
+Using the latest cached version of the dataset since hotpotqa/hotpot_qa couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'distractor' at /home/css2025/.cache/huggingface/datasets/hotpotqa___hotpot_qa/distractor/0.0.0/1908d6afbbead072334abe2965f91bd2709910ab (last modified on Mon Aug  3 22:16:13 2026).
+'[Errno 104] Connection reset by peer' thrown while requesting HEAD https://huggingface.co/datasets/openai/gsm8k/resolve/740312add88f781978c0658806c59bc2815b9866/gsm8k.py
+Retrying in 1s [Retry 1/5].
+Using the latest cached version of the dataset since openai/gsm8k couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'main' at /home/css2025/.cache/huggingface/datasets/openai___gsm8k/main/0.0.0/740312add88f781978c0658806c59bc2815b9866 (last modified on Mon Aug  3 22:16:19 2026).
+Loading triviaqa (n=500) ...
+  Loaded 500 samples
+Loading hotpotqa (n=250) ...
+  Loaded 250 samples
+Loading gsm8k (n=250) ...
+  Loaded 250 samples
+Total: 1000 samples
+Tokenizing:   0%|          | 0/1000 [00:00<?, ?it/s]Tokenizing:   1%|          | 11/1000 [00:00<00:09, 109.32it/s]Tokenizing:   4%|▍         | 38/1000 [00:00<00:04, 202.21it/s]Tokenizing:   7%|▋         | 67/1000 [00:00<00:03, 240.71it/s]Tokenizing:   9%|▉         | 93/1000 [00:00<00:03, 247.80it/s]Tokenizing:  12%|█▏        | 119/1000 [00:00<00:03, 250.36it/s]Tokenizing:  14%|█▍        | 145/1000 [00:00<00:03, 245.18it/s]Tokenizing:  18%|█▊        | 181/1000 [00:00<00:03, 258.61it/s]Tokenizing:  21%|██        | 207/1000 [00:00<00:03, 242.09it/s]Tokenizing:  23%|██▎       | 232/1000 [00:00<00:03, 234.78it/s]Tokenizing:  26%|██▌       | 256/1000 [00:01<00:03, 231.85it/s]Tokenizing:  28%|██▊       | 280/1000 [00:01<00:03, 217.81it/s]Tokenizing:  31%|███       | 307/1000 [00:01<00:03, 230.74it/s]Tokenizing:  34%|███▍      | 344/1000 [00:01<00:02, 266.27it/s]Tokenizing:  37%|███▋      | 371/1000 [00:01<00:02, 252.28it/s]Tokenizing:  41%|████      | 412/1000 [00:01<00:01, 294.74it/s]Tokenizing:  45%|████▍     | 447/1000 [00:01<00:01, 306.36it/s]Tokenizing:  48%|████▊     | 479/1000 [00:01<00:01, 308.65it/s]Tokenizing:  59%|█████▉    | 591/1000 [00:01<00:00, 541.47it/s]Tokenizing:  76%|███████▌  | 757/1000 [00:02<00:00, 865.24it/s]Tokenizing:  88%|████████▊ | 878/1000 [00:02<00:00, 964.77it/s]Tokenizing: 100%|█████████▉| 996/1000 [00:02<00:00, 1026.37it/s]Tokenizing: 100%|██████████| 1000/1000 [00:02<00:00, 443.10it/s]
+Prepared 1000 samples (skipped 0)
+
+======================================================================
+NEGATIVE CONTROLS
+======================================================================
+
+  [负对照 1] 随机标签 (random token as answer)
+    5/50
+    10/50
+    15/50
+    20/50
+    25/50
+    30/50
+    35/50
+    40/50
+    45/50
+    50/50
+  随机标签 mid_max_logprob: -12.30 ± 1.95
+
+  [负对照 2] 答案置换 (A 题答案配给 B 题)
+    5/50
+    10/50
+    15/50
+    20/50
+    25/50
+    30/50
+    35/50
+    40/50
+    45/50
+    50/50
+  答案置换 mid_max_logprob: -8.38 ± 3.24
+
+  [负对照 3] 层序打乱 (shuffle layer order)
+  层序打乱 mid_final_delta: 8.81 ± 4.90
+
+  真实样本 mid_max_logprob: -4.97 ± 3.95 (n=1000)
+
+  统计检验 (t-test vs 真实样本):
+  random_label: t=-13.02, p=0.0000, Cohen's d=2.35
+    ✓ 信号显著弱于真实 (p<0.01, d=2.35)
+  shuffled_answer: t=-5.98, p=0.0000, Cohen's d=0.94
+    ✓ 信号显著弱于真实 (p<0.01, d=0.94)
+  Saved: /data2/css2025/lostresearch/lostresearch/outputs/data/negative_controls_Qwen3-8B.json (104s)
+
+======================================================================
+FULL EXPERIMENT SUMMARY
+======================================================================
+Total samples: 1000
+Correct:   295 (29.5%)
+Incorrect: 705 (70.5%)
+
+--- gsm8k (n=250) ---
+  Correct: 19, Incorrect: 231
+  信号丢失 (mid rank<=5, final rank>10): 11/231 (4.8%)
+  最终层 CIS < 0 (错误信号压过正确): 230/231 (99.6%)
+    Absent: 110 (47.6%)
+    Early-Decay: 0 (0.0%)
+    Late-Emergent: 19 (8.2%)
+    Gradual-Buildup: 85 (36.8%)
+    Fluctuating: 17 (7.4%)
+
+--- hotpotqa (n=250) ---
+  Correct: 60, Incorrect: 190
+  信号丢失 (mid rank<=5, final rank>10): 49/190 (25.8%)
+  最终层 CIS < 0 (错误信号压过正确): 170/190 (89.5%)
+    Absent: 64 (33.7%)
+    Early-Decay: 0 (0.0%)
+    Late-Emergent: 71 (37.4%)
+    Gradual-Buildup: 50 (26.3%)
+    Fluctuating: 5 (2.6%)
+
+--- triviaqa (n=500) ---
+  Correct: 216, Incorrect: 284
+  信号丢失 (mid rank<=5, final rank>10): 80/284 (28.2%)
+  最终层 CIS < 0 (错误信号压过正确): 236/284 (83.1%)
+    Absent: 48 (16.9%)
+    Early-Decay: 0 (0.0%)
+    Late-Emergent: 166 (58.5%)
+    Gradual-Buildup: 67 (23.6%)
+    Fluctuating: 3 (1.1%)
+
+======================================================================
+KEY FINDINGS
+======================================================================
+1. 信号丢失 (mid rank<=5, final rank>10): 140/705 (19.9%)
+2. 最终层 CIS<0 (错误信号压过正确): 636/705 (90.2%)
+3. '知道但没说' (mid rank<=5 + final CIS<0): 140/705 (19.9%)
+
+  ? 19.9% 的错误样本属于 '知道但没说', 处于临界区
+  → 建议扩大样本量
+======================================================================
+
+======================================================================
+DONE: Analysis fix complete
+======================================================================
+======================================================================
+Step 2: Causal Intervention (Chapter 5)
+======================================================================
+Loading weights:   0%|          | 0/399 [00:00<?, ?it/s]Loading weights:   0%|          | 1/399 [00:00<01:34,  4.21it/s]Loading weights:   1%|          | 2/399 [00:00<01:48,  3.66it/s]Loading weights:   4%|▍         | 15/399 [00:00<00:12, 31.03it/s]Loading weights:   7%|▋         | 26/399 [00:00<00:07, 47.64it/s]Loading weights:   9%|▉         | 37/399 [00:00<00:06, 58.20it/s]Loading weights:  12%|█▏        | 48/399 [00:01<00:05, 67.42it/s]Loading weights:  15%|█▍        | 59/399 [00:01<00:04, 71.99it/s]Loading weights:  18%|█▊        | 70/399 [00:01<00:04, 75.09it/s]Loading weights:  20%|██        | 81/399 [00:01<00:04, 77.42it/s]Loading weights:  23%|██▎       | 92/399 [00:01<00:03, 79.25it/s]Loading weights:  26%|██▌       | 103/399 [00:01<00:03, 80.94it/s]Loading weights:  29%|██▊       | 114/399 [00:01<00:03, 81.81it/s]Loading weights:  31%|███▏      | 125/399 [00:01<00:03, 84.61it/s]Loading weights:  34%|███▍      | 136/399 [00:02<00:03, 86.58it/s]Loading weights:  37%|███▋      | 147/399 [00:02<00:02, 86.31it/s]Loading weights:  40%|███▉      | 158/399 [00:02<00:02, 87.65it/s]Loading weights:  42%|████▏     | 169/399 [00:02<00:02, 86.48it/s]Loading weights:  45%|████▌     | 180/399 [00:02<00:02, 87.31it/s]Loading weights:  47%|████▋     | 189/399 [00:02<00:02, 87.54it/s]Loading weights:  50%|████▉     | 198/399 [00:02<00:02, 84.54it/s]Loading weights:  52%|█████▏    | 207/399 [00:02<00:02, 81.74it/s]Loading weights:  54%|█████▍    | 216/399 [00:03<00:02, 73.16it/s]Loading weights:  56%|█████▋    | 225/399 [00:03<00:02, 75.26it/s]Loading weights:  59%|█████▉    | 235/399 [00:03<00:02, 79.07it/s]Loading weights:  62%|██████▏   | 246/399 [00:03<00:01, 80.70it/s]Loading weights:  64%|██████▍   | 257/399 [00:03<00:01, 82.14it/s]Loading weights:  67%|██████▋   | 268/399 [00:03<00:01, 83.41it/s]Loading weights:  70%|██████▉   | 279/399 [00:03<00:01, 84.98it/s]Loading weights:  73%|███████▎  | 290/399 [00:03<00:01, 84.60it/s]Loading weights:  75%|███████▌  | 301/399 [00:04<00:01, 84.67it/s]Loading weights:  78%|███████▊  | 312/399 [00:04<00:01, 84.73it/s]Loading weights:  81%|████████  | 323/399 [00:04<00:00, 87.32it/s]Loading weights:  84%|████████▎ | 334/399 [00:04<00:00, 88.25it/s]Loading weights:  86%|████████▋ | 345/399 [00:04<00:00, 87.88it/s]Loading weights:  89%|████████▉ | 356/399 [00:04<00:00, 87.23it/s]Loading weights:  92%|█████████▏| 367/399 [00:04<00:00, 86.60it/s]Loading weights:  94%|█████████▍| 377/399 [00:04<00:00, 85.07it/s]Loading weights:  97%|█████████▋| 389/399 [00:05<00:00, 87.24it/s]Loading weights: 100%|██████████| 399/399 [00:05<00:00, 77.20it/s]
+'[Errno 104] Connection reset by peer' thrown while requesting HEAD https://huggingface.co/datasets/mandarjoshi/trivia_qa/resolve/0f7faf33a3908546c6fd5b73a660e0f8ff173c2f/trivia_qa.py
+Retrying in 1s [Retry 1/5].
+Using the latest cached version of the dataset since mandarjoshi/trivia_qa couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'unfiltered.nocontext' at /home/css2025/.cache/huggingface/datasets/mandarjoshi___trivia_qa/unfiltered.nocontext/0.0.0/0f7faf33a3908546c6fd5b73a660e0f8ff173c2f (last modified on Mon Aug  3 21:42:19 2026).
+'[Errno 104] Connection reset by peer' thrown while requesting HEAD https://huggingface.co/datasets/hotpotqa/hotpot_qa/resolve/1908d6afbbead072334abe2965f91bd2709910ab/hotpot_qa.py
+Retrying in 1s [Retry 1/5].
+Using the latest cached version of the dataset since hotpotqa/hotpot_qa couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'distractor' at /home/css2025/.cache/huggingface/datasets/hotpotqa___hotpot_qa/distractor/0.0.0/1908d6afbbead072334abe2965f91bd2709910ab (last modified on Mon Aug  3 22:16:13 2026).
+'[Errno 104] Connection reset by peer' thrown while requesting HEAD https://huggingface.co/datasets/openai/gsm8k/resolve/740312add88f781978c0658806c59bc2815b9866/gsm8k.py
+Retrying in 1s [Retry 1/5].
+Using the latest cached version of the dataset since openai/gsm8k couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'main' at /home/css2025/.cache/huggingface/datasets/openai___gsm8k/main/0.0.0/740312add88f781978c0658806c59bc2815b9866 (last modified on Mon Aug  3 22:16:19 2026).
+
+[1/3] Loading data...
+Loading triviaqa (n=500) ...
+  Loaded 500 samples
+Loading hotpotqa (n=250) ...
+  Loaded 250 samples
+Loading gsm8k (n=250) ...
+  Loaded 250 samples
+Total: 1000 samples
+Tokenizing:   0%|          | 0/1000 [00:00<?, ?it/s]Tokenizing:   2%|▏         | 20/1000 [00:00<00:05, 189.00it/s]Tokenizing:   5%|▌         | 51/1000 [00:00<00:03, 251.58it/s]Tokenizing:   9%|▉         | 89/1000 [00:00<00:02, 308.32it/s]Tokenizing:  12%|█▏        | 123/1000 [00:00<00:02, 316.34it/s]Tokenizing:  16%|█▌        | 157/1000 [00:00<00:02, 316.88it/s]Tokenizing:  19%|█▉        | 189/1000 [00:00<00:02, 312.72it/s]Tokenizing:  22%|██▏       | 221/1000 [00:00<00:03, 251.09it/s]Tokenizing:  25%|██▍       | 248/1000 [00:00<00:03, 245.56it/s]Tokenizing:  27%|██▋       | 274/1000 [00:01<00:03, 229.75it/s]Tokenizing:  30%|██▉       | 299/1000 [00:01<00:02, 234.91it/s]Tokenizing:  33%|███▎      | 332/1000 [00:01<00:02, 260.10it/s]Tokenizing:  36%|███▌      | 359/1000 [00:01<00:02, 261.94it/s]Tokenizing:  40%|███▉      | 398/1000 [00:01<00:02, 294.55it/s]Tokenizing:  43%|████▎     | 432/1000 [00:01<00:01, 307.06it/s]Tokenizing:  46%|████▋     | 464/1000 [00:01<00:01, 282.14it/s]Tokenizing:  49%|████▉     | 493/1000 [00:01<00:01, 282.45it/s]Tokenizing:  64%|██████▎   | 637/1000 [00:01<00:00, 604.70it/s]Tokenizing:  78%|███████▊  | 785/1000 [00:02<00:00, 853.39it/s]Tokenizing:  90%|█████████ | 900/1000 [00:02<00:00, 938.95it/s]Tokenizing: 100%|██████████| 1000/1000 [00:02<00:00, 456.80it/s]
+Prepared 1000 samples (skipped 0)
+
+[2/3] Loading Step 1 results...
+  Loaded 1000 samples
+
+[3/3] Running intervention...
+
+======================================================================
+CHAPTER 5: CAUSAL INTERVENTION
+======================================================================
+
+[5.1] Necessity Experiment
+
+  [5.1] Necessity: 消融正确答案方向
+Necessity:   0%|          | 0/50 [00:00<?, ?it/s]Necessity:   2%|▏         | 1/50 [00:03<03:07,  3.82s/it]Necessity:   4%|▍         | 2/50 [00:06<02:36,  3.25s/it]Necessity:   6%|▌         | 3/50 [00:09<02:25,  3.10s/it]Necessity:   8%|▊         | 4/50 [00:12<02:17,  2.99s/it]Necessity:  10%|█         | 5/50 [00:15<02:12,  2.95s/it]Necessity:  12%|█▏        | 6/50 [00:18<02:08,  2.93s/it]Necessity:  14%|█▍        | 7/50 [00:21<02:05,  2.92s/it]Necessity:  16%|█▌        | 8/50 [00:23<02:02,  2.91s/it]Necessity:  18%|█▊        | 9/50 [00:26<01:59,  2.92s/it]Necessity:  20%|██        | 10/50 [00:29<01:56,  2.92s/it]Necessity:  22%|██▏       | 11/50 [00:32<01:55,  2.95s/it]Necessity:  24%|██▍       | 12/50 [00:35<01:52,  2.96s/it]Necessity:  26%|██▌       | 13/50 [00:38<01:49,  2.97s/it]Necessity:  28%|██▊       | 14/50 [00:41<01:46,  2.97s/it]Necessity:  30%|███       | 15/50 [00:44<01:43,  2.97s/it]Necessity:  32%|███▏      | 16/50 [00:47<01:40,  2.95s/it]Necessity:  34%|███▍      | 17/50 [00:50<01:37,  2.94s/it]Necessity:  36%|███▌      | 18/50 [00:53<01:33,  2.92s/it]Necessity:  38%|███▊      | 19/50 [00:56<01:30,  2.91s/it]Necessity:  40%|████      | 20/50 [00:59<01:27,  2.92s/it]Necessity:  42%|████▏     | 21/50 [01:02<01:25,  2.94s/it]Necessity:  44%|████▍     | 22/50 [01:05<01:22,  2.95s/it]Necessity:  46%|████▌     | 23/50 [01:08<01:19,  2.95s/it]Necessity:  48%|████▊     | 24/50 [01:11<01:16,  2.94s/it]Necessity:  50%|█████     | 25/50 [01:14<01:13,  2.94s/it]Necessity:  52%|█████▏    | 26/50 [01:16<01:10,  2.93s/it]Necessity:  54%|█████▍    | 27/50 [01:19<01:07,  2.92s/it]Necessity:  56%|█████▌    | 28/50 [01:22<01:04,  2.91s/it]Necessity:  58%|█████▊    | 29/50 [01:25<01:01,  2.91s/it]Necessity:  60%|██████    | 30/50 [01:28<00:59,  2.99s/it]Necessity:  62%|██████▏   | 31/50 [01:31<00:56,  3.00s/it]Necessity:  64%|██████▍   | 32/50 [01:34<00:53,  2.99s/it]Necessity:  66%|██████▌   | 33/50 [01:37<00:50,  2.97s/it]Necessity:  68%|██████▊   | 34/50 [01:40<00:46,  2.94s/it]Necessity:  70%|███████   | 35/50 [01:43<00:43,  2.92s/it]Necessity:  72%|███████▏  | 36/50 [01:46<00:40,  2.90s/it]Necessity:  74%|███████▍  | 37/50 [01:49<00:37,  2.90s/it]Necessity:  76%|███████▌  | 38/50 [01:52<00:34,  2.90s/it]Necessity:  78%|███████▊  | 39/50 [01:55<00:31,  2.91s/it]Necessity:  80%|████████  | 40/50 [01:57<00:29,  2.91s/it]Necessity:  82%|████████▏ | 41/50 [02:00<00:26,  2.91s/it]Necessity:  84%|████████▍ | 42/50 [02:03<00:23,  2.94s/it]Necessity:  86%|████████▌ | 43/50 [02:06<00:20,  2.96s/it]Necessity:  88%|████████▊ | 44/50 [02:09<00:17,  2.95s/it]Necessity:  90%|█████████ | 45/50 [02:12<00:14,  2.94s/it]Necessity:  92%|█████████▏| 46/50 [02:15<00:11,  2.93s/it]Necessity:  94%|█████████▍| 47/50 [02:18<00:08,  2.92s/it]Necessity:  96%|█████████▌| 48/50 [02:21<00:05,  2.92s/it]Necessity:  98%|█████████▊| 49/50 [02:24<00:02,  2.92s/it]Necessity: 100%|██████████| 50/50 [02:27<00:00,  2.91s/it]Necessity: 100%|██████████| 50/50 [02:27<00:00,  2.95s/it]
+    5/50
+    10/50
+    15/50
+    20/50
+    25/50
+    30/50
+    35/50
+    40/50
+    45/50
+    50/50
+
+[5.2+5.3] Patching Experiment
+
+  [5.2+5.3] Clean-to-Corrupted Patching + Prediction-Guided
+Patching:   0%|          | 0/50 [00:00<?, ?it/s]Patching:   2%|▏         | 1/50 [00:00<00:08,  5.67it/s]Patching:   4%|▍         | 2/50 [00:00<00:07,  6.53it/s]Patching:   6%|▌         | 3/50 [00:00<00:06,  6.92it/s]Patching:   8%|▊         | 4/50 [00:00<00:06,  7.11it/s]Patching:  10%|█         | 5/50 [00:00<00:06,  7.20it/s]Patching:  12%|█▏        | 6/50 [00:00<00:06,  7.28it/s]Patching:  14%|█▍        | 7/50 [00:00<00:05,  7.28it/s]Patching:  16%|█▌        | 8/50 [00:01<00:05,  7.32it/s]Patching:  18%|█▊        | 9/50 [00:01<00:05,  7.35it/s]Patching:  20%|██        | 10/50 [00:01<00:05,  7.37it/s]Patching:  22%|██▏       | 11/50 [00:01<00:05,  7.36it/s]Patching:  24%|██▍       | 12/50 [00:01<00:05,  7.29it/s]Patching:  26%|██▌       | 13/50 [00:01<00:05,  7.31it/s]Patching:  28%|██▊       | 14/50 [00:01<00:04,  7.31it/s]Patching:  30%|███       | 15/50 [00:02<00:04,  7.35it/s]Patching:  32%|███▏      | 16/50 [00:02<00:04,  7.32it/s]Patching:  34%|███▍      | 17/50 [00:02<00:04,  7.29it/s]Patching:  36%|███▌      | 18/50 [00:02<00:04,  7.31it/s]Patching:  38%|███▊      | 19/50 [00:02<00:04,  7.33it/s]Patching:  40%|████      | 20/50 [00:02<00:04,  7.35it/s]Patching:  42%|████▏     | 21/50 [00:02<00:03,  7.33it/s]Patching:  44%|████▍     | 22/50 [00:03<00:03,  7.31it/s]Patching:  46%|████▌     | 23/50 [00:03<00:03,  7.33it/s]Patching:  48%|████▊     | 24/50 [00:03<00:03,  7.29it/s]Patching:  50%|█████     | 25/50 [00:03<00:03,  7.30it/s]Patching:  52%|█████▏    | 26/50 [00:03<00:03,  7.30it/s]Patching:  54%|█████▍    | 27/50 [00:03<00:03,  7.30it/s]Patching:  56%|█████▌    | 28/50 [00:03<00:03,  7.30it/s]Patching:  58%|█████▊    | 29/50 [00:03<00:02,  7.31it/s]Patching:  60%|██████    | 30/50 [00:04<00:02,  7.30it/s]Patching:  62%|██████▏   | 31/50 [00:04<00:02,  7.30it/s]Patching:  64%|██████▍   | 32/50 [00:04<00:02,  7.17it/s]Patching:  66%|██████▌   | 33/50 [00:04<00:02,  6.82it/s]Patching:  68%|██████▊   | 34/50 [00:04<00:02,  6.92it/s]Patching:  70%|███████   | 35/50 [00:04<00:02,  7.03it/s]Patching:  72%|███████▏  | 36/50 [00:04<00:01,  7.08it/s]Patching:  74%|███████▍  | 37/50 [00:05<00:01,  7.04it/s]Patching:  76%|███████▌  | 38/50 [00:05<00:01,  7.08it/s]Patching:  78%|███████▊  | 39/50 [00:05<00:01,  7.15it/s]Patching:  80%|████████  | 40/50 [00:05<00:01,  7.12it/s]Patching:  82%|████████▏ | 41/50 [00:05<00:01,  7.07it/s]Patching:  84%|████████▍ | 42/50 [00:05<00:01,  7.08it/s]Patching:  86%|████████▌ | 43/50 [00:05<00:00,  7.15it/s]Patching:  88%|████████▊ | 44/50 [00:06<00:00,  7.16it/s]Patching:  90%|█████████ | 45/50 [00:06<00:00,  7.14it/s]Patching:  92%|█████████▏| 46/50 [00:06<00:00,  7.07it/s]Patching:  94%|█████████▍| 47/50 [00:06<00:00,  7.11it/s]Patching:  96%|█████████▌| 48/50 [00:06<00:00,  7.17it/s]Patching:  98%|█████████▊| 49/50 [00:06<00:00,  7.20it/s]Patching: 100%|██████████| 50/50 [00:06<00:00,  7.16it/s]Patching: 100%|██████████| 50/50 [00:06<00:00,  7.19it/s]
+    Error on triviaqa_0000: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0001: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0002: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0003: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0004: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0005: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0006: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0007: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0008: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0009: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0010: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0011: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0012: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0013: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0014: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0015: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0016: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0017: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0018: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0019: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0020: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0021: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0022: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0023: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0024: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0025: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0026: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0027: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0028: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0029: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0030: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0031: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0032: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0033: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0034: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0035: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0036: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0037: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0038: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0039: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0040: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0041: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0042: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0043: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0044: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0045: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0046: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0047: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0048: 'tuple' object has no attribute 'tolist'
+    Error on triviaqa_0049: 'tuple' object has no attribute 'tolist'
+
+======================================================================
+CAUSAL INTERVENTION ANALYSIS
+======================================================================
+
+--- 5.1 Necessity ---
+  消融后 target logprob 下降最多的层 (top 5):
+    Layer 35: delta=17.45 (正=消融后下降)
+    Layer 34: delta=9.71 (正=消融后下降)
+    Layer 33: delta=6.27 (正=消融后下降)
+    Layer 32: delta=4.86 (正=消融后下降)
+    Layer 31: delta=3.38 (正=消融后下降)
+
+  总样本数: 50
+  至少一层消融有效 (delta>1): 50/50
+
+Saved: /data2/css2025/lostresearch/lostresearch/outputs/data/intervention_Qwen3-8B.json
+
+Done!
+=== ALL DONE ===
+Tue Aug  4 12:21:51 AM CST 2026
