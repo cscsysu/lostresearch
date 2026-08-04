@@ -66,12 +66,9 @@ def collect_component_hiddens(model, prompt_ids):
                        "mlp_out": None, "post_mlp": None} for i in range(num_layers)}
 
     def make_layer_hook(idx):
-        def hook(module, input, output):
-            # input[0] = pre-attn hidden
-            if isinstance(input, tuple):
-                h_in = input[0]
-            else:
-                h_in = input
+        def hook(module, args, kwargs):
+            # forward_pre_hook: args = (input,) kwargs = {}
+            h_in = args[0]
             components[idx]["pre_attn"] = h_in[0, -1, :].detach().clone()  # last token
         return hook
 
@@ -102,7 +99,18 @@ def collect_component_hiddens(model, prompt_ids):
     hooks = []
     for i, layer in enumerate(layers):
         hooks.append(layer.register_forward_hook(make_post_hook(i)))
-        hooks.append(layer.register_forward_pre_hook(make_layer_hook(i)))
+        # forward_pre_hook 的回调签名: (module, args) 或 (module, args, kwargs)
+        # 用 with_kwargs=True 方式 (transformers >= 4.40)
+        try:
+            hooks.append(layer.register_forward_pre_hook(make_layer_hook(i), with_kwargs=True))
+        except TypeError:
+            # 旧版 transformers 不支持 with_kwargs
+            def make_simple_hook(idx):
+                def hook(module, input):
+                    h_in = input[0] if isinstance(input, tuple) else input
+                    components[idx]["pre_attn"] = h_in[0, -1, :].detach().clone()
+                return hook
+            hooks.append(layer.register_forward_pre_hook(make_simple_hook(i)))
         attn, mlp, _ = get_attn_mlp_modules(model, i)
         if attn is not None:
             hooks.append(attn.register_forward_hook(make_attn_hook(i)))

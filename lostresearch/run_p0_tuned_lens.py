@@ -99,14 +99,16 @@ def train_tuned_lens(model, hiddens, final_logits, num_layers, epochs=500, lr=1e
 
         optimizer = torch.optim.Adam([A, b], lr=lr)
         h_f = h.float()
+        y_f = y.float()
+        unembed_f = unembed.float()
 
         for epoch in range(epochs):
             optimizer.zero_grad()
             translated = h_f @ A.T + b  # [n, hidden]
-            # 通过 final_norm + unembedding
+            # 通过 final_norm + unembedding (用 float32 避免 dtype 冲突)
             normed = final_norm(translated)
-            logits = F.linear(normed, unembed)  # [n, vocab]
-            loss = F.mse_loss(logits, y.float())
+            logits = F.linear(normed, unembed_f)  # [n, vocab]
+            loss = F.mse_loss(logits, y_f)
             loss.backward()
             optimizer.step()
             if epoch % 100 == 0:
@@ -125,6 +127,7 @@ def compute_cis_with_tuned_lens(model, translators, samples, n_samples=200):
     device = model.device
     final_norm = model.model.norm
     unembed = model.lm_head.weight
+    unembed_f = unembed.float()  # 用 float32 避免 dtype 冲突
 
     results = []
     for i, s in enumerate(tqdm(samples[:n_samples])):
@@ -156,9 +159,9 @@ def compute_cis_with_tuned_lens(model, translators, samples, n_samples=200):
             target_token = s["primary_answer_ids"][0]
             gen_token = s.get("generated_token_ids", [target_token])[0]
 
-            # Raw logit lens
+            # Raw logit lens (用 float32)
             normed_raw = final_norm(h)
-            logits_raw = F.linear(normed_raw, unembed)
+            logits_raw = F.linear(normed_raw, unembed_f)
             log_probs_raw = F.log_softmax(logits_raw, dim=-1)
             lp_correct_raw = log_probs_raw[target_token].item()
             lp_gen_raw = log_probs_raw[gen_token].item()
@@ -169,7 +172,7 @@ def compute_cis_with_tuned_lens(model, translators, samples, n_samples=200):
             b = translators[l]["b"].to(device).float()
             translated = A @ h + b
             normed_tuned = final_norm(translated)
-            logits_tuned = F.linear(normed_tuned, unembed)
+            logits_tuned = F.linear(normed_tuned, unembed_f)
             log_probs_tuned = F.log_softmax(logits_tuned, dim=-1)
             lp_correct_tuned = log_probs_tuned[target_token].item()
             lp_gen_tuned = log_probs_tuned[gen_token].item()

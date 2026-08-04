@@ -64,15 +64,16 @@ def collect_sequence_hiddens(model, prompt_ids, answer_ids):
     return hiddens, num_layers
 
 
-def compute_sequence_logprob_at_layer(hidden_seq, target_ids, start_pos,
+def compute_sequence_logprob_at_layer(hidden_seq, target_ids, prompt_len,
                                          final_norm, unembed):
     """在某一层, 用 teacher forcing 算 target_ids 的序列 log-prob.
 
-    位置 start_pos + i 的 hidden state 预测 target_ids[i].
+    位置 i 的 hidden state 预测 token i+1.
+    target_ids[t] 由位置 prompt_len-1+t 的 hidden 预测.
     """
     log_probs_sum = 0.0
     for i, target_token in enumerate(target_ids):
-        pos = start_pos + i - 1  # 位置 pos 的 hidden 预测 pos+1
+        pos = prompt_len - 1 + i  # 位置 pos 的 hidden 预测 pos+1 = target_ids[i]
         if pos < 0 or pos >= hidden_seq.shape[0]:
             return -1e9
         h = hidden_seq[pos].to(unembed.device).to(unembed.dtype)
@@ -113,11 +114,11 @@ def run_multitoken_cis(model, tokenizer, prepared, all_results, n_samples=200):
 
             # 1. Gold sequence forward (prompt + gold answer)
             gold_hiddens, num_layers = collect_sequence_hiddens(model, prompt_ids, gold_ids)
-            gold_start = len(prompt_ids) - 1  # 第一个 answer token 的预测位置
+            gold_prompt_len = len(prompt_ids)
 
             # 2. Generated sequence forward (prompt + generated answer)
             gen_hiddens, _ = collect_sequence_hiddens(model, prompt_ids, gen_ids)
-            gen_start = len(prompt_ids) - 1
+            gen_prompt_len = len(prompt_ids)
 
             # 3. 每层计算 sequence-level CIS
             cis_seq_per_layer = []
@@ -126,15 +127,15 @@ def run_multitoken_cis(model, tokenizer, prepared, all_results, n_samples=200):
             for l in range(num_layers):
                 # Sequence-level
                 lp_gold_seq = compute_sequence_logprob_at_layer(
-                    gold_hiddens[l], gold_ids, gold_start, final_norm, unembed)
+                    gold_hiddens[l], gold_ids, gold_prompt_len, final_norm, unembed)
                 lp_gen_seq = compute_sequence_logprob_at_layer(
-                    gen_hiddens[l], gen_ids, gen_start, final_norm, unembed)
+                    gen_hiddens[l], gen_ids, gen_prompt_len, final_norm, unembed)
                 cis_seq = lp_gold_seq - lp_gen_seq
                 cis_seq_per_layer.append(cis_seq)
 
-                # First-token only (对比)
-                h_gold = gold_hiddens[l][gold_start].to(unembed.device).to(unembed.dtype)
-                h_gen = gen_hiddens[l][gen_start].to(unembed.device).to(unembed.dtype)
+                # First-token only (对比): 用 prompt 最后位置的 hidden
+                h_gold = gold_hiddens[l][gold_prompt_len - 1].to(unembed.device).to(unembed.dtype)
+                h_gen = gen_hiddens[l][gen_prompt_len - 1].to(unembed.device).to(unembed.dtype)
                 lp_gold_first = F.log_softmax(F.linear(final_norm(h_gold), unembed), dim=-1)[gold_ids[0]].item()
                 lp_gen_first = F.log_softmax(F.linear(final_norm(h_gen), unembed), dim=-1)[gen_ids[0]].item()
                 cis_first_token_per_layer.append(lp_gold_first - lp_gen_first)
