@@ -34,11 +34,14 @@ def forward_logits(model, prompt_ids):
 
 
 @torch.no_grad()
-def ablate_forward_logits(model, prompt_ids, direction, scale, ablate_layers):
-    """用方向 * scale 消融, 返回 gold logit."""
+def ablate_forward_logits(model, prompt_ids, direction, alpha, ablate_layers):
+    """按 alpha 比例移除 direction 方向的投影, 返回 logits.
+
+    h' = h - alpha * proj_dir(h)
+    alpha=1 完全移除该方向; alpha>1 过移除.
+    """
     layers = get_residual_layers(model)
     device = model.device
-    eff_dir = direction * scale
 
     def ablate_hook_factory(layer_idx):
         def hook(module, input, output):
@@ -49,10 +52,10 @@ def ablate_forward_logits(model, prompt_ids, direction, scale, ablate_layers):
                 h = output
                 rest = ()
             last_h = h[0, -1, :]
-            denom = (eff_dir @ eff_dir)
+            denom = (direction @ direction)
             if denom > 0:
-                proj = (last_h @ eff_dir) / denom * eff_dir
-                h[0, -1, :] = last_h - proj
+                proj = (last_h @ direction) / denom * direction
+                h[0, -1, :] = last_h - alpha * proj
             if rest:
                 return (h,) + rest
             return h
@@ -67,10 +70,9 @@ def ablate_forward_logits(model, prompt_ids, direction, scale, ablate_layers):
 
 
 @torch.no_grad()
-def ablate_generate(model, tokenizer, prompt_ids, direction, scale, ablate_layers):
+def ablate_generate(model, tokenizer, prompt_ids, direction, alpha, ablate_layers):
     layers = get_residual_layers(model)
     device = model.device
-    eff_dir = direction * scale
 
     def ablate_hook_factory(layer_idx):
         def hook(module, input, output):
@@ -81,10 +83,10 @@ def ablate_generate(model, tokenizer, prompt_ids, direction, scale, ablate_layer
                 h = output
                 rest = ()
             last_h = h[0, -1, :]
-            denom = (eff_dir @ eff_dir)
+            denom = (direction @ direction)
             if denom > 0:
-                proj = (last_h @ eff_dir) / denom * eff_dir
-                h[0, -1, :] = last_h - proj
+                proj = (last_h @ direction) / denom * direction
+                h[0, -1, :] = last_h - alpha * proj
             if rest:
                 return (h,) + rest
             return h
@@ -101,22 +103,21 @@ def ablate_generate(model, tokenizer, prompt_ids, direction, scale, ablate_layer
     return tokenizer.decode(out[0][input_ids.shape[1]:], skip_special_tokens=True).strip()
 
 
-def find_match_scale(model, tokenizer, prompt_ids, gold_token, gold_dir,
+def find_match_alpha(model, tokenizer, prompt_ids, gold_token,
                      test_dir, gold_delta_z, ablate_layers,
-                     n_iter=8, lo=0.1, hi=8.0):
-    """二分搜索 scale, 使消融 test_dir*scale 后 gold-logit 下降量 ≈ gold_delta_z."""
+                     n_iter=15, lo=0.1, hi=50.0):
+    """二分搜索 alpha, 使移除 test_dir 的 alpha 比例投影后 gold-logit 下降 ≈ gold_delta_z."""
     baseline_gold = forward_logits(model, prompt_ids)[gold_token].item()
 
-    def delta_at(scale):
-        logits = ablate_forward_logits(model, prompt_ids, test_dir, scale, ablate_layers)
+    def delta_at(alpha):
+        logits = ablate_forward_logits(model, prompt_ids, test_dir, alpha, ablate_layers)
         return baseline_gold - logits[gold_token].item()
 
     # 检查范围
-    d_lo = delta_at(lo)
     d_hi = delta_at(hi)
     if d_hi < gold_delta_z:
-        # scale 不够大, 返回 hi 处的最大 delta (尽力匹配)
         return hi, d_hi, abs(d_hi - gold_delta_z)
+    d_lo = delta_at(lo)
     if d_lo > gold_delta_z:
         return lo, d_lo, abs(d_lo - gold_delta_z)
 
@@ -128,9 +129,9 @@ def find_match_scale(model, tokenizer, prompt_ids, gold_token, gold_dir,
             lo = mid
         else:
             hi = mid
-    final_scale = (lo + hi) / 2
-    final_delta = delta_at(final_scale)
-    return final_scale, final_delta, abs(final_delta - gold_delta_z)
+    final_alpha = (lo + hi) / 2
+    final_delta = delta_at(final_alpha)
+    return final_alpha, final_delta, abs(final_delta - gold_delta_z)
 
 
 def run_effect_matched(model_key, n_samples=20):
@@ -140,7 +141,11 @@ def run_effect_matched(model_key, n_samples=20):
     print(f"{'='*70}")
 
     from transformers import AutoTokenizer, AutoModelForCausalLM
-    tokenizer = AutoTokenizer.from_pretrained(cfg["path"])
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(cfg["path"])
+    except Exception as e:
+        print(f"  tokenizer load failed ({e}), trying 8B tokenizer fallback...")
+        tokenizer = AutoTokenizer.from_pretrained(MODELS["qwen"]["path"])
     model = AutoModelForCausalLM.from_pretrained(
         cfg["path"], dtype=torch.bfloat16, device_map="cuda:0")
     model.eval()
@@ -163,10 +168,10 @@ def run_effect_matched(model_key, n_samples=20):
         gold_token = s["primary_answer_ids"][0]
         gold_aliases = s["aliases"]
 
-        # Baseline 正确性
+        # Baseline: 零方向 + alpha 0, 相当于不消融
         baseline_gen = ablate_generate(model, tokenizer, prompt_ids,
                                        torch.zeros(unembed.shape[1], device=device),
-                                       1.0, ablate_layers)  # scale 0 方向
+                                       0.0, ablate_layers)
         if not is_answer_correct(baseline_gen, gold_aliases):
             continue
 
@@ -187,15 +192,15 @@ def run_effect_matched(model_key, n_samples=20):
                 break
         second_dir = unembed[second_token].detach()
 
-        # 3. 二分匹配 scale, 使 second_dir 达到与 gold 相同的 Δz
-        match_scale, match_delta, match_err = find_match_scale(
-            model, tokenizer, prompt_ids, gold_token, gold_dir,
+        # 3. 二分匹配 alpha, 使移除 second_dir 的 alpha 比例投影达到与 gold 相同的 Δz
+        match_alpha, match_delta, match_err = find_match_alpha(
+            model, tokenizer, prompt_ids, gold_token,
             second_dir, gold_delta_z, ablate_layers)
 
         # 4. 两个方向都按匹配强度生成
         gold_gen = ablate_generate(model, tokenizer, prompt_ids, gold_dir, 1.0, ablate_layers)
         gold_correct = is_answer_correct(gold_gen, gold_aliases)
-        matched_gen = ablate_generate(model, tokenizer, prompt_ids, second_dir, match_scale, ablate_layers)
+        matched_gen = ablate_generate(model, tokenizer, prompt_ids, second_dir, match_alpha, ablate_layers)
         matched_correct = is_answer_correct(matched_gen, gold_aliases)
 
         results.append({
@@ -204,7 +209,7 @@ def run_effect_matched(model_key, n_samples=20):
             "gold_delta_z": gold_delta_z,
             "match_delta_z": match_delta,
             "match_err": match_err,
-            "match_scale": match_scale,
+            "match_alpha": match_alpha,
             "second_token": second_token,
             "gold_correct": gold_correct,
             "matched_correct": matched_correct,
@@ -215,7 +220,7 @@ def run_effect_matched(model_key, n_samples=20):
         if len(results) <= 3:
             print(f"  [diag] {s['id']}: gold Δz={gold_delta_z:.2f}, "
                   f"matched Δz={match_delta:.2f} (err={match_err:.2f}), "
-                  f"scale={match_scale:.2f}, gold_flip={not gold_correct}, "
+                  f"alpha={match_alpha:.2f}, gold_flip={not gold_correct}, "
                   f"matched_flip={not matched_correct}")
 
     # 分析
@@ -229,12 +234,12 @@ def run_effect_matched(model_key, n_samples=20):
     gold_flips = sum(1 for r in results if r["gold_flipped"])
     matched_flips = sum(1 for r in results if r["matched_flipped"])
     mean_err = np.mean([r["match_err"] for r in results])
-    mean_scale = np.mean([r["match_scale"] for r in results])
+    mean_alpha = np.mean([r["match_alpha"] for r in results])
 
     print(f"Gold direction flips: {gold_flips}/{n} ({100*gold_flips/n:.1f}%)")
     print(f"Effect-matched flips: {matched_flips}/{n} ({100*matched_flips/n:.1f}%)")
     print(f"Δz match error: mean={mean_err:.2f}")
-    print(f"match scale: mean={mean_scale:.2f}")
+    print(f"match alpha: mean={mean_alpha:.2f}")
 
     if mean_err < 2.0:
         print(f"✓ Δz 匹配充分 (error < 2.0)")

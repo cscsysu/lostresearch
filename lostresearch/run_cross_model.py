@@ -332,7 +332,11 @@ def run_model(model_key):
     print(f"{'='*70}")
 
     from transformers import AutoTokenizer, AutoModelForCausalLM
-    tokenizer = AutoTokenizer.from_pretrained(cfg["path"])
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(cfg["path"])
+    except Exception as e:
+        print(f"  tokenizer load failed ({e}), trying 8B fallback...")
+        tokenizer = AutoTokenizer.from_pretrained(MODELS["qwen"]["path"])
     model = AutoModelForCausalLM.from_pretrained(
         cfg["path"], dtype=torch.bfloat16, device_map="cuda:0",
     )
@@ -417,6 +421,6 @@ def run_model(model_key):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str, required=True,
-                        choices=["qwen", "llama", "mistral"])
+                        choices=list(MODELS.keys()))
     args = parser.parse_args()
     run_model(args.model)

@@ -42,24 +42,21 @@ def collect_layer_mlp_outputs(model, prompt_ids, mlp_layer):
     input_ids = torch.tensor([prompt_ids], dtype=torch.long, device=device)
 
     mlp_out = {}
-    attn = getattr(layers[mlp_layer], "self_attn", None)
     mlp = getattr(layers[mlp_layer], "mlp", None)
 
     def make_mlp_hook():
         def hook(module, input, output):
-            mlp_out["out"] = output[0, -1, :].detach().clone()
-        return hook
-
-    def make_attn_hook():
-        def hook(module, input, output):
-            mlp_out["attn"] = output[0, -1, :].detach().clone()
+            # MLP 输出通常直接是 [batch, seq, hidden] 或一个 tensor
+            if isinstance(output, tuple):
+                out = output[0]
+            else:
+                out = output
+            mlp_out["out"] = out[0, -1, :].detach().clone()
         return hook
 
     hooks = []
     if mlp is not None:
         hooks.append(mlp.register_forward_hook(make_mlp_hook()))
-    if attn is not None:
-        hooks.append(attn.register_forward_hook(make_attn_hook()))
 
     model(input_ids, use_cache=False)
     for h in hooks:
@@ -144,7 +141,11 @@ def run_mlp_patch(model_key, mlp_layer=None, n_samples=50):
     print(f"{'='*70}")
 
     from transformers import AutoTokenizer, AutoModelForCausalLM
-    tokenizer = AutoTokenizer.from_pretrained(cfg["path"])
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(cfg["path"])
+    except Exception as e:
+        print(f"  tokenizer load failed ({e}), trying 8B fallback...")
+        tokenizer = AutoTokenizer.from_pretrained(MODELS["qwen"]["path"])
     model = AutoModelForCausalLM.from_pretrained(
         cfg["path"], dtype=torch.bfloat16, device_map="cuda:0")
     model.eval()
