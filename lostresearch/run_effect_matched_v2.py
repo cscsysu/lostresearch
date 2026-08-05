@@ -182,46 +182,63 @@ def run_effect_matched(model_key, n_samples=20):
         gold_after = ablate_forward_logits(model, prompt_ids, gold_dir, 1.0, ablate_layers)
         gold_delta_z = forward_logits(model, prompt_ids)[gold_token].item() - gold_after[gold_token].item()
 
-        # 2. 找 second-best token 方向 (高 logit 但非 gold)
+        # 2. 选对照方向 (根据 control 参数)
+        control_dirs = {}
         final_logits = forward_logits(model, prompt_ids)
         sorted_tokens = torch.argsort(final_logits, descending=True)
+
+        # second-best: 最终层 logit 第二高的 token
         second_token = None
         for t in sorted_tokens:
             if t.item() != gold_token:
                 second_token = t.item()
                 break
-        second_dir = unembed[second_token].detach()
+        control_dirs["second_best"] = (second_token, unembed[second_token].detach())
 
-        # 3. 二分匹配 alpha, 使移除 second_dir 的 alpha 比例投影达到与 gold 相同的 Δz
-        match_alpha, match_delta, match_err = find_match_alpha(
-            model, tokenizer, prompt_ids, gold_token,
-            second_dir, gold_delta_z, ablate_layers)
+        # random token: 随机选一个非 gold token
+        vocab_size = unembed.shape[0]
+        random_token = np.random.randint(0, vocab_size)
+        while random_token == gold_token:
+            random_token = np.random.randint(0, vocab_size)
+        control_dirs["random"] = (random_token, unembed[random_token].detach())
 
-        # 4. 两个方向都按匹配强度生成
+        # 3. 对每个对照方向做 alpha 匹配 + 生成
         gold_gen = ablate_generate(model, tokenizer, prompt_ids, gold_dir, 1.0, ablate_layers)
         gold_correct = is_answer_correct(gold_gen, gold_aliases)
-        matched_gen = ablate_generate(model, tokenizer, prompt_ids, second_dir, match_alpha, ablate_layers)
-        matched_correct = is_answer_correct(matched_gen, gold_aliases)
 
-        results.append({
+        entry = {
             "id": s["id"],
             "answer": s["answer"],
             "gold_delta_z": gold_delta_z,
-            "match_delta_z": match_delta,
-            "match_err": match_err,
-            "match_alpha": match_alpha,
-            "second_token": second_token,
             "gold_correct": gold_correct,
-            "matched_correct": matched_correct,
             "gold_flipped": not gold_correct,
-            "matched_flipped": not matched_correct,
-        })
+            "controls": {},
+        }
+
+        for ctrl_name, (ctrl_token, ctrl_dir) in control_dirs.items():
+            match_alpha, match_delta, match_err = find_match_alpha(
+                model, tokenizer, prompt_ids, gold_token,
+                ctrl_dir, gold_delta_z, ablate_layers)
+            matched_gen = ablate_generate(model, tokenizer, prompt_ids, ctrl_dir, match_alpha, ablate_layers)
+            matched_correct = is_answer_correct(matched_gen, gold_aliases)
+            entry["controls"][ctrl_name] = {
+                "token": ctrl_token,
+                "match_delta_z": match_delta,
+                "match_err": match_err,
+                "match_alpha": match_alpha,
+                "correct": matched_correct,
+                "flipped": not matched_correct,
+            }
+
+        results.append(entry)
 
         if len(results) <= 3:
             print(f"  [diag] {s['id']}: gold Δz={gold_delta_z:.2f}, "
-                  f"matched Δz={match_delta:.2f} (err={match_err:.2f}), "
-                  f"alpha={match_alpha:.2f}, gold_flip={not gold_correct}, "
-                  f"matched_flip={not matched_correct}")
+                  f"gold_flip={not gold_correct}")
+            for ctrl_name, cd in entry["controls"].items():
+                print(f"    {ctrl_name}: Δz={cd['match_delta_z']:.2f} "
+                      f"(err={cd['match_err']:.2f}), alpha={cd['match_alpha']:.2f}, "
+                      f"flip={cd['flipped']}")
 
     # 分析
     print("\n--- 结果 ---")
@@ -232,27 +249,29 @@ def run_effect_matched(model_key, n_samples=20):
         return results
 
     gold_flips = sum(1 for r in results if r["gold_flipped"])
-    matched_flips = sum(1 for r in results if r["matched_flipped"])
-    mean_err = np.mean([r["match_err"] for r in results])
-    mean_alpha = np.mean([r["match_alpha"] for r in results])
-
     print(f"Gold direction flips: {gold_flips}/{n} ({100*gold_flips/n:.1f}%)")
-    print(f"Effect-matched flips: {matched_flips}/{n} ({100*matched_flips/n:.1f}%)")
-    print(f"Δz match error: mean={mean_err:.2f}")
-    print(f"match alpha: mean={mean_alpha:.2f}")
 
-    if mean_err < 2.0:
-        print(f"✓ Δz 匹配充分 (error < 2.0)")
-    else:
-        print(f"? Δz 匹配不充分 (error={mean_err:.2f})")
-
-    if gold_flips > matched_flips:
-        print(f"✓ 在相同 Δz 下 gold direction 翻转更多 ({gold_flips} > {matched_flips})")
-        print(f"  → 效果特异于 gold direction, 不是 '任何方向降 gold logit 都翻转'")
-    elif gold_flips == matched_flips:
-        print(f"? 两者相同 → 可能是 '任何足够强的干预都能翻转'")
-    else:
-        print(f"? matched 反而更多 → 需分析")
+    # 每个对照方向单独统计
+    for ctrl_name in ["second_best", "random"]:
+        ctrl_flips = sum(1 for r in results
+                         if r["controls"].get(ctrl_name, {}).get("flipped", False))
+        ctrl_err = np.mean([r["controls"][ctrl_name]["match_err"]
+                            for r in results if ctrl_name in r["controls"]])
+        ctrl_alpha = np.mean([r["controls"][ctrl_name]["match_alpha"]
+                              for r in results if ctrl_name in r["controls"]])
+        print(f"\n[{ctrl_name}] control flips: {ctrl_flips}/{n} ({100*ctrl_flips/n:.1f}%)")
+        print(f"  Δz match error: mean={ctrl_err:.2f}")
+        print(f"  alpha: mean={ctrl_alpha:.2f}")
+        if ctrl_err < 2.0:
+            print(f"  ✓ Δz 匹配充分 (error < 2.0)")
+        else:
+            print(f"  ? Δz 匹配不充分 (error={ctrl_err:.2f})")
+        if gold_flips > ctrl_flips:
+            print(f"  ✓ 相同 Δz 下 gold 翻转更多 ({gold_flips} > {ctrl_flips})")
+        elif gold_flips == ctrl_flips:
+            print(f"  ? 两者相同")
+        else:
+            print(f"  ? matched 反而更多 ({ctrl_flips} > {gold_flips})")
 
     # 保存
     out_file = os.path.join(config.DATA_DIR, f"effect_matched_v2_{model_key}.json")
