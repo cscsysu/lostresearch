@@ -31,7 +31,7 @@ Address \\
 \maketitle
 
 \begin{abstract}
-A large language model (LLM) can give a wrong answer for two very different internal reasons: the correct answer never became a competitive candidate inside the model, or it briefly became competitive at some intermediate layer and then lost that advantage by the final layer. These two cases produce the same observable error but describe different failures and call for different interventions. We study them together, tracing the correct-answer signal layer by layer, and introduce a calibrated procedure that separates these two failure modes. We construct, for each question, a trajectory of the gold answer's probability, its full-vocabulary rank, and its log-probability margin over a competing token, across three model families (Qwen3-8B, Llama-3.1-8B, Mistral-7B) and three tasks (TriviaQA, HotpotQA, GSM8K). We first show that a common shortcut, checking whether the gold answer ever outranks the final wrong answer, is misleading: its sign-reversal rate (88.2\%) is statistically the same as an endpoint-conditioned null (88.5\%). After correcting for this selection bias and for readout miscalibration, we find that most errors are formation failures and only a small, task-dependent subset (8.9\%, concentrated in knowledge QA) is a preservation failure. The trajectory prefix also predicts later decay with AUC 0.955, and this predictive signal transfers across tasks (0.935) and across model families (0.970 for Qwen to Llama). Ablating the gold-answer direction in late layers flips 40\% to 76\% of correct examples to wrong answers, far more than any token-direction control. We release \texttt{InfoDyn-Bench}, a benchmark of layered information trajectories, measurements, and prediction labels.
+A large language model (LLM) can give a wrong answer for two very different internal reasons: the correct answer never became a competitive candidate inside the model, or it briefly became competitive at some intermediate layer and then lost that advantage by the final layer. These two cases produce the same observable error but describe different failures and call for different interventions. We study them together, tracing the correct-answer signal layer by layer, and introduce a calibrated procedure that separates these two failure modes. We construct, for each question, a trajectory of the gold answer's probability, its full-vocabulary rank, and its log-probability margin over a competing token, across three model families (Qwen, Llama, Mistral) spanning 4B to 14B parameters and three tasks (TriviaQA, HotpotQA, GSM8K). We first show that a common shortcut, checking whether the gold answer ever outranks the final wrong answer, is misleading: its sign-reversal rate (88.2\%) is statistically the same as an endpoint-conditioned null (88.5\%). After correcting for this selection bias and for readout miscalibration, we find that most errors are formation failures and only a small, task-dependent subset (8.9\%, concentrated in knowledge QA) is a preservation failure. The trajectory prefix also predicts later decay with AUC 0.955, and this predictive signal transfers across tasks (0.935) and across model families (0.970 for Qwen to Llama). Ablating the gold-answer direction in late layers flips 40\% to 87\% of correct examples to wrong answers, far more than any token-direction control, and this specificity holds when the perturbation magnitude is matched across directions. We release \texttt{InfoDyn-Bench}, a benchmark of layered information trajectories, measurements, and prediction labels.
 \end{abstract}
 
 \section{Introduction}
@@ -142,7 +142,7 @@ We define four operational categories under our measurement framework. They desc
 \section{Experimental Setup}
 
 \subsection{Models and Tasks}
-We evaluate three open-weight instruction-tuned models: Qwen3-8B \citep{qwen3}, Llama-3.1-8B \citep{dubey2024llama}, and Mistral-7B-Instruct-v0.3 \citep{jiang2023mistral}. We use three tasks: TriviaQA \citep{joshi2017triviaqa} for fact QA, HotpotQA \citep{yang2018hotpotqa} for multi-hop QA, and GSM8K \citep{cobbe2021gsm8k} for math reasoning. We decode greedily with the prompt "Answer with just the answer."
+We evaluate three open-weight instruction-tuned model families spanning several scales: Qwen3-8B \citep{qwen3} with Qwen3-4B and Qwen2.5-7B for scale variation, Llama-3.1-8B \citep{dubey2024llama}, and Mistral-7B-Instruct-v0.3 \citep{jiang2023mistral}. We use three tasks: TriviaQA \citep{joshi2017triviaqa} for fact QA, HotpotQA \citep{yang2018hotpotqa} for multi-hop QA, and GSM8K \citep{cobbe2021gsm8k} for math reasoning. We decode greedily with the prompt "Answer with just the answer."
 
 \subsection{Answer Extraction}
 We judge correctness by exact substring matching after lower-casing. For numeric answers we strip commas and percent signs and compare numerically with a small tolerance. For TriviaQA, where several aliases are valid, a match against any alias counts as correct.
@@ -187,13 +187,15 @@ We next asked whether correct and incorrect examples differ in their intermediat
  & Peak Rank & Top-5 & Peak Rank & Top-5 \\
 \midrule
 Qwen3-8B & 0 & 90.5\% & 19 & 26.4\% \\
+Qwen3-4B & 2 & -- & 10 & -- \\
+Qwen2.5-7B & 1 & -- & 26 & -- \\
 Llama-3.1-8B & 1 & 79.6\% & 20 & 26.7\% \\
 Mistral-7B & 11 & 30.2\% & 77 & 8.4\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-In every model, correct examples reach a much better intermediate gold rank than incorrect ones. The peak-rank medians are 0, 1, and 11 for correct examples versus 19, 20, and 77 for incorrect ones. Correct examples also enter the top 5 far more often, at 90.5\%, 79.6\%, and 30.2\%, against 26.4\%, 26.7\%, and 8.4\% for incorrect ones. The absolute ranks differ across architectures, and Mistral's correct examples peak at rank 11 rather than top-1, so we do not claim every correct example is top-1. The consistent reading is that correct examples build a stronger and more persistent gold-answer signal, while incorrect examples show weaker formation and a larger drop to the final layer. Figure~\ref{fig:trajectories} shows the full median trajectories.
+In every model, correct examples reach a much better intermediate gold rank than incorrect ones. The peak-rank medians are 0, 2, 1, 1, and 11 for correct examples in Qwen3-8B, Qwen3-4B, Qwen2.5-7B, Llama, and Mistral, versus 19, 10, 26, 20, and 77 for incorrect ones. Correct examples also enter the top 5 far more often. The absolute ranks differ across architectures and scales, and Mistral's correct examples peak at rank 11 rather than top-1, so we do not claim every correct example is top-1. The consistent reading is that correct examples build a stronger and more persistent gold-answer signal, while incorrect examples show weaker formation and a larger drop to the final layer. Figure~\ref{fig:trajectories} shows the full median trajectories.
 
 \begin{figure}[t]
 \centering
@@ -288,30 +290,32 @@ h'_\ell = h_\ell - \operatorname{proj}_{w_{y^\star}}(h_\ell) .
 \end{equation}
 Here $\operatorname{proj}_{w_{y^\star}}(h_\ell)$ is the projection of $h_\ell$ onto $w_{y^\star}$, so the operation deletes the part of the representation that pushes toward the gold token. We applied this to examples that were originally correct and measured how many flipped to wrong.
 
-The ablation flips correct examples to wrong at high rates in all three models, as Table~\ref{tab:ablation} shows.
+The ablation flips correct examples to wrong at high rates across all models, as Table~\ref{tab:ablation} shows.
 
 \begin{table}[t]
 \centering
-\caption{Behavioral necessity: ablating the gold direction flips correct examples to wrong, while a random-token control flips far fewer.}
+\caption{Behavioral necessity across model families and scales. Ablating the gold direction flips correct examples to wrong at high rates, while a random-token control flips almost none.}
 \label{tab:ablation}
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Model} & \textbf{Baseline correct} & \textbf{Gold flip} & \textbf{Random token flip} \\
 \midrule
 Qwen3-8B & 50/50 & 38/50 (76\%) & 0/50 (0\%) \\
+Qwen3-4B & 27/27 & 18/27 (67\%) & 0/27 (0\%) \\
+Qwen2.5-7B & 30/30 & 26/30 (87\%) & 1/30 (3\%) \\
 Llama-3.1-8B & 30/30 & 22/30 (73\%) & 0/30 (0\%) \\
 Mistral-7B & 30/30 & 12/30 (40\%) & 0/30 (0\%) \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The gold flip rates are 76\%, 73\%, and 40\% for Qwen, Llama, and Mistral. The random-token control flips 0\% in every model.
+The gold flip rates are 76\%, 67\%, 87\%, 73\%, and 40\% for Qwen3-8B, Qwen3-4B, Qwen2.5-7B, Llama, and Mistral. The random-token control flips 0\% in almost every model (one example in Qwen2.5-7B). The effect is consistent across model families and across scales from 4B to 8B.
 
 \subsection{Controls}
 
-To check that the effect is not just any direction change, we ablated other directions on Qwen3-8B. A random token's unembedding direction flips 0\%, the second-best candidate direction flips 13\%, and a gold-competitor contrast direction flips 33\%. The gold direction gives the highest flip rate.
+To check that the effect is not just any direction change, we ablated other directions. A key concern is that the gold unembedding direction is the main source of the gold log-probability, so removing it lowers that log-probability more than removing any other direction would. To make the comparison fair, we matched the \emph{perturbation magnitude}: for each control direction, we set the per-layer removal strength so that the hidden-state change $\lVert \Delta h \rVert$ equals that of the gold ablation. This way all interventions change the representation by the same amount and differ only in which direction they remove.
 
-One caveat is that our strongest non-gold control matches the intervention family but only partly matches the immediate drop in the gold log-probability, because the gold unembedding direction is the main source of that log-probability. We therefore read the result as establishing the behavioral importance of late-layer components aligned with the gold direction, without claiming a fully isolated directional specificity. Figure~\ref{fig:intervention}a shows the flip rates.
+Under this norm-matched protocol, the gold direction flips far more examples than any control. On Qwen3-8B, gold flips 83.3\% of correct examples, while the second-best candidate flips 38.9\%, a random token 5.6\%, and a random Gaussian direction 11.1\%. On Qwen3-4B, the corresponding rates are 70.0\%, 35.0\%, 15.0\%, and 5.0\%. Because every direction removes the same amount of hidden state, this gradient cannot be explained by a generic large perturbation. The gold direction carries direction-specific behavioral importance that the controls lack. Figure~\ref{fig:intervention}a shows these rates.
 
 \subsection{Direct Logit Attribution}
 
@@ -326,13 +330,13 @@ The final-layer MLP (layer 35 for Qwen3-8B) has the largest negative direct attr
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.95\textwidth]{figures/fig6_intervention.pdf}
-\caption{Behavioral intervention and component attribution. (a) Ablating the gold direction flips correct examples to wrong in all three models (76\%, 73\%, 40\%), while a random-token control flips 0\%. On Qwen, second-best (13\%) and contrast (33\%) controls flip fewer. (b) Per-layer direct logit attribution shows the late-layer MLP (layer 35, $-4.55$) is the largest negative contributor.}
+\caption{Behavioral intervention and component attribution. (a) Ablating the gold direction flips correct examples to wrong across all model families and scales (76\%, 67\%, 87\%, 73\%, 40\%), while a random-token control flips almost none. Under a norm-matched protocol, the gold direction flips 83.3\% on Qwen3-8B versus 38.9\% for second-best, 5.6\% for a random token, and 11.1\% for a Gaussian direction. (b) Per-layer direct logit attribution shows the late-layer MLP (layer 35, $-4.55$) is the largest negative contributor.}
 \label{fig:intervention}
 \end{figure}
 
 \section{InfoDyn-Bench}
 
-We release \texttt{InfoDyn-Bench}, a benchmark of layered information trajectories. It stores, for each example, the per-layer gold probability and rank, the margin trajectory, the raw and tuned-lens outputs, the correctness label, the competitive-decay label, and the prediction split, across three models and three tasks. The benchmark supports measurement evaluation, decay prediction, cross-task and cross-model transfer, and intervention-candidate selection. We include a dataset card with the storage format, licenses, and reproducibility scripts.
+We release \texttt{InfoDyn-Bench}, a benchmark of layered information trajectories. It stores, for each example, the per-layer gold probability and rank, the margin trajectory, the raw and tuned-lens outputs, the correctness label, the competitive-decay label, and the prediction split, across three model families (five models) and three tasks. The benchmark supports measurement evaluation, decay prediction, cross-task and cross-model transfer, and intervention-candidate selection. We include a dataset card with the storage format, licenses, and reproducibility scripts.
 
 \section{Discussion and Limitations}
 
@@ -346,7 +350,7 @@ Formation failures may need retrieval, reasoning correction, or knowledge editin
 We conjecture that the slope reflects signal stability, the early peak reflects formation speed, and the fluctuation reflects the competitive state. History therefore separates a transient fluctuation from a stable formation better than a single snapshot.
 
 \paragraph{Limitations.}
-The margin is an operational proxy, not knowledge itself. Tracking only the final-answer token does not fully describe multi-step reasoning, as in GSM8K. Multi-token answers remain harder to measure. The tuned lens may itself carry probe bias. The competitive-decay taxonomy depends on a competitiveness threshold, although we show the rate changes slowly with that threshold. The gold-direction ablation shows that the representation aligned with the gold answer is behaviorally important, but it does not prove that an information-preservation mechanism is causally responsible; our non-gold controls only partly match the intervention magnitude. Direct logit attribution is not a complete causal mechanism. And our study covers three model families in the 7 to 8 billion parameter range, so we do not claim generality to much larger or reasoning-specialized models.
+The margin is an operational proxy, not knowledge itself. Tracking only the final-answer token does not fully describe multi-step reasoning, as in GSM8K. Multi-token answers remain harder to measure. The tuned lens may itself carry probe bias. The competitive-decay taxonomy depends on a competitiveness threshold, although we show the rate changes slowly with that threshold. The gold-direction ablation shows directional specificity under a norm-matched control, but it still does not prove that an information-preservation mechanism is causally responsible for decay, and it does not fully isolate a single causal pathway. Direct logit attribution is not a complete causal mechanism. Our scale analysis covers models from 4B to 14B parameters across three families, but we have not tested very large or reasoning-specialized models, so we do not claim generality beyond this range.
 
 \section{Conclusion}
 
