@@ -29,6 +29,21 @@ MODELS = {
         "name": "Qwen3-8B",
         "enable_thinking": False,
     },
+    "qwen4b": {
+        "path": "/data2/css2025/models/Qwen/Qwen3-4B",
+        "name": "Qwen3-4B",
+        "enable_thinking": False,
+    },
+    "qwen14b": {
+        "path": "/data2/css2025/models/Qwen/Qwen3-14B",
+        "name": "Qwen3-14B",
+        "enable_thinking": False,
+    },
+    "qwen25_7b": {
+        "path": "/data2/css2025/models/Qwen/Qwen2.5-7B-Instruct",
+        "name": "Qwen2.5-7B-Instruct",
+        "enable_thinking": None,  # Qwen2.5 没有 thinking mode
+    },
     "llama": {
         "path": "/data2/bowen2023/Model/Llama-3.1-8B-Instruct",
         "name": "Llama-3.1-8B",
