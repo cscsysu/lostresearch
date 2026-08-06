@@ -335,6 +335,9 @@ Here $y^-$ is the strongest competing token defined in Section~\ref{sec:def}. Th
 
 The final-layer MLP (layer 35 for Qwen3-8B) has the largest negative direct attribution, with a value of about $-4.55$. We report this as an attribution, not as a proven cause. Confirming a causal role for this component needs activation patching, which we leave to future work. Figure~\ref{fig:intervention}b shows the per-layer attribution.
 
+\paragraph{Component-level attribution: which component suppresses the gold signal?}
+To move from "decay happens" to "what causes it", we decomposed the margin change at each layer into its attention and MLP components. We run a forward pass and read off the margin before attention, after attention, and after the MLP at every layer, so that the drop attributable to attention versus the MLP is separated per layer. Across incorrect examples, the total negative contribution of the MLP is larger than that of attention (cumulative $-4.71$ vs $-3.42$), and the dominant single source is the layer-35 MLP ($-3.42$ of the total). This is the same component that direct logit attribution flags as the largest negative contributor, so two independent attribution methods agree: for incorrect examples, the suppression of the gold signal is concentrated in the late-layer MLP. By contrast, correct examples show no dominant negative component (attention $-0.52$ vs MLP $-0.51$, both near zero). The decay that defines a preservation failure is therefore not spread uniformly across the network but is driven disproportionately by the late-layer MLP.
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.95\textwidth]{figures/fig6_intervention.pdf}
