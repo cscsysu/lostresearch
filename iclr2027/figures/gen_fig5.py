@@ -25,8 +25,8 @@ fig.subplots_adjust(left=0.06, right=0.96, top=0.86, bottom=0.22)
 
 # === (a) Within-task: full trajectory vs baselines ===
 ax = fig.add_subplot(gs[0])
-baselines = ["Current\nmargin", "Current\nrank", "Margin\n+slope", "Last-k\nlayers", "Max-\nso-far", "Linear\nextrap.", "Full\ntrajectory"]
-aucs = [0.401, 0.511, 0.620, 0.605, 0.640, 0.678, 0.796]
+baselines = ["CIS\nslope", "Rank\n@t0", "Margin\n+slope", "Rank\nmin", "Max\n+slope", "Entropy", "Full\ntrajectory"]
+aucs = [0.388, 0.511, 0.612, 0.486, 0.612, 0.325, 0.789]
 colors = ["#95A5A6"]*6 + ["#C0392B"]
 bars = ax.bar(baselines, aucs, color=colors, edgecolor="black", linewidth=0.7, width=0.68)
 ax.set_ylim(0, 1.08)
@@ -45,9 +45,9 @@ for bar, a in zip(bars, aucs):
 ax = fig.add_subplot(gs[1])
 tasks = ["TriviaQA", "HotpotQA", "GSM8K"]
 ct_matrix = np.array([
-    [0.796, 0.780, 0.297],
-    [0.711, 0.796, 0.819],
-    [0.555, 0.705, 0.796],
+    [0.789, 0.743, 0.380],
+    [0.752, 0.789, 0.774],
+    [0.559, 0.626, 0.789],
 ])
 im = ax.imshow(ct_matrix, cmap="Blues", vmin=0.5, vmax=1.0, aspect="auto")
 ax.set_xticks(range(3))
