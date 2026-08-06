@@ -346,6 +346,7 @@ Here $y^-$ is the strongest competing token defined in Section~\ref{sec:def}. Th
 The final-layer MLP (layer 35 for Qwen3-8B) has the largest negative direct attribution, with a value of about $-4.55$. We report this as an attribution, not as a proven cause. Confirming a causal role for this component needs activation patching, which we leave to future work. Figure~\ref{fig:intervention}b shows the per-layer attribution.
 
 \paragraph{Component-level attribution: which component suppresses the gold signal?}
+\label{sec:components}
 To move from "decay happens" to "what causes it", we decomposed the margin change at each layer into its attention and MLP components. We run a forward pass and read off the margin before attention, after attention, and after the MLP at every layer, so that the drop attributable to attention versus the MLP is separated per layer. Across incorrect examples, the total negative contribution of the MLP is larger than that of attention (cumulative $-4.71$ vs $-3.42$), and the dominant single source is the layer-35 MLP ($-3.42$ of the total). This is the same component that direct logit attribution flags as the largest negative contributor, so two independent attribution methods agree: for incorrect examples, the suppression of the gold signal is concentrated in the late-layer MLP. By contrast, correct examples show no dominant negative component (attention $-0.52$ vs MLP $-0.51$, both near zero). The decay that defines a preservation failure is therefore not spread uniformly across the network but is driven disproportionately by the late-layer MLP.
 
 \begin{figure}[t]
@@ -357,7 +358,28 @@ To move from "decay happens" to "what causes it", we decomposed the margin chang
 
 \section{InfoDyn-Bench}
 
-We release \texttt{InfoDyn-Bench}, a benchmark of layered information trajectories. It stores, for each example, the per-layer gold probability and rank, the margin trajectory, the raw and tuned-lens outputs, the correctness label, the competitive-decay label, and the prediction split, across three model families (six models) and three tasks. The benchmark supports measurement evaluation, decay prediction, cross-task and cross-model transfer, and intervention-candidate selection. We include a dataset card with the storage format, licenses, and reproducibility scripts.
+We release \texttt{InfoDyn-Bench}, a benchmark of layered information trajectories for LLM error analysis. Unlike prior resources that store only final-layer outputs or static activations, \texttt{InfoDyn-Bench} records, for each example, the full per-layer trajectory of the gold answer alongside derived failure labels. Table~\ref{tab:benchmark} summarizes its contents. It covers six models across three families and three tasks, and each example carries the raw and tuned-lens trajectories, a set of derived dynamics metrics, a failure-pattern label, and a decay-prediction split.
+
+\begin{table}[t]
+\centering
+\caption{Contents of \texttt{InfoDyn-Bench}. Each example stores the per-layer trajectory and derived labels; the benchmark is organized so that each downstream use case maps to a stored field.}
+\label{tab:benchmark}
+\small
+\begin{tabular}{lp{8.6cm}}
+\toprule
+\textbf{Component} & \textbf{Description} \\
+\midrule
+\textbf{Input} & Question, gold answer, aliases, generated answer, correctness label. \\
+\textbf{Trajectory} & Per-layer gold-answer log-probability ($\mathrm{CIS}$), full-vocabulary rank, margin over the competing token, under both the raw and tuned lenses. \\
+\textbf{Derived metrics} & Signal-emergence layer (SEL), peak rank, peak $\mathrm{CIS}$, dwell time, peak-to-final decay, sign-change flag, top-5 entry. \\
+\textbf{Failure label} & Per-example pattern: \texttt{Absent}, \texttt{Preservation-Failure}, \texttt{Late-Emergent}, \texttt{Decay}, \texttt{Stable}. \\
+\textbf{Prediction split} & $t_0$ prefix features, the $y^{\mathrm{decay}}$ label (does the signal decay in the second half?), and final correctness. \\
+\textbf{Coverage} & 6 models (Qwen3-4B/8B/14B, Qwen2.5-7B, Llama-3.1-8B, Mistral-7B) $\times$ 3 tasks (TriviaQA, HotpotQA, GSM8K). \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The benchmark is designed to be used directly by three audiences. First, researchers studying \emph{error mechanisms} can query the failure labels and per-layer trajectories to test hypotheses about formation versus preservation failures, or to locate the layer at which a gold signal is suppressed (as in Section~\ref{sec:components}). Second, researchers studying \emph{decay prediction} can use the prediction split to reproduce or extend our decay-prediction and cross-task/cross-model transfer results without re-running the models. Third, researchers building \emph{intervention or probing methods} can use the derived metrics and labels to select intervention candidates and to measure whether a method changes the failure pattern. Because the trajectories, labels, and splits are stored together and are shared across six models, the benchmark supports the measurement-and-prediction pipeline as a single resource rather than as scattered supplementary files. We include a dataset card with the storage format, licenses, and reproduction scripts.
 
 \section{Discussion and Limitations}
 
