@@ -134,7 +134,7 @@ The \emph{competitive decay} label marks an example whose gold answer is competi
 \begin{equation}
 C(x) = \mathbb{1}\Big[ \exists\, \ell < L : r_\ell(y^\star) \le k \;\land\; \mathrm{CIS}^{\mathrm{comp}}_\ell > 0 \Big] \cdot \mathbb{1}\Big[ \mathrm{CIS}^{\mathrm{comp}}_L < 0 \Big] .
 \end{equation}
-We use $k=5$ as the main competitiveness threshold and report the sensitivity over $k \in \{1,3,5,10,20\}$.
+We use $k=5$ as the main competitiveness threshold and report the sensitivity over $k \in \{1,5,10,50\}$ (Section~\ref{sec:sensitivity}).
 
 \subsection{Error Taxonomy}
 We define four operational categories under our measurement framework. They describe what the measurement sees, not every conceivable error mechanism. A \emph{formation failure} is an incorrect example whose gold answer never meets the competitiveness criterion at any intermediate layer. A \emph{preservation failure} is an incorrect example whose gold answer meets the criterion but loses its advantage by the final layer. A \emph{successful preservation} is a correct example whose signal forms and is maintained. The remaining category, \emph{unresolved}, covers examples where tracking only the final-answer token is not enough to describe the error, such as multi-step reasoning.
@@ -148,7 +148,7 @@ We evaluate three open-weight instruction-tuned model families spanning several 
 We judge correctness by exact substring matching after lower-casing. For numeric answers we strip commas and percent signs and compare numerically with a small tolerance. For TriviaQA, where several aliases are valid, a match against any alias counts as correct.
 
 \subsection{Lens Construction}
-The raw logit lens applies the final language-model head directly. For the tuned lens \citep{belrose2023tunedlens} we fit, for each layer, an affine map $(\mathbf{A}_\ell, \mathbf{b}_\ell)$ so that $\mathbf{A}_\ell h_\ell + \mathbf{b}_\ell$, decoded through the final norm and head, approximates the final-layer logits. We train the translators on a held-out subset that is separate from the prediction split.
+The raw logit lens applies the final language-model head directly. For the tuned lens \citep{belrose2023tunedlens} we fit, for each layer, an affine map $(\mathbf{A}_\ell, \mathbf{b}_\ell)$ so that $\mathbf{A}_\ell h_\ell + \mathbf{b}_\ell$, decoded through the final norm and head, approximates the final-layer logits. Each layer's translator is trained independently on a held-out prompt subset, minimizing the mean-squared error between the decoded logits and the model's own final-layer logits (Adam, learning rate $10^{-3}$, $500$ epochs). Because the objective is supervised by the model's own final logits rather than by the answer label, the translators never see the gold answer or the correctness label, so no answer information leaks through the lens.
 
 \subsection{Statistical Testing}
 We report every proportion with a bootstrap 95\% confidence interval, and we report per-model and per-task numbers alongside aggregates.
@@ -229,7 +229,7 @@ GSM8K & 0/231 & 0.0\% \\
 \end{tabular}
 \end{table}
 
-TriviaQA and HotpotQA show competitive decay in about 10\% to 13\% of errors. GSM8K shows none under our final-answer-token measurement. We report this as a boundary of the measurement rather than as a claim that GSM8K has no decay at all. In multi-step reasoning the correct final token may never become competitive even when some intermediate step is right, so describing such errors needs tracking intermediate reasoning states, which we leave to future work. The task dependence itself is informative: the preservation-failure regime is specific to entity-style knowledge QA. Figure~\ref{fig:taxonomy} shows the full taxonomy by task.
+TriviaQA and HotpotQA show competitive decay in about 10\% to 13\% of errors. GSM8K shows none under our final-answer-token measurement. We report this as a boundary of the measurement rather than as a claim that GSM8K has no decay at all. There are two measurement reasons for the absence. First, GSM8K answers are often multi-token numbers (e.g., "42" spans two tokens), and we track only the final-answer token, so a correct signal carried by an earlier token of the answer is missed. Second, in multi-step reasoning the correct final token may never become competitive even when some intermediate step is right, so describing such errors needs tracking intermediate reasoning states, which we leave to future work. The task dependence itself is informative: the preservation-failure regime is specific to entity-style knowledge QA, whose single-token answers make the final-answer-token measurement well matched. Figure~\ref{fig:taxonomy} shows the full taxonomy by task.
 
 \begin{figure}[t]
 \centering
@@ -239,6 +239,7 @@ TriviaQA and HotpotQA show competitive decay in about 10\% to 13\% of errors. GS
 \end{figure}
 
 \subsection{The Decay Rate Is Robust to the Competitiveness Threshold}
+\label{sec:sensitivity}
 
 The competitive-decay label depends on a rank threshold $k$ that defines competitiveness, so we checked how sensitive the rate is to $k$. We recomputed the joint criterion over $k \in \{1,5,10,50\}$ on the Qwen subset, holding the margin condition fixed. The rate rises monotonically from 4.8\% at $k=1$ to 8.5\% at $k=5$, 10.1\% at $k=10$, and 16.9\% at $k=50$. The conclusion that preservation failure is a minority of errors holds at every threshold, and the rate grows only slowly as we relax what counts as competitive. We report $k=5$ as the main setting and note the trend so the reader can judge the robustness of the taxonomy.
 
@@ -250,7 +251,7 @@ The raw lens inflates the intermediate peak margin by roughly a factor of two, y
 
 We asked whether the first half of the trajectory predicts whether the signal will decay in the second half. We define a binary decay label $y^{\mathrm{decay}} = \mathbb{1}[\text{signal decays in the second half}]$ and train a linear classifier on features computed only from the first half.
 
-We compared the full-trajectory model against snapshot baselines that use only a single layer or a simple summary, such as the current margin, the current rank, the margin plus slope, the last few layers, the running maximum, and linear extrapolation. The point of these baselines is to test whether history adds anything beyond the current state.
+We compared the full-trajectory model against snapshot baselines that use only a single layer or a simple summary. These include common confidence and uncertainty proxies computed from the midpoint layer -- the gold-answer margin ($\text{CIS}$ at $t_0$), the gold-answer rank at $t_0$, and the output entropy at $t_0$ -- as well as summary features such as margin plus slope, the running maximum, and linear extrapolation. The point of these baselines is to test whether history adds anything beyond the current state, including beyond a standard confidence signal.
 
 The full-trajectory model reaches AUC 0.79 within setting, well above the best single-layer baseline of 0.51, showing that trajectory history adds substantial predictive signal beyond the current state. The predictive structure transfers across tasks in a structure-dependent way: it is robust among knowledge-QA tasks (TriviaQA to HotpotQA, 0.74) and from multi-hop to multi-step reasoning (HotpotQA to GSM8K, 0.77), but weak from single-step fact recall to multi-step reasoning (TriviaQA to GSM8K, 0.38), which is consistent with GSM8K's final-answer token not becoming competitive in intermediate layers (Section~\ref{sec:taskdecay}). Figure~\ref{fig:prediction}a summarizes the within-task comparisons.
 
@@ -296,23 +297,23 @@ The ablation flips correct examples to wrong at high rates across all models, as
 
 \begin{table}[t]
 \centering
-\caption{Behavioral necessity across model families and scales. Ablating the gold direction flips correct examples to wrong at high rates, while a random-token control flips almost none.}
+\caption{Behavioral necessity across model families and scales. Ablating the gold direction flips correct examples to wrong at high rates, while a random-token control flips almost none. Parentheses give Wilson 95\% intervals for the gold flip rate.}
 \label{tab:ablation}
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Model} & \textbf{Baseline correct} & \textbf{Gold flip} & \textbf{Random token flip} \\
 \midrule
-Qwen3-14B & 30/30 & 23/30 (77\%) & 0/30 (0\%) \\
-Qwen3-8B & 50/50 & 38/50 (76\%) & 0/50 (0\%) \\
-Qwen3-4B & 27/27 & 18/27 (67\%) & 0/27 (0\%) \\
-Qwen2.5-7B & 30/30 & 26/30 (87\%) & 1/30 (3\%) \\
-Llama-3.1-8B & 30/30 & 22/30 (73\%) & 0/30 (0\%) \\
-Mistral-7B & 30/30 & 12/30 (40\%) & 0/30 (0\%) \\
+Qwen3-14B & 30/30 & 23/30 (77\%, CI [59, 88]) & 0/30 (0\%) \\
+Qwen3-8B & 50/50 & 38/50 (76\%, CI [63, 86]) & 0/50 (0\%) \\
+Qwen3-4B & 27/27 & 18/27 (67\%, CI [48, 81]) & 0/27 (0\%) \\
+Qwen2.5-7B & 30/30 & 26/30 (87\%, CI [70, 95]) & 1/30 (3\%) \\
+Llama-3.1-8B & 30/30 & 22/30 (73\%, CI [56, 86]) & 0/30 (0\%) \\
+Mistral-7B & 30/30 & 12/30 (40\%, CI [25, 58]) & 0/30 (0\%) \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The gold flip rates are 77\%, 76\%, 67\%, 87\%, 73\%, and 40\% for Qwen3-14B, Qwen3-8B, Qwen3-4B, Qwen2.5-7B, Llama, and Mistral. The random-token control flips 0\% in almost every model (one example in Qwen2.5-7B). The effect is consistent across model families and across scales from 4B to 14B.
+The gold flip rates are 77\%, 76\%, 67\%, 87\%, 73\%, and 40\% for Qwen3-14B, Qwen3-8B, Qwen3-4B, Qwen2.5-7B, Llama, and Mistral. The random-token control flips 0\% in almost every model (one example in Qwen2.5-7B). The effect is consistent across model families and across scales from 4B to 14B. The difference between the strongest model (Qwen2.5-7B, 87\%) and the weakest (Mistral-7B, 40\%) is statistically distinguishable: their 95\% intervals, [70, 95] and [25, 58], do not overlap, so the variation across architectures is not merely sampling noise.
 
 \subsection{Controls}
 
@@ -347,7 +348,7 @@ We release \texttt{InfoDyn-Bench}, a benchmark of layered information trajectori
 Competitive decodability is an operational sign of output readiness, not a complete definition of knowledge. We do not equate a top-5 rank with knowledge.
 
 \paragraph{Different failures call for different interventions.}
-Formation failures may need retrieval, reasoning correction, or knowledge editing \citep{meng2022rome}. Preservation failures may suit late-layer steering \citep{turner2023activation, zou2023representation}. Reasoning-state failures need tracking intermediate variables.
+Formation failures may need retrieval, reasoning correction, or knowledge editing \citep{meng2022rome}. Preservation failures may suit late-layer steering \citep{turner2023activation, zou2023representation}. Reasoning-state failures need tracking intermediate variables. Even though preservation failures are a minority of errors, identifying them is valuable because they are the errors a late-layer intervention can plausibly fix: the correct signal is present and merely needs to be retained, so steering at the failing layer is a targeted lever that formation failures do not offer.
 
 \paragraph{Why do trajectories predict?}
 We conjecture that the slope reflects signal stability, the early peak reflects formation speed, and the fluctuation reflects the competitive state. History therefore separates a transient fluctuation from a stable formation better than a single snapshot.
