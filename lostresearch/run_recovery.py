@@ -3,26 +3,20 @@ Recovery experiment (causal sufficiency): does restoring the gold signal at the
 decaying layer turn a wrong answer correct?
 
 Reviewer concern: the ablation shows the gold direction is NECESSARY (removing it
-flips correct -> wrong). But we never show SUFFICIENCY -- i.e. that repairing the
-decayed trajectory makes a wrong answer correct. This is the missing causal link
-between trajectory dynamics and behavior.
+flips correct -> wrong) but we never show SUFFICIENCY -- restoring the decayed
+trajectory makes an error correct.
 
-Design (clean, no donor samples):
-  For each error sample:
-    1. Run baseline, keep only samples that are actually wrong.
-    2. Collect per-layer hidden states; find the "gold peak layer" l_peak where
-       the gold-answer support is maximal in the first half of the network.
-    3. At layers l >= l_peak, inject a fixed boost along the gold unembedding
-       direction:  h' = h + alpha * w_gold.
-    4. Regenerate; measure how many turn correct.
-  Controls:
-    - random direction (same norm) instead of w_gold  -> should NOT recover
-    - boost only in the SHALLOW layers (l < l_peak)   -> tests layer-specificity
-  alpha is set so the added vector has norm proportional to the gold projection
-  norm at the peak layer (a matched, modest boost, not an answer injection).
+We sweep the boost strength alpha to distinguish a strength problem from a true
+null result. For each error sample:
+  - find the gold peak layer l_peak in the first half of the network
+  - inject a boost + alpha * (gold projection at l_peak) along w_gold at
+    layers >= l_peak, regenerate
+Controls (at the largest alpha):
+  - random direction (same norm) at l_peak..end  -> should NOT recover
+  - gold boost only in shallow layers (< l_peak)  -> layer-specificity test
 
 Usage:
-  python run_recovery.py [--n 60] [--alpha 0.5]
+  python run_recovery.py --n 60 --alphas 0.5,1.0,2.0,4.0
 """
 import argparse
 import json
@@ -47,8 +41,9 @@ def get_residual_layers(model):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--n", type=int, default=60)
-    parser.add_argument("--alpha", type=float, default=0.5)
+    parser.add_argument("--alphas", type=str, default="0.5,1.0,2.0,4.0")
     args = parser.parse_args()
+    alphas = [float(a) for a in args.alphas.split(",")]
 
     from transformers import AutoTokenizer, AutoModelForCausalLM
     tokenizer = AutoTokenizer.from_pretrained(config.MODEL_PATH)
@@ -67,7 +62,6 @@ def main():
     samples = load_all_datasets()
     prepared = prepare_samples(samples, tokenizer)
 
-    # Which samples are errors? Attach final_correct from existing results.
     results_file = os.path.join(config.DATA_DIR, "full_results_Qwen3-8B.json")
     if os.path.exists(results_file):
         with open(results_file) as f:
@@ -90,10 +84,14 @@ def main():
             h.remove()
         return tokenizer.decode(out[0][input_ids.shape[1]:], skip_special_tokens=True).strip()
 
-    # Storage
+    # Per-alpha counters.
+    gold_rec = {a: 0 for a in alphas}
+    gold_tot = {a: 0 for a in alphas}
+    n_rand = n_shallow = 0
+    n_rand_rec = n_shallow_rec = 0
+
     results = []
-    n_gold = n_rand = n_shallow = 0
-    n_gold_recover = n_rand_recover = n_shallow_recover = 0
+    max_alpha = max(alphas)
 
     for s in tqdm(errors[:args.n], desc="Recovery"):
         prompt_ids = s["prompt_ids"]
@@ -103,14 +101,12 @@ def main():
 
         input_ids = torch.tensor([prompt_ids], dtype=torch.long, device=device)
 
-        # baseline (no intervention)
         base_out = model.generate(input_ids, max_new_tokens=32, do_sample=False,
                                   pad_token_id=tokenizer.pad_token_id or tokenizer.eos_token_id)
         base_text = tokenizer.decode(base_out[0][input_ids.shape[1]:], skip_special_tokens=True).strip()
         if is_answer_correct(base_text, aliases):
-            continue  # actually correct, skip
+            continue
 
-        # collect per-layer hiddens to find gold peak layer
         hidden_buffer = {}
 
         def make_hook(idx):
@@ -125,7 +121,6 @@ def main():
         for h in hooks:
             h.remove()
 
-        # gold support per layer (raw logit lens); find peak in first half
         support = []
         for l in range(num_layers):
             h = hidden_buffer[l].to(device).float()
@@ -133,10 +128,10 @@ def main():
             support.append(lr[gold_token].item())
         mid = num_layers // 2
         l_peak = int(np.argmax(support[:mid])) if mid > 0 else 0
-        # scale alpha so the injected vector has norm ~ gold projection at peak
         peak_proj_norm = torch.dot(hidden_buffer[l_peak].to(device).float(), gold_w).abs().item()
-        boost = (args.alpha * peak_proj_norm) / (gold_w.norm().item() + 1e-8)
-        inj_vec = boost * gold_w
+        unit = gold_w / (gold_w.norm().item() + 1e-8)
+        # vector that, added along w_gold, re-adds `alpha` x the peak projection.
+        inj = {a: (a * peak_proj_norm) * unit for a in alphas}
 
         def make_inject(boost_dir, start_layer, end_layer):
             def hook_fn(layer_idx):
@@ -151,47 +146,53 @@ def main():
                 return hook
             return hook_fn
 
-        # 1) gold boost at l_peak..end
-        gold_gen = generate(make_inject(inj_vec, l_peak, num_layers), prompt_ids)
-        gold_rec = is_answer_correct(gold_gen, aliases)
-        n_gold += 1
-        n_gold_recover += int(gold_rec)
+        # gold boost across alphas (at decay layer -> end)
+        per_gold = {}
+        for a in alphas:
+            gen = generate(make_inject(inj[a], l_peak, num_layers), prompt_ids)
+            rec = is_answer_correct(gen, aliases)
+            per_gold[a] = rec
+            gold_tot[a] += 1
+            gold_rec[a] += int(rec)
 
-        # 2) random direction control (same norm as inj_vec)
-        rand_dir = torch.randn_like(inj_vec)
-        rand_dir = rand_dir / (rand_dir.norm() + 1e-8) * inj_vec.norm()
+        # random control at max alpha
+        rand_dir = torch.randn_like(inj[max_alpha])
+        rand_dir = rand_dir / (rand_dir.norm() + 1e-8) * inj[max_alpha].norm()
         rand_gen = generate(make_inject(rand_dir, l_peak, num_layers), prompt_ids)
         rand_rec = is_answer_correct(rand_gen, aliases)
         n_rand += 1
-        n_rand_recover += int(rand_rec)
+        n_rand_rec += int(rand_rec)
 
-        # 3) gold boost only in SHALLOW layers (before peak) -- layer-specificity
+        # shallow-layer gold boost at max alpha (layer-specificity)
         shallow_end = max(2, l_peak // 2)
-        sh_gen = generate(make_inject(inj_vec, 0, shallow_end), prompt_ids)
+        sh_gen = generate(make_inject(inj[max_alpha], 0, shallow_end), prompt_ids)
         sh_rec = is_answer_correct(sh_gen, aliases)
         n_shallow += 1
-        n_shallow_recover += int(sh_rec)
+        n_shallow_rec += int(sh_rec)
 
         results.append({
             "id": s["id"], "task": s.get("task", "unknown"), "answer": s["answer"],
-            "l_peak": l_peak, "boost": boost,
-            "gold_recover": gold_rec, "random_recover": rand_rec, "shallow_recover": sh_rec,
+            "l_peak": l_peak,
+            "gold": {str(a): per_gold[a] for a in alphas},
+            "random_recover": rand_rec,
+            "shallow_recover": sh_rec,
         })
 
     print("\n" + "=" * 70)
-    print(f"Recovery experiment (alpha={args.alpha}), errors evaluated: {len(results)}")
+    print(f"Recovery sweep (alphas={alphas}), errors evaluated: {len(results)}")
     print("=" * 70)
-    print(f"  Gold boost at decay layer:   {n_gold_recover}/{n_gold} recovered ({100*n_gold_recover/n_gold:.1f}%)")
-    print(f"  Random boost control:        {n_rand_recover}/{n_rand} recovered ({100*n_rand_recover/n_rand:.1f}%)")
-    print(f"  Gold boost (shallow layers): {n_shallow_recover}/{n_shallow} recovered ({100*n_shallow_recover/n_shallow:.1f}%)")
-    if n_gold_recover > n_rand_recover and n_gold_recover > n_shallow_recover:
-        print("  => Restoring gold at the decay layer is specifically effective")
-    else:
-        print("  => Recovery not layer-specific (check alpha / layer selection)")
+    for a in alphas:
+        if gold_tot[a] > 0:
+            print(f"  Gold boost at decay layer (alpha={a}): "
+                  f"{gold_rec[a]}/{gold_tot[a]} ({100*gold_rec[a]/gold_tot[a]:.1f}%)")
+    print(f"  Random boost control (alpha={max_alpha}): "
+          f"{n_rand_rec}/{n_rand} ({100*n_rand_rec/max(n_rand,1):.1f}%)")
+    print(f"  Gold boost shallow layers (alpha={max_alpha}): "
+          f"{n_shallow_rec}/{n_shallow} ({100*n_shallow_rec/max(n_shallow,1):.1f}%)")
 
     out = os.path.join(config.DATA_DIR, "recovery_Qwen3-8B.json")
     with open(out, "w") as f:
-        json.dump({"alpha": args.alpha, "results": results}, f, indent=2)
+        json.dump({"alphas": alphas, "results": results}, f, indent=2)
     print(f"Saved: {out}")
 
 
