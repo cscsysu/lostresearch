@@ -230,7 +230,7 @@ def build_benchmark():
             "endpoint_bias": "88% pairwise CIS sign reversal is selection bias (null=88.5%)",
             "competitive_decay_rate": "8.9% under tuned lens (raw 5.2%)",
             "behavioral_necessity": "Gold direction ablation: 76%/73%/40% flips vs 0% random",
-            "prediction_auc": "0.955 (within-model), 0.970 (cross-model Qwen→Llama)",
+            "prediction_auc": "0.80 (within-model, vs 0.40 single-layer), 0.78 (cross-task), 0.73 (cross-model Qwen→Llama)",
             "mlp_localization": "Layer 35 MLP is largest negative CIS contributor (-4.55 DLA)",
         },
     }
@@ -326,7 +326,7 @@ Each sample contains:
 1. 88% pairwise CIS sign reversal is selection bias (null = 88.5%)
 2. 8.9% competitive-decay under tuned lens (raw = 5.2%, tuned > raw)
 3. Gold direction ablation: 76%/73%/40% flips vs 0% random token
-4. Prediction AUC: 0.955 (within), 0.970 (cross-model)
+4. Prediction AUC: 0.80 (within), 0.78 (cross-task TriviaQA→HotpotQA), 0.73 (cross-model Qwen→Llama)
 5. Layer 35 MLP: largest negative CIS contributor (-4.55)
 
 ## Usage

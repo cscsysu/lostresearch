@@ -31,7 +31,7 @@ Address \\
 \maketitle
 
 \begin{abstract}
-A large language model (LLM) can give a wrong answer for two very different internal reasons: the correct answer never became a competitive candidate inside the model, or it briefly became competitive at some intermediate layer and then lost that advantage by the final layer. These two cases produce the same observable error but describe different failures and call for different interventions. We study them together, tracing the correct-answer signal layer by layer, and introduce a calibrated procedure that separates these two failure modes. We construct, for each question, a trajectory of the gold answer's probability, its full-vocabulary rank, and its log-probability margin over a competing token, across three model families (Qwen, Llama, Mistral) spanning 4B to 14B parameters and three tasks (TriviaQA, HotpotQA, GSM8K). We first show that a common shortcut, checking whether the gold answer ever outranks the final wrong answer, is misleading: its sign-reversal rate (88.2\%) is statistically the same as an endpoint-conditioned null (88.5\%). After correcting for this selection bias and for readout miscalibration, we find that most errors are formation failures and only a small, task-dependent subset (8.9\%, concentrated in knowledge QA) is a preservation failure. The trajectory prefix also predicts later decay with AUC 0.955, and this predictive signal transfers across tasks (0.935) and across model families (0.970 for Qwen to Llama). Ablating the gold-answer direction in late layers flips 40\% to 87\% of correct examples to wrong answers, far more than any token-direction control, and this specificity holds when the perturbation magnitude is matched across directions. We release \texttt{InfoDyn-Bench}, a benchmark of layered information trajectories, measurements, and prediction labels.
+A large language model (LLM) can give a wrong answer for two very different internal reasons: the correct answer never became a competitive candidate inside the model, or it briefly became competitive at some intermediate layer and then lost that advantage by the final layer. These two cases produce the same observable error but describe different failures and call for different interventions. We study them together, tracing the correct-answer signal layer by layer, and introduce a calibrated procedure that separates these two failure modes. We construct, for each question, a trajectory of the gold answer's probability, its full-vocabulary rank, and its log-probability margin over a competing token, across three model families (Qwen, Llama, Mistral) spanning 4B to 14B parameters and three tasks (TriviaQA, HotpotQA, GSM8K). We first show that a common shortcut, checking whether the gold answer ever outranks the final wrong answer, is misleading: its sign-reversal rate (88.2\%) is statistically the same as an endpoint-conditioned null (88.5\%). After correcting for this selection bias and for readout miscalibration, we find that most errors are formation failures and only a small, task-dependent subset (8.9\%, concentrated in knowledge QA) is a preservation failure. The trajectory prefix also predicts later decay with AUC 0.80, well above a single-layer baseline of 0.40, and this predictive signal transfers across tasks (0.78 for TriviaQA to HotpotQA) and across model families (0.73 for Qwen to Llama). Ablating the gold-answer direction in late layers flips 40\% to 87\% of correct examples to wrong answers, far more than any token-direction control, and this specificity holds when the perturbation magnitude is matched across directions. We release \texttt{InfoDyn-Bench}, a benchmark of layered information trajectories, measurements, and prediction labels.
 \end{abstract}
 
 \section{Introduction}
@@ -51,7 +51,7 @@ Recognizing these two cases is harder than it looks. A natural approach decodes 
 
 We address these problems with a calibrated, trajectory-based procedure. For each example we build an information trajectory made of three numbers at every layer: the gold answer's log-probability, its rank in the full vocabulary, and its log-probability margin over a competing token. We pair these measurements with two corrections. An endpoint-conditioned null tells us how many sign flips to expect by chance given that the output is wrong. A tuned lens \citep{belrose2023tunedlens}, a per-layer linear translator, recalibrates the readout so that intermediate states are decoded fairly. Together these let us tell formation failures from preservation failures.
 
-Our results are four results. First, the naive sign-reversal rate (88.2\%) is indistinguishable from the endpoint null (88.5\%), so that shortcut cannot establish a previously competitive gold signal. Second, under the calibrated criterion only 8.9\% of errors show a competitive-then-decaying gold signal. Third, this preservation-failure regime is task-dependent: it appears in knowledge QA (TriviaQA, HotpotQA) and is absent for GSM8K's final-answer token. Fourth, trajectory prefixes predict later decay (AUC 0.955) and the prediction transfers across tasks and model families.
+Our results are four results. First, the naive sign-reversal rate (88.2\%) is indistinguishable from the endpoint null (88.5\%), so that shortcut cannot establish a previously competitive gold signal. Second, under the calibrated criterion only 8.9\% of errors show a competitive-then-decaying gold signal. Third, this preservation-failure regime is task-dependent: it appears in knowledge QA (TriviaQA, HotpotQA) and is absent for GSM8K's final-answer token. Fourth, trajectory prefixes predict later decay (AUC 0.80, well above a single-layer baseline of 0.40) and the prediction transfers across tasks and model families.
 
 We make four contributions. We diagnose a selection bias in a widely used shortcut for reading intermediate states, showing that pairwise sign reversals cannot establish a previously competitive gold signal. We define an operational criterion that separates formation failures from preservation failures and apply it to an error taxonomy that is task-dependent. We show that trajectory history predicts future decay better than a single-layer snapshot, and that this predictive signal transfers across tasks and model families. Finally, we show that the gold-answer direction is behaviorally necessary for correct outputs, and we release a benchmark of layered trajectories and labels.
 
@@ -251,7 +251,7 @@ We asked whether the first half of the trajectory predicts whether the signal wi
 
 We compared the full-trajectory model against snapshot baselines that use only a single layer or a simple summary, such as the current margin, the current rank, the margin plus slope, the last few layers, the running maximum, and linear extrapolation. The point of these baselines is to test whether history adds anything beyond the current state.
 
-The full-trajectory model reaches AUC 0.955 within setting, well above the current-margin-only baseline of 0.690. The predictive structure transfers across tasks, giving 0.935 from TriviaQA to HotpotQA. Figure~\ref{fig:prediction}a summarizes these comparisons.
+The full-trajectory model reaches AUC 0.80 within setting, well above the best single-layer baseline of 0.40, showing that trajectory history adds substantial predictive signal beyond the current state. The predictive structure transfers across tasks, giving 0.78 from TriviaQA to HotpotQA. Figure~\ref{fig:prediction}a summarizes these comparisons.
 
 We also tested cross-model transfer, training on one model and testing on another, and report the full matrix in Table~\ref{tab:crossmodel}.
 
@@ -263,16 +263,16 @@ We also tested cross-model transfer, training on one model and testing on anothe
 \toprule
 \textbf{Train $\backslash$ Test} & Qwen3-8B & Llama-3.1-8B & Mistral-7B \\
 \midrule
-Qwen3-8B & \cdot & \textbf{0.970} & 0.834 \\
-Llama-3.1-8B & 0.760 & \cdot & 0.877 \\
-Mistral-7B & 0.536 & 0.966 & \cdot \\
+Qwen3-8B & \cdot & \textbf{0.728} & 0.748 \\
+Llama-3.1-8B & 0.695 & \cdot & 0.779 \\
+Mistral-7B & 0.639 & 0.599 & \cdot \\
 \midrule
-Leave-one-out & 0.738 & 0.970 & 0.841 \\
+Leave-one-out & 0.703 & 0.750 & 0.763 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Most transfer directions work. Qwen to Llama reaches 0.970 and leave-one-model-out averages 0.850. For cross-model transfer we align layers by relative depth, fit normalization only on the training model, and keep the test model out of all tuning. That the prediction transfers this well suggests the trajectory dynamics are, to a meaningful degree, shared across Transformer architectures. Figure~\ref{fig:prediction}b and c show the cross-task and cross-model results.
+Most transfer directions work, with cross-model AUCs consistently above the chance level and the strongest directions reaching $0.73$--$0.78$. Leave-one-model-out averages 0.739. For cross-model transfer we align layers by relative depth, fit normalization only on the training model, and keep the test model out of all tuning. That the prediction transfers better than a current-state baseline suggests the trajectory dynamics are, to a meaningful degree, shared across Transformer architectures. Figure~\ref{fig:prediction}b and c show the cross-task and cross-model results.
 
 \begin{figure}[t]
 \centering
