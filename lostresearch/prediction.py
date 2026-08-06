@@ -56,18 +56,26 @@ def extract_features(sample: Dict, t0: float = 0.5) -> Dict:
 
 
 def extract_targets(sample: Dict) -> Dict:
-    """提取预测目标."""
+    """提取预测目标.
+
+    decay 标签只用后半段 (t > t0), 与特征窗口 (t <= t0) 严格不重叠,
+    避免标签泄漏. 语义: 后半段曾出现正信号但最终翻负 = 后半段衰减.
+    """
     cis = sample.get("cis", [])
     if len(cis) < 2:
-        return None
+     return None
 
     t0_idx = max(2, int(len(cis) * config.PREDICTION_T0))
     cis_after_t0 = cis[t0_idx:]
     cis_final = cis[-1]
-    cis_max_mid = max(cis[1:-1]) if len(cis) > 2 else max(cis)
+    # 后半段峰值 (不含最终层), 与特征窗口不重叠
+    if len(cis_after_t0) > 1:
+        cis_max_after = max(cis_after_t0[:-1])
+    else:
+     cis_max_after = cis_after_t0[0] if cis_after_t0 else cis_final
 
-    # 是否衰减: 中间高, 最终低
-    will_decay = 1 if (cis_max_mid > 0 and cis_final < 0) else 0
+    # 是否衰减: 后半段曾正, 最终转负 (仅用后半段信息定义标签)
+    will_decay = 1 if (cis_max_after > 0 and cis_final < 0) else 0
     # 是否最终 CIS < 0 (错误信号压过)
     final_negative = 1 if cis_final < 0 else 0
     # 是否答对
@@ -78,7 +86,7 @@ def extract_targets(sample: Dict) -> Dict:
     return {
         "will_decay": will_decay,
         "final_negative": final_negative,
-        "final_correct": final_correct,
+     "final_correct": final_correct,
         "final_cis_value": final_cis_value,
     }
 

@@ -35,19 +35,27 @@ def load_model_results(model_key):
 
 
 def extract_features_targets(samples, t0=0.5):
-    """提取特征和标签."""
+    """提取特征和标签.
+
+    要求样本含真实 correct_logprob (gold log-probability 轨迹).
+    不再用 cis 近似替换, 否则 train/test 的 logprob 特征物理量不一致,
+    transfer 结果无效. 缺 correct_logprob 的旧数据会被跳过并计数,
+    需用更新版 run_cross_model.py 重跑生成.
+    """
     features_list, targets_list = [], []
+    skipped = 0
     for s in samples:
-        # 兼容不同字段名
-        if "correct_logprob" not in s and "cis" in s:
-            s["correct_logprob"] = s["cis"]  # 近似
-        if "correct_rank" not in s and "correct_rank" in s:
-            pass  # already has it
+        if "correct_logprob" not in s:
+            skipped += 1
+            continue
         f = extract_features(s, t0)
         t = extract_targets(s)
         if f and t:
             features_list.append(f)
             targets_list.append(t)
+    if skipped:
+        print(f"  ! skipped {skipped} samples missing correct_logprob "
+              f"(rerun run_cross_model.py to regenerate)")
     return features_list, targets_list
 
 

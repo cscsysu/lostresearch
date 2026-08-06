@@ -213,6 +213,7 @@ def collect_trajectory(model, tokenizer, prompt_ids, answer_token_ids, gen_text)
     # CIS per layer
     cis = []
     correct_rank = []
+    correct_logprob = []
     for l in range(num_layers):
         h = hidden_buffer[l].to(device).float()
         normed = final_norm(h)
@@ -221,11 +222,12 @@ def collect_trajectory(model, tokenizer, prompt_ids, answer_token_ids, gen_text)
         lp_correct = log_probs[target_token].item()
         lp_gen = log_probs[gen_token].item()
         cis.append(lp_correct - lp_gen)
+        correct_logprob.append(lp_correct)
         sorted_idx = torch.argsort(logits, descending=True)
         rank = (sorted_idx == target_token).nonzero(as_tuple=True)[0].item()
         correct_rank.append(rank)
 
-    return cis, correct_rank
+    return cis, correct_rank, correct_logprob
 
 
 @torch.no_grad()
@@ -351,13 +353,14 @@ def run_model(model_key):
         try:
             gen_text = generate_answer(model, tokenizer, s["prompt_ids"])
             correct = is_answer_correct(gen_text, s["aliases"])
-            cis, correct_rank = collect_trajectory(
+            cis, correct_rank, correct_logprob = collect_trajectory(
                 model, tokenizer, s["prompt_ids"], [s["primary_answer_ids"]], gen_text)
             all_results.append({
                 "id": s["id"], "task": s["task"],
                 "question": s["question"], "answer": s["answer"],
                 "generated": gen_text, "final_correct": correct,
                 "cis": cis, "correct_rank": correct_rank,
+                "correct_logprob": correct_logprob,
                 "prompt_ids": s["prompt_ids"],
                 "primary_answer_ids": s["primary_answer_ids"],
                 "aliases": s["aliases"],
