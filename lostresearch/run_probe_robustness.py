@@ -1,26 +1,27 @@
 """
-Probe robustness: does the correct/incorrect signal separation survive a
-change of decoder?
+Probe robustness: does the peak-rank separation survive a change of decoder?
 
 Reviewer concern: the information trajectory is built on the tuned lens. The
-headline claim is that correct examples build a stronger intermediate
-gold-answer signal than incorrect ones. Does that separation survive if we swap
-the decoder?
+headline claim is that correct examples reach a much better intermediate gold
+PEAK RANK than incorrect ones (median ~0-2 for correct vs ~19-77 for incorrect).
+Does that separation survive if we swap the decoder?
 
-We decode each intermediate hidden state h_l into a scalar "gold support" under
-three independent decoders:
-  (a) raw logit lens :  final_norm(h) -> W_U[gold]       (no training)
-  (b) tuned lens     :  final_norm(A h + b) -> W_U[gold] (affine translators)
-  (c) cosine         :  cos(h, w_gold)                    (no training, no norm)
+We decode each intermediate hidden state h_l and compute the gold token's rank
+under three independent decoders:
+  (a) raw logit lens :  softmax over W_U(fn(h))           (no training)
+  (b) tuned lens     :  softmax over W_U(fn(A h + b))     (affine translators)
+  (c) cosine         :  rank of gold by cos(h, w_y) across vocab  (no training)
 
-For each decoder we report, on the same samples:
-  - median first-half gold-support peak for correct vs incorrect examples,
-  - the separation, and a Mann-Whitney U test.
+For each decoder we report the median intermediate peak rank (excluding the
+final layer) for correct vs incorrect examples, plus a Mann-Whitney U test.
+If all three decoders show correct << incorrect, the conclusion is not an
+artifact of a particular probe. Cosine is a strong control: it uses only the
+direction of each token's unembedding vector and neither a trained map nor the
+final norm.
 
-If the correct > incorrect separation holds under all three decoders, the
-conclusion is not an artifact of a particular probe. Cosine is a strong control
-because it uses only the direction of the gold unembedding and involves neither
-a trained map nor the final norm.
+NOTE: rank over the FULL vocabulary for every layer under every decoder is
+expensive. We compute the gold rank exactly; this requires the dot product of h
+with all unembedding vectors, which is one big matrix multiply per layer.
 
 Usage:
   python run_probe_robustness.py [--n 200]
@@ -81,14 +82,13 @@ def main():
         translators = torch.load(translator_file, map_location="cpu")
         print(f"Loaded translators from {translator_file}")
     else:
-        print("No saved translators -> raw + cosine only (tuned needs "
-              "run_p0_tuned_lens.py first).")
+        print("No saved translators -> raw + cosine only.")
 
     decoders = ["raw", "cosine"]
     if translators is not None:
         decoders.append("tuned")
 
-    # {decoder: {correct: [peak], incorrect: [peak]}}
+    # {decoder: {correct: [peak_rank], incorrect: [peak_rank]}}
     peaks = {d: {"correct": [], "incorrect": []} for d in decoders}
 
     for s in tqdm(prepared[:args.n], desc="Probe robustness"):
@@ -111,43 +111,50 @@ def main():
         for h in hooks:
             h.remove()
 
-        gold_w = unembed_f[gold_token]
-        mid = num_layers // 2
-        mid_scores = {d: [] for d in decoders}
-        for l in range(mid):
+        # per-decoder per-layer gold rank (exclude final layer for peak)
+        ranks = {d: [] for d in decoders}
+        for l in range(num_layers - 1):  # exclude final layer
             h = hidden_buffer[l].to(device).float()
-            mid_scores["raw"].append(F.linear(final_norm(h), unembed_f)[gold_token].item())
-            mid_scores["cosine"].append(
-                F.cosine_similarity(h.unsqueeze(0), gold_w.unsqueeze(0)).item())
+
+            # raw
+            lr = F.linear(final_norm(h), unembed_f)
+            ranks["raw"].append((lr > lr[gold_token]).sum().item())
+
+            # tuned
             if translators is not None:
                 A = translators[l]["A"].to(device).float()
                 b = translators[l]["b"].to(device).float()
                 lt = F.linear(final_norm(A @ h + b), unembed_f)
-                mid_scores["tuned"].append(lt[gold_token].item())
+                ranks["tuned"].append((lt > lt[gold_token]).sum().item())
+
+            # cosine: rank gold by cos(h, w_y) over full vocab
+            cos_all = F.cosine_similarity(h.unsqueeze(0), unembed_f)  # [vocab]
+            ranks["cosine"].append((cos_all > cos_all[gold_token]).sum().item())
 
         key = "correct" if correct else "incorrect"
         for d in decoders:
-            peaks[d][key].append(max(mid_scores[d]) if mid_scores[d] else 0.0)
+            if ranks[d]:
+                peaks[d][key].append(min(ranks[d]))
 
     print("\n" + "=" * 70)
-    print("Probe robustness: first-half gold-support peak, correct vs incorrect")
+    print("Probe robustness: intermediate gold peak rank (excl. final), "
+          "correct vs incorrect")
     print("=" * 70)
     for d in decoders:
         c = np.array(peaks[d]["correct"])
         i = np.array(peaks[d]["incorrect"])
         if len(c) == 0 or len(i) == 0:
-            print(f"\n[{d}] insufficient data (correct={len(c)}, incorrect={len(i)})")
+            print(f"\n[{d}] insufficient (correct={len(c)}, incorrect={len(i)})")
             continue
         med_c, med_i = np.median(c), np.median(i)
         try:
-            u, p = stats.mannwhitneyu(c, i, alternative="greater")
+            u, p = stats.mannwhitneyu(c, i, alternative="less")  # correct rank < incorrect
             sig = "significant" if p < 0.05 else "n.s."
         except Exception:
             u, p, sig = float("nan"), float("nan"), "?"
-        print(f"\n[{d}]")
-        print(f"  median first-half peak: correct={med_c:.3f}, incorrect={med_i:.3f}")
-        print(f"  separation (correct-incorrect) = {med_c - med_i:+.3f}")
-        print(f"  Mann-Whitney (correct>incorrect): U={u:.0f}, p={p:.2e} -> {sig}")
+        print(f"\n[{d}]  correct n={len(c)}, incorrect n={len(i)}")
+        print(f"  median peak rank: correct={med_c:.0f}, incorrect={med_i:.0f}")
+        print(f"  Mann-Whitney (correct<incorrect): U={u:.0f}, p={p:.2e} -> {sig}")
 
     out = os.path.join(config.DATA_DIR, "probe_robustness_Qwen3-8B.json")
     with open(out, "w") as f:
