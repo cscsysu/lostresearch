@@ -42,14 +42,27 @@ def compute_entropy_from_top5(top5):
 
 
 def extract_strong_features(sample, t0=0.5):
-    """提取强基线所需的特征."""
+    """提取强基线所需的特征.
+
+    注意: 仅返回 scale-invariant 特征, 避免跨任务 (尤其 GSM8K) 因
+    轨迹绝对值不同导致 StandardScaler 归一化后线性方向翻转.
+    Scale-invariant 特征: 斜率/方差/符号切换/rank/熵, 不含任何
+    依赖绝对值的量 (如 cis_at_t0, logprob_at_t0).
+    """
     f = extract_features(sample, t0)
     if f is None:
         return None
     # 加额外特征
     f["question_length"] = len(sample.get("question", ""))
     f["entropy_at_t0"] = compute_entropy_from_top5(sample.get("top5", []))
-    return f
+    # 仅保留 scale-invariant 特征
+    invariant = {
+        "cis_slope", "logprob_slope",
+        "transitions", "cis_variance",
+        "rank_at_t0", "rank_min_before",
+        "entropy_at_t0", "question_length",
+    }
+    return {k: v for k, v in f.items() if k in invariant}
 
 
 def run_strong_baselines(all_samples):
