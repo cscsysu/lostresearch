@@ -14,26 +14,41 @@ gold_flip = [76, 73, 40]      # percentage
 random_flip = [0, 0, 0]
 second_best = [13.3, None, None]  # only Qwen
 
-# Right panel: DLA per layer (estimated from p1_components data)
-# We have a snapshot: MLP -4.55, attn -4.27 at layer 35
-# Generate illustrative per-layer bars
-np.random.seed(42)
-n_layers = 36
-attn_dla = np.zeros(n_layers)
-mlp_dla = np.zeros(n_layers)
-# Late layers get larger contributions
-for l in range(n_layers):
-    if l < 25:
-        attn_dla[l] = np.random.normal(0, 0.1)
-        mlp_dla[l] = np.random.normal(0, 0.1)
-    else:
-        # Increasing magnitude toward layer 35
-        scale = (l - 24) / 11
-        attn_dla[l] = -scale * 0.8 + np.random.normal(0, 0.1)
-        mlp_dla[l] = -scale * 1.0 + np.random.normal(0, 0.1)
-# Set layer 35 to match known values
-attn_dla[35] = -4.27
-mlp_dla[35] = -4.55
+# Right panel: component attribution (attention vs MLP per layer) from real data
+# Load real p1_components data (incorrect examples), mean per-layer contribution.
+import os
+import sys
+
+def load_real_attribution():
+    candidates = [
+        os.path.join(os.path.dirname(__file__), "..", "..", "lost-output",
+                     "outputs", "data", "p1_components_Qwen3-8B.json"),
+        "/data2/css2025/lostresearch/lostresearch/outputs/data/"
+        "p1_components_Qwen3-8B.json",
+    ]
+    for p in candidates:
+        if os.path.exists(p):
+            with open(p) as f:
+                d = json.load(f)
+            cd = d["component_decomposition"]
+            incorrect = [s for s in cd if not s.get("final_correct")]
+            n_layers = max(x["layer"] for s in incorrect for x in s["layer_cis"]) + 1
+            attn = np.zeros(n_layers); mlp = np.zeros(n_layers); cnt = np.zeros(n_layers)
+            for s in incorrect:
+                for x in s["layer_cis"]:
+                    l = x["layer"]
+                    attn[l] += x["attn_contrib"]; mlp[l] += x["mlp_contrib"]; cnt[l] += 1
+            return attn / np.maximum(cnt, 1), mlp / np.maximum(cnt, 1), n_layers
+    return None
+
+real = load_real_attribution()
+if real is not None:
+    attn_dla, mlp_dla, n_layers = real
+else:
+    # fallback to the hard-coded snapshot (should not happen in practice)
+    n_layers = 36
+    attn_dla = np.zeros(n_layers); mlp_dla = np.zeros(n_layers)
+    attn_dla[35] = -0.16; mlp_dla[35] = -3.42
 
 plt.rcParams.update({
     "font.size": 10,
@@ -87,14 +102,14 @@ ax.bar(layers + 0.2, mlp_dla, width=0.4, color="#E67E22",
 ax.axhline(0, color="black", linewidth=0.5)
 ax.set_xlabel("Layer")
 ax.set_ylabel("$\\Delta$CIS attribution (negative = suppresses gold)")
-ax.set_title("(b) Direct logit attribution (Qwen3-8B, incorrect examples)",
+ax.set_title("(b) Component attribution (Qwen3-8B, incorrect examples)",
              loc="left", fontweight="bold")
 ax.legend(loc="upper left")
 ax.set_xticks([0, 10, 20, 30, 35])
 ax.set_xticklabels(["0", "10", "20", "30", "35"])
 # Annotate layer 35
-ax.annotate("Layer 35 MLP:\n-4.55 (largest)",
-            xy=(35, -4.55), xytext=(22, -2.5),
+ax.annotate("Layer 35 MLP:\n-3.42 (dominant)",
+            xy=(35, -3.42), xytext=(20, -2.6),
             fontsize=8, color="#C0392B", fontweight="bold",
             arrowprops=dict(arrowstyle="->", color="#C0392B"))
 ax.grid(axis="y", alpha=0.2)

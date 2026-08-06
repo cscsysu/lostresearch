@@ -341,7 +341,7 @@ To move from "decay happens" to "what causes it", we decomposed the margin chang
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.95\textwidth]{figures/fig6_intervention.pdf}
-\caption{Behavioral intervention and component attribution. (a) Ablating the gold direction flips correct examples to wrong across all model families and scales (77\%, 76\%, 67\%, 87\%, 73\%, 40\% for Qwen3-14B, Qwen3-8B, Qwen3-4B, Qwen2.5-7B, Llama, Mistral), while a random-token control flips almost none. Under a norm-matched protocol, the gold direction flips 83.3\% (8B), 70.0\% (4B), and 75.0\% (14B), versus 38.9\%/35.0\%/55.0\% for second-best, 5.6\%/15.0\%/5.0\% for a random token, and 11.1\%/5.0\%/0.0\% for a Gaussian direction. (b) Per-layer direct logit attribution shows the late-layer MLP (layer 35, $-4.55$) is the largest negative contributor.}
+\caption{Behavioral intervention and component attribution. (a) Ablating the gold direction flips correct examples to wrong across all model families and scales (77\%, 76\%, 67\%, 87\%, 73\%, 40\% for Qwen3-14B, Qwen3-8B, Qwen3-4B, Qwen2.5-7B, Llama, Mistral), while a random-token control flips almost none. Under a norm-matched protocol, the gold direction flips 83.3\% (8B), 70.0\% (4B), and 75.0\% (14B), versus 38.9\%/35.0\%/55.0\% for second-best, 5.6\%/15.0\%/5.0\% for a random token, and 11.1\%/5.0\%/0.0\% for a Gaussian direction. (b) Component attribution per layer (Qwen3-8B, incorrect examples): the per-layer contribution of attention and the MLP to the margin, with the late-layer MLP (layer 35, $-3.42$) standing out as the dominant suppressor of the gold signal.}
 \label{fig:intervention}
 \end{figure}
 
