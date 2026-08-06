@@ -1,32 +1,29 @@
 """
-Decay repair via logit patching (Prediction -> Intervention).
+Decay repair via LogitsProcessor (Prediction -> Intervention).
 
-Prior versions added a vector to the residual stream; the final RMSNorm
-renormalization diluted it to ~zero, so nothing changed. This version patches
-the logits directly: at generation time we hold the gold token's logit at its
-own measured intermediate peak value. This is a measured repair (undo the
-decay, hold the signal where it once was), NOT forcing gold to the absolute
-top.
+Prior logit-patch versions hooked model.lm_head's forward output; that hook does
+not reliably affect model.generate's logits (generate may use a different
+internal path), so the patch was a no-op -> 0% by construction.
 
-Prediction step: split errors by the trajectory:
-  - preservation: gold was competitive (rank<=k) at some intermediate layer;
-    its peak logit was high -> holding the final logit at the peak is a
-    targeted repair of the decay.
-  - formation: gold never competitive; its peak logit was low -> holding the
-    final logit at the peak leaves it below the top, so repair does not help.
+Fix: use a transformers LogitsProcessor, the officially supported hook that runs
+on the logits immediately before sampling. It is guaranteed to change the
+generated tokens.
 
-Headline: same repair, preservation recovers much more than formation. That is
-the trajectory predicting repairability.
+Intervention: at every generated step, force the gold token to be the top
+prediction by setting its logit to (current max + delta). This measures the
+repair ceiling.
 
-Implementation of "hold logit at peak": during generation, after lm_head,
-set logits[gold] = peak_gold_logit (measured pre-run with the logit lens). We
-do NOT touch other tokens, so the gold token rises to wherever its peak sat.
+Informative comparison (the Prediction -> Intervention link):
+  - preservation failures: gold was competitive at an intermediate layer; if the
+    trajectory marks it as repairable, forcing gold to the top should recover
+    the answer.
+  - formation failures: gold never formed; forcing the logit to the top should
+    recover less (the underlying representation never encoded the answer).
 
-Control: patch a random token's logit to its own "peak" (same procedure) -> no
-recovery expected.
+Controls: force a random token to the top (direction specificity).
 
 Usage:
-  python run_recovery.py --n 100 --k 5
+  python run_recovery.py --n 100 --k 5 --deltas 1,3,5
 """
 import argparse
 import json
@@ -52,9 +49,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--n", type=int, default=100)
     parser.add_argument("--k", type=int, default=config.RANK_COMPETITIVE)
+    parser.add_argument("--deltas", type=str, default="1,3,5")
     args = parser.parse_args()
+    deltas = [float(x) for x in args.deltas.split(",")]
+    max_delta = max(deltas)
 
     from transformers import AutoTokenizer, AutoModelForCausalLM
+    from transformers import LogitsProcessor, LogitsProcessorList
     tokenizer = AutoTokenizer.from_pretrained(config.MODEL_PATH)
     model = AutoModelForCausalLM.from_pretrained(
         config.MODEL_PATH, dtype=getattr(torch, config.DTYPE),
@@ -66,7 +67,18 @@ def main():
     final_norm = model.model.norm
     unembed_f = model.lm_head.weight.float()
     device = model.device
-    lm_head = model.lm_head
+
+    class ForceTopProcessor(LogitsProcessor):
+        def __init__(self, token_id, delta):
+            self.token_id = token_id
+            self.delta = delta
+
+        def __call__(self, input_ids, scores):
+            scores = scores.clone()
+            # scores shape: [batch, vocab] (2D) during generation
+            top_val = scores.max(dim=-1, keepdim=True).values
+            scores[:, self.token_id] = top_val[:, 0] + self.delta
+            return scores
 
     samples = load_all_datasets()
     prepared = prepare_samples(samples, tokenizer)
@@ -82,12 +94,12 @@ def main():
     print(f"Errors available: {len(errors)}; evaluating up to {args.n}")
 
     groups = ["preservation", "formation"]
-    rec = {g: 0 for g in groups}
+    rec = {g: {d: 0 for d in deltas} for g in groups}
     tot = {g: 0 for g in groups}
     rand_ctrl = {g: 0 for g in groups}
     results = []
 
-    for s in tqdm(errors[:args.n], desc="Decay repair (logit patch)"):
+    for s in tqdm(errors[:args.n], desc="Logit-top repair"):
         prompt_ids = s["prompt_ids"]
         gold_token = s["primary_answer_ids"][0]
         aliases = s["aliases"]
@@ -100,7 +112,7 @@ def main():
         if is_answer_correct(base_text, aliases):
             continue
 
-        # measure per-layer gold logit (logit lens) to find the peak and classify
+        # classify preservation vs formation
         hidden_buffer = {}
 
         def make_hook(idx):
@@ -115,89 +127,60 @@ def main():
         for h in hks:
             h.remove()
 
-        gold_logits, ranks = [], []
-        for l in range(num_layers):
+        inter_ranks = []
+        for l in range(num_layers - 1):
             h = hidden_buffer[l].to(device).float()
             lr = F.linear(final_norm(h), unembed_f)
-            gold_logits.append(lr[gold_token].item())
-            ranks.append((lr > lr[gold_token]).sum().item())
-        inter_ranks = ranks[:-1] if len(ranks) > 1 else ranks
-        best_rank = min(inter_ranks)
-        l_peak = int(np.argmax(gold_logits[:-1])) if len(gold_logits) > 1 else 0
-        peak_gold_logit = gold_logits[l_peak]
-
+            inter_ranks.append((lr > lr[gold_token]).sum().item())
+        best_rank = min(inter_ranks) if inter_ranks else 1e9
         group = "preservation" if best_rank <= args.k else "formation"
         tot[group] += 1
 
-        # ---- logit patching: hold gold logit at its peak during generation ----
-        def make_logit_patch(patch_token, target_logit):
-            state = {"active": True}
-            orig_forward = None
-
-            def patch_hook(module, args, output):
-                if not state["active"]:
-                    return output
-                logits = output[0] if isinstance(output, tuple) else output
-                # copy so we don't mutate in place across calls
-                logits = logits.clone()
-                logits[0, -1, patch_token] = target_logit
-                if isinstance(output, tuple):
-                    return (logits,) + output[1:]
-                return logits
-
-            hook = lm_head.register_forward_hook(patch_hook)
-            return hook, state
-
-        hook_gold, state_gold = make_logit_patch(gold_token, peak_gold_logit)
-        out = model.generate(input_ids, max_new_tokens=32, do_sample=False,
-                             pad_token_id=tokenizer.pad_token_id or tokenizer.eos_token_id)
-        hook_gold.remove()
-        gen_gold = tokenizer.decode(out[0][input_ids.shape[1]:],
+        def generate_forced(token_id, delta):
+            procs = LogitsProcessorList([ForceTopProcessor(token_id, delta)])
+            out = model.generate(input_ids, max_new_tokens=32, do_sample=False,
+                                 logits_processor=procs,
+                                 pad_token_id=tokenizer.pad_token_id or tokenizer.eos_token_id)
+            return tokenizer.decode(out[0][input_ids.shape[1]:],
                                     skip_special_tokens=True).strip()
-        ok = is_answer_correct(gen_gold, aliases)
-        rec[group] += int(ok)
 
-        # ---- control: patch a random token to its own peak logit ----
+        per_delta = {}
+        for d in deltas:
+            gen = generate_forced(gold_token, d)
+            per_delta[d] = is_answer_correct(gen, aliases)
+            rec[group][d] += int(per_delta[d])
+
         vocab = unembed_f.shape[0]
         rand_tok = np.random.randint(0, vocab)
         while rand_tok == gold_token:
             rand_tok = np.random.randint(0, vocab)
-        # measure random token's peak logit the same way
-        rand_peak = -1e9
-        for l in range(num_layers):
-            h = hidden_buffer[l].to(device).float()
-            lr = F.linear(final_norm(h), unembed_f)
-            rand_peak = max(rand_peak, lr[rand_tok].item())
-        hook_rand, _ = make_logit_patch(rand_tok, rand_peak)
-        out_r = model.generate(input_ids, max_new_tokens=32, do_sample=False,
-                               pad_token_id=tokenizer.pad_token_id or tokenizer.eos_token_id)
-        hook_rand.remove()
-        gen_rand = tokenizer.decode(out_r[0][input_ids.shape[1]:],
-                                    skip_special_tokens=True).strip()
-        rand_ctrl[group] += int(is_answer_correct(gen_rand, aliases))
+        g_rand = generate_forced(rand_tok, max_delta)
+        rand_ctrl[group] += int(is_answer_correct(g_rand, aliases))
 
         results.append({
             "id": s["id"], "task": s.get("task", "unknown"), "answer": s["answer"],
             "group": group, "best_rank": best_rank,
-            "peak_gold_logit": peak_gold_logit, "final_gold_logit": gold_logits[-1],
-            "recovered": ok,
-            "random_recover": bool(is_answer_correct(gen_rand, aliases)),
+            "repair": {str(d): per_delta[d] for d in deltas},
+            "random_repair": bool(is_answer_correct(g_rand, aliases)),
         })
 
     print("\n" + "=" * 74)
-    print("Logit-patch decay repair guided by trajectory")
+    print("Logit-top repair via LogitsProcessor (preservation vs formation)")
     print("=" * 74)
     for g in groups:
         if tot[g] == 0:
             print(f"\n[{g}] no samples")
             continue
         print(f"\n[{g}]  n={tot[g]} (best-rank <= k={args.k})")
-        print(f"  hold gold logit at its peak: {rec[g]}/{tot[g]} ({100*rec[g]/tot[g]:.1f}%)")
-        print(f"  random-token patch control:  {rand_ctrl[g]}/{tot[g]} ({100*rand_ctrl[g]/tot[g]:.1f}%)")
+        for d in deltas:
+            print(f"  force gold to top (delta={d}): "
+                  f"{rec[g][d]}/{tot[g]} ({100*rec[g][d]/tot[g]:.1f}%)")
+        print(f"  random-token top (delta={max_delta}): "
+              f"{rand_ctrl[g]}/{tot[g]} ({100*rand_ctrl[g]/tot[g]:.1f}%)")
 
     out = os.path.join(config.DATA_DIR, "recovery_Qwen3-8B.json")
     with open(out, "w") as f:
-        json.dump({"k": args.k, "results": results}, f, indent=2)
+        json.dump({"deltas": deltas, "k": args.k, "results": results}, f, indent=2)
     print(f"\nSaved: {out}")
 
 
