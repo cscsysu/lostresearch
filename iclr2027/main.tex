@@ -136,6 +136,8 @@ C(x) = \mathbb{1}\Big[ \exists\, \ell < L : r_\ell(y^\star) \le k \;\land\; \mat
 \end{equation}
 We use $k=5$ as the main competitiveness threshold and report the sensitivity over $k \in \{1,5,10,50\}$ (Section~\ref{sec:sensitivity}).
 
+The top-$k$ criterion is not an arbitrary empirical cut: it marks a real transition in the representation. At the first layer where the gold token's rank drops to $\le k$, the gold log-probability jumps by about $+8$ logit units, from a noise-level value (median $\approx -11$, a probability of $\sim 10^{-5}$) to a substantive value (median $\approx -2.7$, a probability of $\sim 0.07$ at $k=5$); this jump is positive in $97\%$ of samples and remains large for every $k \in \{1,5,10\}$ (medians $+7.6$, $+8.0$, $+7.5$). Entering the top-$k$ therefore corresponds to the moment the gold answer emerges from the vocabulary noise into a plausible candidate, which is why the competitiveness threshold, within a reasonable range, captures a genuine internal state rather than an arbitrary decision boundary.
+
 \subsection{Error Taxonomy}
 We define four operational categories under our measurement framework. They describe what the measurement sees, not every conceivable error mechanism. A \emph{formation failure} is an incorrect example whose gold answer never meets the competitiveness criterion at any intermediate layer. A \emph{preservation failure} is an incorrect example whose gold answer meets the criterion but loses its advantage by the final layer. A \emph{successful preservation} is a correct example whose signal forms and is maintained. The remaining category, \emph{unresolved}, covers examples where tracking only the final-answer token is not enough to describe the error, such as multi-step reasoning.
 
