@@ -351,6 +351,12 @@ def run_per_head_analysis(model, tokenizer, prepared, all_results, n_samples=20)
 
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--n_components", type=int, default=50)
+    parser.add_argument("--n_heads", type=int, default=20)
+    args = parser.parse_args()
+
     from transformers import AutoTokenizer, AutoModelForCausalLM
     from data_loader import load_all_datasets, prepare_samples
 
@@ -373,8 +379,8 @@ def main():
     with open(results_file) as f:
         all_results = json.load(f)
 
-    component_results = run_component_decomposition(model, tokenizer, prepared, all_results, n_samples=50)
-    head_results = run_per_head_analysis(model, tokenizer, prepared, all_results, n_samples=20)
+    component_results = run_component_decomposition(model, tokenizer, prepared, all_results, n_samples=args.n_components)
+    head_results = run_per_head_analysis(model, tokenizer, prepared, all_results, n_samples=args.n_heads)
 
     out = {"component_decomposition": component_results,
             "per_head_analysis": head_results}
