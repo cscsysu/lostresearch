@@ -280,11 +280,21 @@ Leave-one-out & 0.703 & 0.750 & 0.763 \\
 
 Most transfer directions work, with cross-model AUCs consistently above the chance level and the strongest directions reaching $0.73$--$0.78$. Leave-one-model-out averages 0.739. For cross-model transfer we align layers by relative depth, fit normalization only on the training model, and keep the test model out of all tuning. That the prediction transfers better than a current-state baseline, and does so across tasks and architectures, supports the interpretation that the trajectory dynamics are a shared, real property of these models rather than a fitting artifact of any single model or readout. Figure~\ref{fig:prediction}b and c show the cross-task and cross-model results.
 
+\paragraph{Trajectory decomposition: which dynamic aspect of the trajectory predicts decay?}
+A natural concern is that the trajectory is just a black-box feature set handed to a classifier. To address this, we decomposed the predictor into single trajectory quantities and their combinations, and re-fit the same logistic-regression classifier (5-fold CV) on each subset. No single quantity approaches the full trajectory. The strongest single feature is the oscillation count of the sign of the margin in the first half of the network (transitions: AUC 0.64), followed by the peak first-half margin (AUC 0.64), the first-half variance (0.63), and the slope of the margin (0.61). A static snapshot of the current margin (cis\_at\_t0) is weaker (0.60) and the rank at the midpoint is near chance (0.51). Combining the three dynamic quantities (peak, slope, variance) reaches 0.70, close to the full trajectory's 0.79. The further gain comes from the remaining shape information (entropy, rank extremes, transitions). The predictive value of the trajectory therefore does not come from any single snapshot but from the joint shape of how the signal grows, peaks, and fluctuates, which is the dynamic content of the trajectory. Figure~\ref{fig:trajdecomp} visualises the decomposition.
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.95\textwidth]{figures/fig5_prediction.pdf}
 \caption{Prediction results. (a) The full-trajectory model dominates the snapshot baselines. (b) Cross-task transfer AUC. (c) Cross-model transfer matrix.}
 \label{fig:prediction}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig_traj_decomp.pdf}
+\caption{Trajectory decomposition. Decay-prediction AUC of single trajectory quantities and their combinations. No single feature approaches the full trajectory; the strongest single feature is the oscillation count of the sign of the margin (transitions, 0.64), followed by the peak first-half margin (0.64), the first-half variance (0.63), and the slope (0.61). Combining peak, slope, and variance reaches 0.70; the full trajectory adds further shape information to reach 0.75. The trajectory's predictive value comes from the joint dynamic shape of the signal, not from any single snapshot.}
+\label{fig:trajdecomp}
 \end{figure}
 
 \section{Behavioral Intervention and Component Analysis}
