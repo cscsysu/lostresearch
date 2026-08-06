@@ -25,9 +25,9 @@ fig.subplots_adjust(left=0.06, right=0.96, top=0.86, bottom=0.22)
 
 # === (a) Within-task: full trajectory vs baselines ===
 ax = fig.add_subplot(gs[0])
-baselines = ["CIS\nslope", "Rank\n@t0", "Margin\n+slope", "Rank\nmin", "Max\n+slope", "Entropy", "Full\ntrajectory"]
-aucs = [0.388, 0.511, 0.612, 0.486, 0.612, 0.325, 0.789]
-colors = ["#95A5A6"]*6 + ["#C0392B"]
+baselines = ["Final-layer\nconf.", "CIS\nslope", "Rank\n@t0", "Margin\n+slope", "Max\n+slope", "Full\ntrajectory"]
+aucs = [0.695, 0.388, 0.511, 0.612, 0.612, 0.789]
+colors = ["#95A5A6"]*5 + ["#C0392B"]
 bars = ax.bar(baselines, aucs, color=colors, edgecolor="black", linewidth=0.7, width=0.68)
 ax.set_ylim(0, 1.08)
 ax.set_ylabel("AUC (within-task)")
