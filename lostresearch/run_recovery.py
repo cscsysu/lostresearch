@@ -40,6 +40,7 @@ def main():
     parser.add_argument("--n", type=int, default=150)
     parser.add_argument("--k", type=int, default=config.RANK_COMPETITIVE)
     parser.add_argument("--bonuses", type=str, default="1.0,2.0,3.0")
+    parser.add_argument("--single-word", action="store_true", help="Only evaluate single-word answers")
     args = parser.parse_args()
     bonuses = [float(x) for x in args.bonuses.split(",")]
 
@@ -79,6 +80,9 @@ def main():
                 s["final_correct"] = existing[s["id"]]["final_correct"]
 
     errors = [s for s in prepared if not s.get("final_correct", True)]
+    if args.single_word:
+        errors = [s for s in errors if len(s.get("answer", "").split()) == 1]
+        print(f"Filtered to single-word answers: {len(errors)} errors")
     print(f"Errors available: {len(errors)}; evaluating up to {args.n}")
 
     groups = ["preservation", "formation"]
