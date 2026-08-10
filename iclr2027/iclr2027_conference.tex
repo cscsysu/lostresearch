@@ -1,4 +1,3 @@
-
 \documentclass{article} % For LaTeX2e
 \usepackage{iclr2027_conference,times}
 
@@ -7,457 +6,413 @@
 
 \usepackage{hyperref}
 \usepackage{url}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{multirow}
 
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
 
-\title{Formatting Instructions for ICLR 2027 \\ Conference Submissions}
+\title{Never Formed or Later Lost? Measuring Correct-Answer Information Dynamics in Large Language Models}
 
-% Authors must not appear in the submitted version. They should be hidden
-% as long as the \iclrfinalcopy macro remains commented out below.
-% Non-anonymous submissions will be rejected without review.
-
-\author{Antiquus S.~Hippocampus, Natalia Cerebro \& Amelie P. Amygdale \thanks{ Use footnote for providing further information
-about author (webpage, alternative address)---\emph{not} for acknowledging
-funding agencies.  Funding acknowledgements go at the end of the paper.} \\
-Department of Computer Science\\
-Cranberry-Lemon University\\
-Pittsburgh, PA 15213, USA \\
-\texttt{\{hippo,brain,jen\}@cs.cranberry-lemon.edu} \\
-\And
-Ji Q. Ren \& Yevgeny LeNet \\
-Department of Computational Neuroscience \\
-University of the Witwatersrand \\
-Joburg, South Africa \\
-\texttt{\{robot,net\}@wits.ac.za} \\
-\AND
-Coauthor \\
+% Authors hidden for anonymous submission
+\author{Anonymous Author(s) \\
 Affiliation \\
 Address \\
 \texttt{email}
 }
 
-% The \author macro works with any number of authors. There are two commands
-% used to separate the names and addresses of multiple authors: \And and \AND.
-%
-% Using \And between authors leaves it to \LaTeX{} to determine where to break
-% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
-% puts 3 of 4 authors names on the first line, and the last on the second
-% line, try using \AND instead of \And before the third author name.
-
-\newcommand{\fix}{\marginpar{FIX}}
-\newcommand{\new}{\marginpar{NEW}}
-
 %\iclrfinalcopy % Uncomment for camera-ready version, but NOT for submission.
 \begin{document}
-
 
 \maketitle
 
 \begin{abstract}
-The abstract paragraph should be indented 1/2~inch (3~picas) on both left and
-right-hand margins. Use 10~point type, with a vertical spacing of 11~points.
-The word \textsc{Abstract} must be centered, in small caps, and in point size 12. Two
-line spaces precede the abstract. The abstract must be limited to one
-paragraph.
+A large language model (LLM) can give a wrong answer for two very different internal reasons: the correct answer never became a competitive candidate inside the model, or it briefly became competitive at an intermediate layer and then lost that advantage by the final layer. These two cases produce the same observable output but represent distinct failures that require different interventions. We trace the correct-answer signal layer by layer across Transformer architectures, introducing a calibrated procedure to separate these failure modes. For each question, we construct a layered trajectory of the correct answer's probability, full-vocabulary rank, and margin over competing tokens across three model families (Qwen, Llama, Mistral, 4B to 14B parameters) and three tasks (TriviaQA, HotpotQA, GSM8K). We first show that a common evaluation shortcut, checking whether the intermediate correct answer's logits ever exceed the final wrong output, is misleading: such sign flips occur at high rates purely due to conditioning on an incorrect output, matching a random-shuffle null baseline (88.2\% vs. 88.5\%). After correcting for this selection bias and readout miscalibration, we find that most errors are \emph{formation failures} (where the correct signal never forms), and only a small, task-dependent subset represents a \emph{preservation failure} (where the signal forms but later decays). Furthermore, these layer trajectories are predictive: features from the first half of the network predict subsequent signal decay (AUC 0.79), substantially outperforming single-layer confidence baselines, and this predictive structure transfers across tasks and model families. To facilitate research on process-level error diagnosis, we construct and release \texttt{InfoDyn-Bench}, a benchmark containing layered information trajectories, metrics, and prediction labels.
 \end{abstract}
 
-\section{Submission of conference papers to ICLR 2027}
+\section{Introduction}
 
-ICLR requires electronic submissions, processed by
-\url{https://openreview.net/}. See ICLR's website for more instructions.
+When a language model produces a wrong answer, the final output does not reveal how the failure happened \citep{ji2023survey, huang2023survey}. The correct answer may never have become a competitive candidate within the model, or it may have emerged at an intermediate layer and then been weakened by later computation. Both paths end at the same wrong string, yet they represent distinct internal failures and require different interventions.
 
-If your paper is ultimately accepted, the statement {\tt
-  {\textbackslash}iclrfinalcopy} should be inserted to adjust the
-format to the camera ready requirements.
-
-The format for the submissions is a variant of the NeurIPS format.
-Please read carefully the instructions below, and follow them
-faithfully.
-
-\subsection{Style}
-
-Papers to be submitted to ICLR 2027 must be prepared according to the
-instructions presented here.
-
-%% Please note that we have introduced automatic line number generation
-%% into the style file for \LaTeXe. This is to help reviewers
-%% refer to specific lines of the paper when they make their comments. Please do
-%% NOT refer to these line numbers in your paper as they will be removed from the
-%% style file for the final version of accepted papers.
-
-Authors are required to use the ICLR \LaTeX{} style files obtainable at the
-ICLR website. Please make sure you use the current files and
-not previous versions. Tweaking the style files may be grounds for rejection.
-
-\subsection{Retrieval of style files}
-
-The style files for ICLR and other conference information are available online at:
-\begin{center}
-   \url{http://www.iclr.cc/}
-\end{center}
-The file \verb+iclr2027_conference.pdf+ contains these
-instructions and illustrates the
-various formatting requirements your ICLR paper must satisfy.
-Submissions must be made using \LaTeX{} and the style files
-\verb+iclr2027_conference.sty+ and \verb+iclr2027_conference.bst+ (to be used with \LaTeX{}2e). The file
-\verb+iclr2027_conference.tex+ may be used as a ``shell'' for writing your paper. All you
-have to do is replace the author, title, abstract, and text of the paper with
-your own.
-
-The formatting instructions contained in these style files are summarized in
-sections \ref{gen_inst}, \ref{headings}, and \ref{others} below.
-
-\section{General formatting instructions}
-\label{gen_inst}
-
-The text must be confined within a rectangle 5.5~inches (33~picas) wide and
-9~inches (54~picas) long. The left margin is 1.5~inch (9~picas).
-Use 10~point type with a vertical spacing of 11~points. Times New Roman is the
-preferred typeface throughout. Paragraphs are separated by 1/2~line space,
-with no indentation.
-
-Paper title is 17~point, in small caps and left-aligned.
-All pages should start at 1~inch (6~picas) from the top of the page.
-
-Authors' names are
-set in boldface, and each name is placed above its corresponding
-address. The lead author's name is to be listed first, and
-the co-authors' names are set to follow. Authors sharing the
-same address can be on the same line.
-
-Please pay special attention to the instructions in section \ref{others}
-regarding figures, tables, acknowledgments, and references.
-
-
-There will be a strict upper limit of \textbf{9 pages} for the main text of the initial submission, with unlimited additional pages for citations. This limit will be expanded to \textbf{10 pages} for rebuttal/camera ready.
-
-\section{Headings: first level}
-\label{headings}
-
-First level headings are in small caps,
-flush left and in point size 12. One line space before the first level
-heading and 1/2~line space after the first level heading.
-
-\subsection{Headings: second level}
-
-Second level headings are in small caps,
-flush left and in point size 10. One line space before the second level
-heading and 1/2~line space after the second level heading.
-
-\subsubsection{Headings: third level}
-
-Third level headings are in small caps,
-flush left and in point size 10. One line space before the third level
-heading and 1/2~line space after the third level heading.
-
-\section{Citations, figures, tables, references}
-\label{others}
-
-These instructions apply to everyone, regardless of the formatter being used.
-
-\subsection{Citations within the text}
-
-Citations within the text should be based on the \texttt{natbib} package
-and include the authors' last names and year (with the ``et~al.'' construct
-for more than two authors). When the authors or the publication are
-included in the sentence, the citation should not be in parenthesis using \verb|\citet{}| (as
-in ``See \citet{Hinton06} for more information.''). Otherwise, the citation
-should be in parenthesis using \verb|\citep{}| (as in ``Deep learning shows promise to make progress
-towards AI~\citep{Bengio+chapter2007}.'').
-
-The corresponding references are to be listed in alphabetical order of
-authors, in the \textsc{References} section. As to the format of the
-references themselves, any style is acceptable as long as it is used
-consistently.
-
-\subsection{Footnotes}
-
-Indicate footnotes with a number\footnote{Sample of the first footnote} in the
-text. Place the footnotes at the bottom of the page on which they appear.
-Precede the footnote with a horizontal rule of 2~inches
-(12~picas).\footnote{Sample of the second footnote}
-
-\subsection{Figures}
-
-All artwork must be neat, clean, and legible. Lines should be dark
-enough for purposes of reproduction; art work should not be
-hand-drawn. The figure number and caption always appear after the
-figure. Place one line space before the figure caption, and one line
-space after the figure. The figure caption is lower case (except for
-first word and proper nouns); figures are numbered consecutively.
-
-Make sure the figure caption does not get separated from the figure.
-Leave sufficient space to avoid splitting the figure and figure caption.
-
-You may use color figures.
-However, it is best for the
-figure captions and the paper body to make sense if the paper is printed
-either in black/white or in color.
-\begin{figure}[h]
-\begin{center}
-%\framebox[4.0in]{$\;$}
-\fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
-\end{center}
-\caption{Sample figure caption.}
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig1_concept.pdf}
+\caption{Conceptual overview of Information Dynamics. When an LLM outputs an incorrect answer, internal representations may either fail to form a competitive gold-answer signal (\emph{formation failure}) or build a competitive signal at intermediate layers that decays before the final layer (\emph{preservation failure}). Our calibrated framework traces these dynamics across layers.}
+\label{fig:concept}
 \end{figure}
 
-\subsection{Tables}
+We distinguish two internal scenarios, as illustrated in Figure~\ref{fig:concept}. Operationally, we define a correct-answer signal as \emph{competitive} at a given layer if the ground-truth answer token $y^\star$ (the \emph{gold answer}) enters the top region of the vocabulary distribution (e.g., top-5 rank) and holds a positive probability margin over competing tokens. Under this criterion, a \emph{formation failure} occurs when the gold answer never achieves competitiveness at any intermediate layer. A \emph{preservation failure} occurs when the gold answer becomes competitive at an intermediate layer but subsequently decays, losing its advantage by the final output layer.
 
-All tables must be centered, neat, clean and legible. Do not use hand-drawn
-tables. The table number and title always appear before the table. See
-Table~\ref{sample-table}.
+Recognizing these two cases is harder than it looks. A common shortcut decodes intermediate hidden states (e.g., via logit lens \citep{nostalgebraist2020logitlens}) and checks whether the gold answer ever outranks the final wrong answer. We show this shortcut is fundamentally misleading for two key reasons. First, it suffers from a selection bias: whenever a model outputs a wrong answer, random layer-wise fluctuations will frequently cause the correct answer to temporarily score higher than that specific wrong token. Indeed, shuffling intermediate layer order while keeping the final error fixed produces almost the exact same sign-flip rate (88.5\% null baseline vs. 88.2\% observed), proving these temporary leads are statistical noise rather than genuine knowledge. Second, directly applying the final layer's output head to intermediate states misreads the signal, because early hidden states occupy a different vector space than the output layer \citep{belrose2023tunedlens, din2023jump}. An uncorrected pairwise logit lead therefore offers no evidence that a competitive signal ever formed.
 
-Place one line space before the table title, one line space after the table
-title, and one line space after the table. The table title must be lower case
-(except for first word and proper nouns); tables are numbered consecutively.
+To reliably diagnose model errors, we introduce \emph{Information Dynamics}, a framework that tracks how the correct answer evolves layer by layer. For each input, we construct a layered trajectory measuring three vocabulary-wide metrics at every layer: the gold answer's log-probability, its full-vocabulary rank, and its margin over top competing candidates. We pair these trajectories with two calibration controls: a randomized null baseline to rule out chance flips caused by final-output selection bias, and a per-layer linear translator (\emph{tuned lens} \citep{belrose2023tunedlens}) to decode intermediate hidden states fairly into vocabulary probabilities. Across six LLMs (4B to 14B parameters) and three tasks, our framework reveals that most errors are formation failures, whereas preservation failures constitute a small, task-dependent subset, concentrated in knowledge QA. Crucially, these trajectories are not merely descriptive but predictive: early-layer trajectory prefixes predict subsequent signal decay (AUC 0.79), substantially outperforming single-layer confidence baselines, and this predictive structure transfers across tasks and model families.
+
+In summary, our paper advances error diagnosis through four key contributions:
+\begin{enumerate}
+    \item \textbf{Selection Bias Diagnosis:} We demonstrate that uncorrected pairwise sign flips cannot establish prior signal competitiveness by proving their equivalence to a randomized null baseline under error selection.
+    \item \textbf{Calibrated Failure Taxonomy:} We propose a calibrated taxonomy separating formation from preservation failures, showing that preservation failures are a minority regime specific to knowledge-intensive tasks.
+    \item \textbf{Predictive Trajectory Dynamics:} We establish that early trajectory history carries dynamic predictive signals that forecast future decay better than single-layer confidence snapshot baselines.
+    \item \textbf{Benchmark Resource:} We release \texttt{InfoDyn-Bench}, a benchmark of layered information trajectories, derived dynamics metrics, and failure labels, to support process-level LLM error analysis.
+\end{enumerate}
+
+\section{Related Work}
+
+\subsection{Decoding Intermediate Representations}
+Logit lens \citep{nostalgebraist2020logitlens} and tuned lens \citep{belrose2023tunedlens} decode intermediate hidden states back into the vocabulary space. Probing studies ask whether linguistic or factual information is decodable at specific layers using diagnostic classifiers \citep{alain2016understanding, tenney2019bert, hewitt2019structural, belinkov2022probing}. Short-circuiting and early exit approaches study early prediction readiness \citep{schuster2022confident, din2023jump}. These works ask whether a signal is \emph{present} at a given layer. We instead study how a correct-answer signal \emph{evolves dynamically across layers} and systematically quantify readout and selection biases.
+
+\subsection{Knowledge and Factual Recall}
+Work on factual knowledge localization, knowledge neurons, and model editing asks where factual associations are stored in feed-forward layers \citep{geva2021transformer, dai2022knowledge, meng2022rome, meng2023memit, geva2023dissecting}. Known-versus-unknown detection and latent knowledge discovery investigate whether internal representations track model correctness \citep{kadavath2022language, burns2022discovering, azaria2023internal, yin2023do, li2024inference}. We do not aim to edit or locate static facts; instead, we track how the correct-answer signal dynamically rises or decays along the network's depth dimension.
+
+\subsection{Hallucination and Error Prediction}
+Uncertainty estimation, hidden-state failure prediction, and hallucination detection analyze intermediate representations to identify potential errors \citep{schuster2022confident, kuhn2023semantic, azaria2023internal, manakul2023selfcheckgpt}. We target a distinct task: predicting whether a competitive correct-answer signal will undergo subsequent decay, evaluating whether trajectory dynamics add predictive value over single-layer snapshot features.
+
+\subsection{Mechanistic Interpretability and Causal Intervention}
+Transformer circuit analysis, direct logit attribution, and activation patching decompose network computations into functional components \citep{elhage2021mathematical, olsson2022incontext, wang2022interpretability, nanda2023progress}. Representation engineering and activation steering modify hidden states to alter output behavior \citep{turner2023activation, rimsky2023steering, zou2023representation}. We perform component-level attribution on information trajectories to isolate the late-layer components associated with correct-signal decay, complementing rather than relying on a particular steering method.
+
+To our knowledge, no prior work establishes an end-to-end pipeline that connects calibrated process-level error diagnosis with trajectory-based decay prediction in a single framework.
+
+\section{Problem Definition}
+\label{sec:def}
+
+We fix notation here so that every symbol is defined once.
+
+\subsection{Setup}
+Let $x$ be a question, $y^\star$ the gold-answer token, and $\hat{y}$ the token the model actually generates. Let $L$ be the number of layers. At layer $\ell$ ($1 \le \ell \le L$), let $h_\ell(x) \in \mathbb{R}^d$ be the hidden representation at the target position, where $d$ is the hidden dimension. Let $W_U \in \mathbb{R}^{d \times |V|}$ denote the unembedding matrix, where $|V|$ is the vocabulary size, and let $w_y \in \mathbb{R}^d$ be the unembedding vector corresponding to token $y$. A lens $g_\ell$ maps the representation to a logit vector, which we turn into a distribution over the vocabulary by a softmax:
+\begin{equation}
+p_\ell(y \mid x) = \operatorname{softmax}(g_\ell(h_\ell(x)))_y .
+\end{equation}
+We use two lenses. The raw logit lens \citep{nostalgebraist2020logitlens} sets $g_\ell$ to the final language-model head, applying the final layer norm and unembedding matrix $W_U$. The tuned lens \citep{belrose2023tunedlens} adds a per-layer affine map that is trained so that the decoded logits approximate the final-layer logits.
+
+We define the \emph{gold rank} $r_\ell(y^\star)$ as the number of tokens whose probability at layer $\ell$ exceeds that of the gold answer, plus one. Rank 1 is the top token:
+\begin{equation}
+r_\ell(y^\star) = 1 + \sum_{y \neq y^\star} \mathbb{1}\big[ p_\ell(y) > p_\ell(y^\star) \big] .
+\end{equation}
+
+\subsection{Two Competitive Margins}
+We use two related margins in different analyses. The first compares the gold answer with the generated answer $\hat{y}$:
+\begin{equation}
+\mathrm{CIS}^{\mathrm{gen}}_\ell = \log p_\ell(y^\star) - \log p_\ell(\hat{y}), \qquad \hat{y} \neq y^\star .
+\end{equation}
+We use this margin for error examples and for the endpoint-bias analysis. The second compares the gold answer with the strongest competing token $y^-$, defined as the most probable token other than the gold answer at the final layer:
+\begin{equation}
+y^- = \arg\max_{y \neq y^\star} p_L(y), \qquad
+\mathrm{CIS}^{\mathrm{comp}}_\ell = \log p_\ell(y^\star) - \log p_\ell(y^-) .
+\end{equation}
+We use this margin whenever we compare correct and incorrect examples. Table~\ref{tab:metric} states which margin each analysis uses, so the measurement object is never ambiguous.
 
 \begin{table}[t]
-\caption{Sample table title}
-\label{sample-table}
-\begin{center}
+\centering
+\caption{Which margin each analysis uses.}
+\label{tab:metric}
 \begin{tabular}{ll}
-\multicolumn{1}{c}{\bf PART}  &\multicolumn{1}{c}{\bf DESCRIPTION}
-\\ \hline \\
-Dendrite         &Input terminal \\
-Axon             &Output terminal \\
-Soma             &Cell body (contains cell nucleus) \\
+\toprule
+\textbf{Analysis} & \textbf{Margin} \\
+\midrule
+Endpoint selection bias & $\mathrm{CIS}^{\mathrm{gen}}$ \\
+Correct versus incorrect comparison & $\mathrm{CIS}^{\mathrm{comp}}$ \\
+Competitive-decay classification & $\mathrm{CIS}^{\mathrm{comp}}$ \\
+Trajectory prediction & $\mathrm{CIS}^{\mathrm{comp}}$ \\
+Direct logit attribution & $\mathrm{CIS}^{\mathrm{comp}}$ \\
+\bottomrule
 \end{tabular}
-\end{center}
 \end{table}
 
-\section{Default Notation}
+\subsection{Information Trajectory}
+The information trajectory of an example is the per-layer collection of the gold log-probability, the gold rank, and the competitive margin:
+\begin{equation}
+\mathcal{T}(x) = \big\{ \log p_\ell(y^\star),\; r_\ell(y^\star),\; \mathrm{CIS}^{\mathrm{comp}}_\ell \big\}_{\ell=1}^{L} .
+\end{equation}
+From this trajectory we derive three quantities. The \emph{peak rank} is the smallest rank over all layers except the final one:
+\begin{equation}
+r_{\mathrm{peak}} = \min_{1 \le \ell < L} r_\ell(y^\star) .
+\end{equation}
+The \emph{peak-to-final decay} $D$ is the drop from the largest intermediate margin to the final margin:
+\begin{equation}
+D = \max_{1 \le \ell < L} \mathrm{CIS}^{\mathrm{comp}}_\ell \;-\; \mathrm{CIS}^{\mathrm{comp}}_L .
+\end{equation}
+The \emph{competitive decay} label marks an example whose gold answer is competitive at some intermediate layer but negative at the final layer:
+\begin{equation}
+C(x) = \mathbb{1}\Big[ \exists\, \ell < L : r_\ell(y^\star) \le k \;\land\; \mathrm{CIS}^{\mathrm{comp}}_\ell > 0 \Big] \cdot \mathbb{1}\Big[ \mathrm{CIS}^{\mathrm{comp}}_L < 0 \Big] .
+\end{equation}
+We use $k=5$ as the main competitiveness threshold and report the sensitivity over $k \in \{1,5,10,50\}$ (Section~\ref{sec:taskdecay}).
 
-In an attempt to encourage standardized notation, we have included the
-notation file from the textbook, \textit{Deep Learning}
-\cite{goodfellow2016deep} available at
-\url{https://github.com/goodfeli/dlbook_notation/}.  Use of this style
-is not required and can be disabled by commenting out
-\texttt{math\_commands.tex}.
+The top-$k$ criterion is not an arbitrary empirical cut: it marks a real transition in the representation. At the first layer where the gold token's rank drops to $\le k$, the gold log-probability jumps by about $+8$ logit units, from a noise-level value (median $\approx -11$, a probability of $\sim 10^{-5}$) to a substantive value (median $\approx -2.7$, a probability of $\sim 0.07$ at $k=5$); this jump is positive in $97\%$ of samples and remains large for every $k \in \{1,5,10\}$ (medians $+7.6$, $+8.0$, $+7.5$). Entering the top-$k$ therefore corresponds to the moment the gold answer emerges from the vocabulary noise into a plausible candidate, which is why the competitiveness threshold, within a reasonable range, captures a genuine internal state rather than an arbitrary decision boundary.
 
+\subsection{Error Taxonomy}
+We define four operational categories under our measurement framework. They describe what the measurement sees, not every conceivable error mechanism. A \emph{formation failure} is an incorrect example whose gold answer never meets the competitiveness criterion at any intermediate layer. A \emph{preservation failure} is an incorrect example whose gold answer meets the criterion but loses its advantage by the final layer. A \emph{successful preservation} is a correct example whose signal forms and is maintained. The remaining category, \emph{unresolved}, covers examples where tracking only the final-answer token is not enough to describe the error, such as multi-step reasoning.
 
-\centerline{\bf Numbers and Arrays}
-\bgroup
-\def\arraystretch{1.5}
-\begin{tabular}{p{1in}p{3.25in}}
-$\displaystyle a$ & A scalar (integer or real)\\
-$\displaystyle \va$ & A vector\\
-$\displaystyle \mA$ & A matrix\\
-$\displaystyle \tA$ & A tensor\\
-$\displaystyle \mI_n$ & Identity matrix with $n$ rows and $n$ columns\\
-$\displaystyle \mI$ & Identity matrix with dimensionality implied by context\\
-$\displaystyle \ve^{(i)}$ & Standard basis vector $[0,\dots,0,1,0,\dots,0]$ with a 1 at position $i$\\
-$\displaystyle \text{diag}(\va)$ & A square, diagonal matrix with diagonal entries given by $\va$\\
-$\displaystyle \ra$ & A scalar random variable\\
-$\displaystyle \rva$ & A vector-valued random variable\\
-$\displaystyle \rmA$ & A matrix-valued random variable\\
+\section{Experimental Setup}
+
+\subsection{Models and Tasks}
+We evaluate three open-weight instruction-tuned model families spanning several scales: Qwen3-14B, Qwen3-8B, Qwen3-4B, and Qwen2.5-7B for scale variation within Qwen, plus Llama-3.1-8B \citep{dubey2024llama} and Mistral-7B-Instruct-v0.3 \citep{jiang2023mistral}. We use three tasks: TriviaQA \citep{joshi2017triviaqa} for fact QA, HotpotQA \citep{yang2018hotpotqa} for multi-hop QA, and GSM8K \citep{cobbe2021gsm8k} for math reasoning. 
+
+\subsection{Answer Extraction}
+We judge correctness by exact substring matching after lower-casing. For numeric answers we strip commas and percent signs and compare numerically with a small tolerance. For TriviaQA, where several aliases are valid, a match against any alias counts as correct.
+
+\subsection{Lens Construction}
+The raw logit lens applies the final language-model head directly. For the tuned lens \citep{belrose2023tunedlens} we fit, for each layer, an affine map $(\mathbf{A}_\ell, \mathbf{b}_\ell)$ so that $\mathbf{A}_\ell h_\ell + \mathbf{b}_\ell$, decoded through the final norm and head, approximates the final-layer logits. Each layer's translator is trained independently on a held-out prompt subset, minimizing the mean-squared error between the decoded logits and the model's own final-layer logits (Adam, learning rate $10^{-3}$, $500$ epochs). Because the objective is supervised by the model's own final logits rather than by the answer label, the translators never see the gold answer or the correctness label, so no answer information leaks through the lens.
+
+\subsection{Statistical Testing}
+We report every proportion with a bootstrap 95\% confidence interval, and we report per-model and per-task numbers alongside aggregates.
+
+\section{Results}
+
+\subsection{Pairwise Sign Flips Fail to Establish Intermediate Signal Competitiveness}
+
+\paragraph{Testing the shortcut against a selection-conditioned baseline.}
+We first evaluate the common shortcut of checking whether the gold answer's intermediate probability ever exceeds that of the final incorrect prediction. Across error examples, we observe a naive sign-reversal rate of 88.2\%. However, when compared against an endpoint-conditioned null model that shuffles intermediate layer order while holding the final incorrect output fixed, the expected null flip rate is 88.5\% (Figure~\ref{fig:bias}, left). The observed flip rate is statistically indistinguishable from the random null ($p = 0.68$, bootstrap 95\% CI [-1.2\%, +0.6\%]). Because conditioning on an incorrect output makes intermediate sign flips nearly inevitable through random noise, pairwise logit crossings offer no empirical evidence that a gold signal was ever competitive.
+
+\paragraph{Why shortcut analysis misleads.}
+Pairwise comparison fails because beating a single wrong output token does not imply that the gold answer achieves a high rank within the overall vocabulary. Furthermore, directly projecting intermediate states through the final language-model head inflates peak intermediate margins by approximately 2.0$\times$ relative to calibrated readouts (median peak margin 4.53 vs. 2.24 logit units on Qwen3-8B; Figure~\ref{fig:bias}, right). We therefore abandon pairwise sign-flip heuristics and adopt the vocabulary-wide rank and margin criterion defined in Section~\ref{sec:def}.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/fig2_measurement_bias.pdf}
+\caption{Measurement bias in intermediate state decoding. Left: observed sign-reversal rates (88.2\%) match the endpoint-conditioned null baseline (88.5\%). Right: the uncalibrated raw logit lens inflates intermediate peak margins by ~2.0$\times$ relative to the tuned lens.}
+\label{fig:bias}
+\end{figure}
+
+\subsection{Correct and Incorrect Outputs Follow Distinct Information Trajectories}
+
+\paragraph{Persistent signal formation in correct predictions.}
+Across all evaluated architectures and scales, correct predictions establish a strong, persistent gold-answer signal early in the network, whereas incorrect predictions show weak initial formation and substantial late-layer decay (Figure~\ref{fig:trajectories}). As reported in Table~\ref{tab:rank}, median intermediate peak ranks for correct outputs reach top positions across models (0 for Qwen3-8B, 1 for Llama-3.1-8B, 1 for Qwen3-14B), with 90.5\% of correct Qwen3-8B examples entering the top-5 candidate set. In contrast, incorrect outputs exhibit significantly worse peak ranks (median 19 for Qwen3-8B, 20 for Llama-3.1-8B, 77 for Mistral-7B) and lower top-5 entry rates (26.4\% for Qwen3-8B).
+
+\begin{table}[t]
+\centering
+\caption{Median peak rank (excluding the final layer) and top-5 entry rate for correct versus incorrect predictions across model families and scales.}
+\label{tab:rank}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model} & \multicolumn{2}{c}{\textbf{Correct Predictions}} & \multicolumn{2}{c}{\textbf{Incorrect Predictions}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+ & Peak Rank & Top-5 Entry & Peak Rank & Top-5 Entry \\
+\midrule
+Qwen3-14B & 1 & \cdot & 9 & \cdot \\
+Qwen3-8B & 0 & 90.5\% & 19 & 26.4\% \\
+Qwen3-4B & 2 & \cdot & 10 & \cdot \\
+Qwen2.5-7B & 1 & \cdot & 26 & \cdot \\
+Llama-3.1-8B & 1 & 79.6\% & 20 & 26.7\% \\
+Mistral-7B & 11 & 30.2\% & 77 & 8.4\% \\
+\bottomrule
 \end{tabular}
-\egroup
-\vspace{0.25cm}
+\end{table}
 
-\centerline{\bf Sets and Graphs}
-\bgroup
-\def\arraystretch{1.5}
+\paragraph{Probe robustness across independent decoders.}
+To confirm that this intermediate rank separation is a genuine property of the internal representations rather than an artifact of the raw logit lens, we recomputed peak intermediate ranks under three independent decoding methods: the raw logit lens, the tuned lens, and a parameter-free cosine similarity between intermediate hidden states $h_\ell$ and unembedding vectors $w_{y^\star}$. Across all three decoders, correct and incorrect predictions remain separated by over an order of magnitude in rank (medians 0 vs. 32 for raw lens, 0 vs. 12 for tuned lens, 1 vs. 43 for training-free cosine similarity; Mann-Whitney $p < 10^{-20}$ in all cases). Because cosine similarity uses no learned parameters or final layer normalization, this confirms that early gold-signal formation is an intrinsic representational property.
 
-\begin{tabular}{p{1.25in}p{3.25in}}
-$\displaystyle \sA$ & A set\\
-$\displaystyle \R$ & The set of real numbers \\
-$\displaystyle \{0, 1\}$ & The set containing 0 and 1 \\
-$\displaystyle \{0, 1, \dots, n \}$ & The set of all integers between $0$ and $n$\\
-$\displaystyle [a, b]$ & The real interval including $a$ and $b$\\
-$\displaystyle (a, b]$ & The real interval excluding $a$ but including $b$\\
-$\displaystyle \sA \backslash \sB$ & Set subtraction, i.e., the set containing the elements of $\sA$ that are not in $\sB$\\
-$\displaystyle \gG$ & A graph\\
-$\displaystyle \parents_\gG(\ervx_i)$ & The parents of $\ervx_i$ in $\gG$
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig3_trajectories.pdf}
+\caption{Median gold-answer rank (top, log scale) and probability margin (bottom) across layers for correct (green) and incorrect (red) predictions across model families.}
+\label{fig:trajectories}
+\end{figure}
+
+\subsection{Calibrated Readout Confirms Preservation Failures Are a Small Minority}
+
+\paragraph{Preservation failure rate under calibrated readout.}
+Applying our rank-and-margin criterion ($k=5, \mathrm{CIS}^{\mathrm{comp}}_\ell > 0$) to error examples reveals that preservation failures represent a small minority of total errors. On the Qwen3-8B analysis subset, the uncalibrated raw lens detects a competitive decay rate of 5.2\%, while the calibrated tuned lens identifies 8.9\% (bootstrap 95\% CI [6.4\%, 11.5\%]). Readout calibration slightly increases the detected rate because the tuned lens recovers gold-answer tokens that were geometrically masked under raw projection. Over 91\% of errors are formation failures, where the gold answer never becomes competitive at any intermediate layer.
+
+\paragraph{Zero label-leakage calibration.}
+Crucially, this 8.9\% preservation-failure rate is not a probe artifact. Because our tuned lens translators are trained strictly on unlabelled general prompts by predicting the model's own final-layer logits without observing ground-truth answers or correctness labels, no downstream task information leaks into intermediate readouts. This supports an interpretation where the gold-answer signal becomes decodable at intermediate layers and then loses its competitiveness by the output, rather than being an artifact of uncalibrated projection.
+
+\subsection{Failure Taxonomy Is Task-Dependent and Robust to Thresholds}
+\label{sec:taskdecay}
+
+\paragraph{Task dependence: Preservation failures concentrate in knowledge QA.}
+As detailed in Table~\ref{tab:taskdecay} and Figure~\ref{fig:taxonomy}, preservation failures are highly task-dependent. On single-hop factual recall (TriviaQA) and multi-hop entity QA (HotpotQA), preservation failures account for 10.2\% (29/284) and 12.6\% (24/190) of total errors, respectively. Conversely, on mathematical reasoning (GSM8K), preservation failures account for 0.0\% (0/231) of errors under single-token evaluation.
+
+\begin{table}[t]
+\centering
+\caption{Competitive decay (preservation failure) rate by task on Qwen3-8B.}
+\label{tab:taskdecay}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Task} & \textbf{Total Errors} & \textbf{Preservation Failures} & \textbf{Decay Rate (\%)} \\
+\midrule
+TriviaQA & 284 & 29 & 10.2\% [7.1\%, 14.1\%] \\
+HotpotQA & 190 & 24 & 12.6\% [8.3\%, 18.0\%] \\
+GSM8K & 231 & 0 & 0.0\% [0.0\%, 1.6\%] \\
+\bottomrule
 \end{tabular}
-\vspace{0.25cm}
+\end{table}
 
+\paragraph{Measurement boundaries on multi-step reasoning.}
+The absence of preservation failures on GSM8K reflects a clear operational boundary of final-token tracking rather than evidence that math reasoning never exhibits such failures. First, mathematical answers frequently involve multi-token numbers (e.g., "42"), whereas single-token tracking observes only the final token. Second, in multi-step chain-of-thought reasoning, incorrect final answers stem from intermediate reasoning errors, and the final answer token itself may never form in intermediate layers. Under our final-answer-token measurement, preservation failures are therefore observed specifically in entity-level factual recall rather than in procedural reasoning.
 
-\centerline{\bf Indexing}
-\bgroup
-\def\arraystretch{1.5}
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig4_taxonomy.pdf}
+\caption{Operational error taxonomy across tasks for Qwen3-8B. Preservation failures concentrate in knowledge-intensive QA (TriviaQA, HotpotQA) and are virtually absent in math reasoning (GSM8K).}
+\label{fig:taxonomy}
+\end{figure}
 
-\begin{tabular}{p{1.25in}p{3.25in}}
-$\displaystyle \eva_i$ & Element $i$ of vector $\va$, with indexing starting at 1 \\
-$\displaystyle \eva_{-i}$ & All elements of vector $\va$ except for element $i$ \\
-$\displaystyle \emA_{i,j}$ & Element $i, j$ of matrix $\mA$ \\
-$\displaystyle \mA_{i, :}$ & Row $i$ of matrix $\mA$ \\
-$\displaystyle \mA_{:, i}$ & Column $i$ of matrix $\mA$ \\
-$\displaystyle \etA_{i, j, k}$ & Element $(i, j, k)$ of a 3-D tensor $\tA$\\
-$\displaystyle \tA_{:, :, i}$ & 2-D slice of a 3-D tensor\\
-$\displaystyle \erva_i$ & Element $i$ of the random vector $\rva$ \\
+\paragraph{Robustness across competitiveness thresholds.}
+To ensure our taxonomy is not sensitive to the rank cut-off $k$, we re-evaluated the competitive decay rate across $k \in \{1, 5, 10, 50\}$ on Qwen3-8B while holding the margin condition ($\mathrm{CIS}^{\mathrm{comp}}_\ell > 0$) fixed. The preservation-failure rate increases monotonically but slowly: 4.8\% at $k=1$, 8.5\% at $k=5$, 10.1\% at $k=10$, and 16.9\% at $k=50$. Across all reasonable thresholds, preservation failures remain a small minority, confirming the stability of our taxonomy.
+
+\paragraph{Raw versus tuned lens agreement.}
+Finally, while the raw logit lens inflates intermediate peak margins by ~2.0$\times$, both lenses yield identical relative trajectory orderings between correct and incorrect predictions. Readout calibration adjusts absolute margin magnitudes without altering the underlying representational dynamics.
+
+\section{Trajectory Dynamics Predict Later Signal Decay}
+
+\paragraph{Predictive validation of the dynamics framework.}
+If the information dynamics we measure capture how a model forms and maintains candidate answers, the trajectory prefix should carry predictive signal about future decay. We evaluate this by training a linear classifier on features computed exclusively from the first half of the network ($\ell \le L/2$) to predict the binary second-half decay label $y^{\mathrm{decay}} = \mathbb{1}[\text{signal decays in layers } \ell > L/2]$.
+
+\paragraph{Full trajectory dominates single-layer snapshot baselines.}
+As shown in Figure~\ref{fig:prediction}a, the full-trajectory model achieves an AUC of 0.79 on Qwen3-8B within-task decay prediction, substantially outperforming single-layer midpoint snapshot baselines. Common midpoint confidence proxies perform poorly: the gold margin $\mathrm{CIS}_{t_0}$ yields AUC 0.39, midpoint rank yields 0.51, and midpoint output entropy reaches 0.61. Simple summary features such as margin-plus-slope (AUC 0.61) and running maximum (0.61) also fail to capture the full trajectory signal. This demonstrates that historical trajectory evolution adds substantial predictive value beyond any current-state snapshot.
+
+\paragraph{Predictive power exceeds final-layer confidence signals.}
+We next evaluate whether final-layer output confidence signals can predict decay without intermediate trajectories. We compared first-half trajectory predictions against baselines computed from \emph{final-layer} outputs: final gold margin (AUC 0.67), final gold rank (0.70), and final output entropy (0.68). A baseline combining all three final-layer signals reaches AUC 0.70, whereas the first-half trajectory reaches 0.78. Because the trajectory prefix observes only early hidden states while final-layer baselines observe the fully executed computation, this performance gap confirms that early layer history contains unique dynamic signals that are not captured by final-layer output confidence.
+
+\paragraph{Structure-dependent cross-task generalization.}
+As illustrated in Figure~\ref{fig:prediction}b, decay prediction transfers across tasks in a structure-dependent manner. Transfer is strong between entity-style knowledge QA datasets (TriviaQA $\to$ HotpotQA, AUC 0.74) and from multi-hop QA to multi-step math reasoning (HotpotQA $\to$ GSM8K, AUC 0.77). Conversely, transfer from single-step fact recall to multi-step reasoning is weaker (TriviaQA $\to$ GSM8K, AUC 0.38), consistent with our finding that GSM8K final-answer tokens do not form intermediate competitive signals (Section~\ref{sec:taskdecay}).
+
+\paragraph{Robust cross-model transfer across architectures.}
+To test whether trajectory dynamics reflect shared Transformer properties, we evaluated cross-model transfer across three distinct model families, reporting the results in Table~\ref{tab:crossmodel} and Figure~\ref{fig:prediction}c. Across all model pairs, transfer AUCs consistently exceed chance level, with Qwen3-8B $\to$ Llama-3.1-8B reaching AUC 0.728 and Llama-3.1-8B $\to$ Mistral-7B reaching 0.779. Leave-one-model-out transfer averages AUC 0.739. By aligning layers by relative depth and applying normalization strictly on training models, these results confirm that trajectory information dynamics represent an intrinsic, architecture-shared property rather than a single-model fitting artifact.
+
+\begin{table}[t]
+\centering
+\caption{Cross-model decay-prediction AUC across model families. Rows indicate training models, and columns indicate test models.}
+\label{tab:crossmodel}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Train $\backslash$ Test} & Qwen3-8B & Llama-3.1-8B & Mistral-7B \\
+\midrule
+Qwen3-8B & \cdot & \textbf{0.728} & 0.748 \\
+Llama-3.1-8B & 0.695 & \cdot & 0.779 \\
+Mistral-7B & 0.639 & 0.599 & \cdot \\
+\midrule
+Leave-one-out & 0.703 & 0.750 & 0.763 \\
+\bottomrule
 \end{tabular}
-\egroup
-\vspace{0.25cm}
+\end{table}
 
+\paragraph{Trajectory decomposition: Dynamic shape drives prediction.}
+To isolate which specific dynamic properties drive prediction, we decomposed the trajectory into individual features and evaluated their standalone AUCs (Figure~\ref{fig:trajdecomp}). No single feature matches the full trajectory. The strongest individual dynamic feature is the margin sign oscillation count (transitions, AUC 0.64), followed by peak first-half margin (0.64), first-half variance (0.63), and margin slope (0.61), whereas static midpoint margin (0.60) and rank (0.51) are noticeably weaker. Combining peak, slope, and variance reaches AUC 0.70, while adding full shape features achieves 0.75. This confirms that predictive performance is driven by the joint dynamic evolution of how the signal emerges, peaks, and fluctuates.
 
-\centerline{\bf Calculus}
-\bgroup
-\def\arraystretch{1.5}
-\begin{tabular}{p{1.25in}p{3.25in}}
-% NOTE: the [2ex] on the next line adds extra height to that row of the table.
-% Without that command, the fraction on the first line is too tall and collides
-% with the fraction on the second line.
-$\displaystyle\frac{d y} {d x}$ & Derivative of $y$ with respect to $x$\\ [2ex]
-$\displaystyle \frac{\partial y} {\partial x} $ & Partial derivative of $y$ with respect to $x$ \\
-$\displaystyle \nabla_\vx y $ & Gradient of $y$ with respect to $\vx$ \\
-$\displaystyle \nabla_\mX y $ & Matrix derivatives of $y$ with respect to $\mX$ \\
-$\displaystyle \nabla_\tX y $ & Tensor containing derivatives of $y$ with respect to $\tX$ \\
-$\displaystyle \frac{\partial f}{\partial \vx} $ & Jacobian matrix $\mJ \in \R^{m\times n}$ of $f: \R^n \rightarrow \R^m$\\
-$\displaystyle \nabla_\vx^2 f(\vx)\text{ or }\mH( f)(\vx)$ & The Hessian matrix of $f$ at input point $\vx$\\
-$\displaystyle \int f(\vx) d\vx $ & Definite integral over the entire domain of $\vx$ \\
-$\displaystyle \int_\sS f(\vx) d\vx$ & Definite integral with respect to $\vx$ over the set $\sS$ \\
+\paragraph{The gain is not mere temporal autocorrelation.}
+Because the decay label describes the second half of the very trajectory that the first half summarizes, one might suspect the AUC is trivially explained by temporal continuity. To test this, we compared against standard time-series forecasts computed from the first half alone: the last observed value (persistence, AUC 0.60), the first-half linear slope (0.58), linear extrapolation to the final layer (0.58), a first-order autoregressive forecast (0.62), and the first-half mean as a smoothing prior (0.56). All of these lie well below the full trajectory's 0.79. If the predictive signal were just autocorrelation, an autoregressive or extrapolation baseline should approach the full-trajectory model; it does not. The additional predictive power therefore comes from the joint shape of the trajectory, not from simple temporal continuity.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig5_prediction.pdf}
+\caption{Decay prediction results. (a) Within-task AUC comparing full trajectory against snapshot and final-layer baselines. (b) Cross-task transfer matrix. (c) Cross-model transfer matrix.}
+\label{fig:prediction}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig_traj_decomp.pdf}
+\caption{Trajectory feature decomposition. Individual dynamic features (peak, slope, variance, transitions) outperform static snapshots, while their combination drives full predictive power.}
+\label{fig:trajdecomp}
+\end{figure}
+
+\section{Behavioral Intervention and Component Analysis}
+
+\subsection{Gold-Direction Ablation}
+
+We asked whether the correct-answer signal is behaviorally necessary, meaning whether removing it changes the output. We removed the component of the hidden state that lies along the gold token's unembedding direction $w_{y^\star}$ (defined in Section~\ref{sec:def}) in the last three layers:
+\begin{equation}
+h'_\ell = h_\ell - \operatorname{proj}_{w_{y^\star}}(h_\ell) .
+\end{equation}
+Here $\operatorname{proj}_{w_{y^\star}}(h_\ell)$ is the projection of $h_\ell$ onto $w_{y^\star}$, so the operation deletes the part of the representation that pushes toward the gold token. We applied this to examples that were originally correct and measured how many flipped to wrong.
+
+The ablation flips correct examples to wrong at high rates across all models, as Table~\ref{tab:ablation} shows.
+
+\begin{table}[t]
+\centering
+\caption{Behavioral necessity across model families and scales. Ablating the gold direction flips correct examples to wrong at high rates, while a random-token control flips almost none. Parentheses give Wilson 95\% intervals for the gold flip rate.}
+\label{tab:ablation}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model} & \textbf{Baseline correct} & \textbf{Gold flip} & \textbf{Random token flip} \\
+\midrule
+Qwen3-14B & 30/30 & 23/30 (77\%, CI [59, 88]) & 0/30 (0\%) \\
+Qwen3-8B & 50/50 & 38/50 (76\%, CI [63, 86]) & 0/50 (0\%) \\
+Qwen3-4B & 27/27 & 18/27 (67\%, CI [48, 81]) & 0/27 (0\%) \\
+Qwen2.5-7B & 30/30 & 26/30 (87\%, CI [70, 95]) & 1/30 (3\%) \\
+Llama-3.1-8B & 30/30 & 22/30 (73\%, CI [56, 86]) & 0/30 (0\%) \\
+Mistral-7B & 30/30 & 12/30 (40\%, CI [25, 58]) & 0/30 (0\%) \\
+\bottomrule
 \end{tabular}
-\egroup
-\vspace{0.25cm}
+\end{table}
 
-\centerline{\bf Probability and Information Theory}
-\bgroup
-\def\arraystretch{1.5}
-\begin{tabular}{p{1.25in}p{3.25in}}
-$\displaystyle P(\ra)$ & A probability distribution over a discrete variable\\
-$\displaystyle p(\ra)$ & A probability distribution over a continuous variable, or over
-a variable whose type has not been specified\\
-$\displaystyle \ra \sim P$ & Random variable $\ra$ has distribution $P$\\% so thing on left of \sim should always be a random variable, with name beginning with \r
-$\displaystyle  \E_{\rx\sim P} [ f(x) ]\text{ or } \E f(x)$ & Expectation of $f(x)$ with respect to $P(\rx)$ \\
-$\displaystyle \Var(f(x)) $ &  Variance of $f(x)$ under $P(\rx)$ \\
-$\displaystyle \Cov(f(x),g(x)) $ & Covariance of $f(x)$ and $g(x)$ under $P(\rx)$\\
-$\displaystyle H(\rx) $ & Shannon entropy of the random variable $\rx$\\
-$\displaystyle \KL ( P \Vert Q ) $ & Kullback-Leibler divergence of P and Q \\
-$\displaystyle \mathcal{N} ( \vx ; \vmu , \mSigma)$ & Gaussian distribution %
-over $\vx$ with mean $\vmu$ and covariance $\mSigma$ \\
+The gold flip rates are 77\%, 76\%, 67\%, 87\%, 73\%, and 40\% for Qwen3-14B, Qwen3-8B, Qwen3-4B, Qwen2.5-7B, Llama, and Mistral. The random-token control flips 0\% in almost every model (one example in Qwen2.5-7B). The effect is consistent across model families and across scales from 4B to 14B. The difference between the strongest model (Qwen2.5-7B, 87\%) and the weakest (Mistral-7B, 40\%) is statistically distinguishable: their 95\% intervals, [70, 95] and [25, 58], do not overlap, so the variation across architectures is not merely sampling noise.
+
+\subsection{Controls}
+
+To check that the effect is not just any direction change, we ablated other directions. A key concern is that the gold unembedding direction is the main source of the gold log-probability, so removing it lowers that log-probability more than removing any other direction would. To make the comparison fair, we matched the \emph{perturbation magnitude}: for each control direction, we set the per-layer removal strength so that the hidden-state change $\lVert \Delta h \rVert$ equals that of the gold ablation. This way all interventions change the representation by the same amount and differ only in which direction they remove.
+
+Under this norm-matched protocol, the gold direction flips far more examples than any control, and the gradient is consistent across Qwen scales. On Qwen3-8B, gold flips 83.3\% of correct examples, while the second-best candidate flips 38.9\%, a random token 5.6\%, and a random Gaussian direction 11.1\%. On Qwen3-4B, the corresponding rates are 70.0\%, 35.0\%, 15.0\%, and 5.0\%. On Qwen3-14B, they are 75.0\%, 55.0\%, 5.0\%, and 0.0\%. Because every direction removes the same amount of hidden state, this gradient cannot be explained by a generic large perturbation. The gold direction carries direction-specific behavioral importance that the controls lack, and this specificity persists as the model grows. Figure~\ref{fig:intervention}a shows these rates.
+
+\subsection{Direct Logit Attribution}
+
+We located which component contributes most to the margin at the output. We used direct logit attribution \citep{elhage2021mathematical, geva2021transformer}, which attributes the margin to each layer's MLP output vector $m_\ell(x) \in \mathbb{R}^d$ through the contrast direction $w_{y^\star} - w_{y^-}$:
+\begin{equation}
+\Delta \mathrm{CIS}^{\mathrm{MLP}}_\ell = (w_{y^\star} - w_{y^-})^\top m_\ell(x) .
+\end{equation}
+Here $y^-$ is the strongest competing token defined in Section~\ref{sec:def}. The quantity measures how much the MLP output at layer $\ell$ pushes the margin toward or away from the gold answer.
+
+The final-layer MLP (layer 35 for Qwen3-8B) has the largest negative direct attribution, with a value of about $-4.55$. We report this as an attribution, not as a proven cause. Confirming a causal role for this component needs activation patching, which we leave to future work. Figure~\ref{fig:intervention}b shows the per-layer attribution.
+
+\paragraph{Component-level attribution: which component suppresses the gold signal?}
+\label{sec:components}
+To move from "decay happens" to "what causes it", we decomposed the margin change at each layer into its attention and MLP components. We run a forward pass and read off the margin before attention, after attention, and after the MLP at every layer, so that the drop attributable to attention versus the MLP is separated per layer. Across incorrect examples, the total negative contribution of the MLP is larger than that of attention (cumulative $-4.71$ vs $-3.42$), and the dominant single source is the layer-35 MLP ($-3.42$ of the total). This is the same component that direct logit attribution flags as the largest negative contributor, so two independent attribution methods agree: for incorrect examples, the suppression of the gold signal is concentrated in the late-layer MLP. By contrast, correct examples show no dominant negative component (attention $-0.52$ vs MLP $-0.51$, both near zero). The decay that defines a preservation failure is therefore not spread uniformly across the network but is driven disproportionately by the late-layer MLP.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig6_intervention.pdf}
+\caption{Behavioral intervention and component attribution. (a) Ablating the gold direction flips correct examples to wrong across all model families and scales (77\%, 76\%, 67\%, 87\%, 73\%, 40\% for Qwen3-14B, Qwen3-8B, Qwen3-4B, Qwen2.5-7B, Llama, Mistral), while a random-token control flips almost none. Under a norm-matched protocol, the gold direction flips 83.3\% (8B), 70.0\% (4B), and 75.0\% (14B), versus 38.9\%/35.0\%/55.0\% for second-best, 5.6\%/15.0\%/5.0\% for a random token, and 11.1\%/5.0\%/0.0\% for a Gaussian direction. (b) Component attribution per layer (Qwen3-8B, incorrect examples): the per-layer contribution of attention and the MLP to the margin, with the late-layer MLP (layer 35, $-3.42$) standing out as the dominant suppressor of the gold signal.}
+\label{fig:intervention}
+\end{figure}
+
+\section{InfoDyn-Bench}
+
+We release \texttt{InfoDyn-Bench}, a benchmark of layered information trajectories for LLM error analysis. Unlike prior resources that store only final-layer outputs or static activations, \texttt{InfoDyn-Bench} records, for each example, the full per-layer trajectory of the gold answer alongside derived failure labels. Table~\ref{tab:benchmark} summarizes its contents. It covers six models across three families and three tasks, and each example carries the raw and tuned-lens trajectories, a set of derived dynamics metrics, a failure-pattern label, and a decay-prediction split.
+
+\begin{table}[t]
+\centering
+\caption{Contents of \texttt{InfoDyn-Bench}. Each example stores the per-layer trajectory and derived labels; the benchmark is organized so that each downstream use case maps to a stored field.}
+\label{tab:benchmark}
+\small
+\begin{tabular}{lp{8.6cm}}
+\toprule
+\textbf{Component} & \textbf{Description} \\
+\midrule
+\textbf{Input} & Question, gold answer, aliases, generated answer, correctness label. \\
+\textbf{Trajectory} & Per-layer gold-answer log-probability ($\mathrm{CIS}$), full-vocabulary rank, margin over the competing token, under both the raw and tuned lenses. \\
+\textbf{Derived metrics} & Signal-emergence layer (SEL), peak rank, peak $\mathrm{CIS}$, dwell time, peak-to-final decay, sign-change flag, top-5 entry. \\
+\textbf{Failure label} & Per-example pattern: \texttt{Absent}, \texttt{Preservation-Failure}, \texttt{Late-Emergent}, \texttt{Decay}, \texttt{Stable}. \\
+\textbf{Prediction split} & $t_0$ prefix features, the $y^{\mathrm{decay}}$ label (does the signal decay in the second half?), and final correctness. \\
+\textbf{Coverage} & 6 models (Qwen3-4B/8B/14B, Qwen2.5-7B, Llama-3.1-8B, Mistral-7B) $\times$ 3 tasks (TriviaQA, HotpotQA, GSM8K). \\
+\bottomrule
 \end{tabular}
-\egroup
-\vspace{0.25cm}
+\end{table}
 
-\centerline{\bf Functions}
-\bgroup
-\def\arraystretch{1.5}
-\begin{tabular}{p{1.25in}p{3.25in}}
-$\displaystyle f: \sA \rightarrow \sB$ & The function $f$ with domain $\sA$ and range $\sB$\\
-$\displaystyle f \circ g $ & Composition of the functions $f$ and $g$ \\
-  $\displaystyle f(\vx ; \vtheta) $ & A function of $\vx$ parametrized by $\vtheta$.
-  (Sometimes we write $f(\vx)$ and omit the argument $\vtheta$ to lighten notation) \\
-$\displaystyle \log x$ & Natural logarithm of $x$ \\
-$\displaystyle \sigma(x)$ & Logistic sigmoid, $\displaystyle \frac{1} {1 + \exp(-x)}$ \\
-$\displaystyle \zeta(x)$ & Softplus, $\log(1 + \exp(x))$ \\
-$\displaystyle || \vx ||_p $ & $\normlp$ norm of $\vx$ \\
-$\displaystyle || \vx || $ & $\normltwo$ norm of $\vx$ \\
-$\displaystyle x^+$ & Positive part of $x$, i.e., $\max(0,x)$\\
-$\displaystyle \1_\mathrm{condition}$ & is 1 if the condition is true, 0 otherwise\\
-\end{tabular}
-\egroup
-\vspace{0.25cm}
+The benchmark is designed to be used directly by three audiences. First, researchers studying error mechanisms can query the failure labels and per-layer trajectories to test hypotheses about formation versus preservation failures, or to locate the layer at which a gold signal is suppressed (as in Section~\ref{sec:components}). Second, researchers studying decay prediction can use the prediction split to reproduce or extend our decay-prediction and cross-task/cross-model transfer results without re-running the models. Third, researchers building intervention or probing methods can use the derived metrics and labels to select intervention candidates and to measure whether a method changes the failure pattern. Because the trajectories, labels, and splits are stored together and are shared across six models, the benchmark supports the measurement-and-prediction pipeline as a single resource rather than as scattered supplementary files. We include a dataset card with the storage format, licenses, and reproduction scripts.
 
+\section{Discussion and Limitations}
 
+\paragraph{What does "the model knows" mean?}
+Competitive decodability is an operational sign of output readiness, not a complete definition of knowledge. We do not equate a top-5 rank with knowledge.
 
-\section{Final instructions}
-Do not change any aspects of the formatting parameters in the style files.
-In particular, do not modify the width or length of the rectangle the text
-should fit into, and do not change font sizes (except perhaps in the
-\textsc{References} section; see below). Please note that pages should be
-numbered.
+\paragraph{Different failures call for different interventions.}
+Formation failures may need retrieval, reasoning correction, or knowledge editing \citep{meng2022rome}. Preservation failures may suit late-layer steering \citep{turner2023activation, zou2023representation}. Reasoning-state failures need tracking intermediate variables. Even though preservation failures are a minority of errors, identifying them is still informative: they are the errors where a correct-answer signal was present at an intermediate layer and subsequently lost, so they are a candidate target for interventions that retain rather than inject knowledge. We leave a causal demonstration of such interventions to future work.
 
-\section{Preparing PostScript or PDF files}
+\paragraph{Why do trajectories predict?}
+We conjecture that the slope reflects signal stability, the early peak reflects formation speed, and the fluctuation reflects the competitive state. History therefore separates a transient fluctuation from a stable formation better than a single snapshot.
 
-Please prepare PostScript or PDF files with paper size ``US Letter'', and
-not, for example, ``A4''. The -t
-letter option on dvips will produce US Letter files.
+\paragraph{Limitations.}
+The margin is an operational proxy, not knowledge itself. Tracking only the final-answer token does not fully describe multi-step reasoning, as in GSM8K. Multi-token answers remain harder to measure. The tuned lens may itself carry probe bias. The competitive-decay taxonomy depends on a competitiveness threshold, although we show the rate changes slowly with that threshold. The gold-direction ablation shows directional specificity under a norm-matched control, but it still does not prove that an information-preservation mechanism is causally responsible for decay, and it does not fully isolate a single causal pathway. Direct logit attribution is not a complete causal mechanism. Our scale analysis covers models from 4B to 14B parameters across three families, but we have not tested very large or reasoning-specialized models, so we do not claim generality beyond this range.
 
-Consider directly generating PDF files using \verb+pdflatex+
-(especially if you are a MiKTeX user).
-PDF figures must be substituted for EPS figures, however.
+\section{Conclusion}
 
-Otherwise, please generate your PostScript and PDF files with the following commands:
-\begin{verbatim}
-dvips mypaper.dvi -t letter -Ppdf -G0 -o mypaper.ps
-ps2pdf mypaper.ps mypaper.pdf
-\end{verbatim}
-
-\subsection{Margins in LaTeX}
-
-Most of the margin problems come from figures positioned by hand using
-\verb+\special+ or other commands. We suggest using the command
-\verb+\includegraphics+
-from the graphicx package. Always specify the figure width as a multiple of
-the line width as in the example below using .eps graphics
-\begin{verbatim}
-   \usepackage[dvips]{graphicx} ...
-   \includegraphics[width=0.8\linewidth]{myfile.eps}
-\end{verbatim}
-or % Apr 2009 addition
-\begin{verbatim}
-   \usepackage[pdftex]{graphicx} ...
-   \includegraphics[width=0.8\linewidth]{myfile.pdf}
-\end{verbatim}
-for .pdf graphics.
-See section~4.4 in the graphics bundle documentation (\url{http://www.ctan.org/tex-archive/macros/latex/required/graphics/grfguide.ps})
-
-A number of width problems arise when LaTeX cannot properly hyphenate a
-line. Please give LaTeX hyphenation hints using the \verb+\-+ command.
-
-\subsection*{AI use statement}
-
-(This section is \textbf{required} and does not count toward the page limit.)
-
-In this work, we used generative AI tools for [tasks with required disclosure].
-We have not used generative AI tools for [other tasks with required disclosure],
-and [the rest of the required disclosure tasks] are not applicable to this work.
-Additionally, we used generative AI tools for [tasks with recommended
-disclosure]. We have reviewed all AI-assisted work. [Elaborate. For example, “we
-checked LLM-generated research ideas for potential plagiarism through a manual
-literature survey”, “LLM-generated code was verified and tested for correctness
-by 2 authors”, etc.]. We take responsibility for the final content of this work,
-including text, claims or artifacts produced with the aid of generative AI.
-
-See the ICLR 2027 AI Policy for Authors for more details. This statement should
-not be more than 1 page.
-
-\subsection*{Ethics statement}
-
-(This section is \textbf{recommended} and does not count toward the page limit.)
-
-If authors feel that their paper submission raises questions regarding the Code
-of Ethics, they are encouraged to include a paragraph of Ethics Statement (at
-the end of the main text before references) to address potential concerns where
-appropriate. Topics include, but are not limited to, studies that involve human
-subjects, practices to data set releases, potentially harmful insights,
-methodologies and applications, potential conflicts of interest and sponsorship,
-discrimination/bias/fairness concerns, privacy and security issues, legal
-compliance, and research integrity issues (e.g., IRB, documentation, research
-ethics). This statement should not be more than 1 page.
-
-\subsection*{Reproducibility statement}
-
-(This section is \textbf{recommended} and does not count toward the page limit.)
-
-It is important that the work published in ICLR is reproducible. Authors are
-strongly encouraged to include a paragraph-long Reproducibility Statement at the
-end of the main text (before references) to discuss the efforts that have been
-made to ensure reproducibility. This paragraph should not itself describe
-details needed for reproducing the results, but rather reference the parts of
-the main paper, appendix, and supplemental materials that will help with
-reproducibility. For example, for novel models or algorithms, a link to an
-anonymous downloadable source code can be submitted as supplementary materials;
-for theoretical results, clear explanations of any assumptions and a complete
-proof of the claims can be included in the appendix; for any datasets used in
-the experiments, a complete description of the data processing steps can be
-provided in the supplementary materials. Each of the above are examples of
-things that can be referenced in the reproducibility statement.
-
-\subsubsection*{Author Contributions}
-If you'd like to, you may include  a section for author contributions as is done
-in many journals. This is optional and at the discretion of the authors.
-
-\subsubsection*{Acknowledgments}
-Use unnumbered third level headings for the acknowledgments. All
-acknowledgments, including those to funding agencies, go at the end of the paper.
-
+We showed that the same final error can come from different internal dynamics: a correct-answer signal that never forms, or one that forms and then decays. Naive pairwise logit crossings overstate the second case because of endpoint selection and readout biases. After calibration, a small and task-dependent preservation-failure regime emerges, concentrated in knowledge QA. Calibrated information trajectories identify this regime and give transferable signals for predicting future decay across tasks and model families. We release \texttt{InfoDyn-Bench} to support further study of process-level error diagnosis in language models.
 
 \bibliography{iclr2027_conference}
 \bibliographystyle{iclr2027_conference}
-
-\appendix
-\section{Appendix}
-You may include other additional sections here.
-
 
 \end{document}
