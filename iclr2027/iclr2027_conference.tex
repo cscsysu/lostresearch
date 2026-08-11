@@ -149,7 +149,7 @@ We define four operational categories under our measurement framework. They desc
 \section{Experimental Setup}
 
 \subsection{Models and Tasks}
-We evaluate three open-weight instruction-tuned model families spanning several scales: Qwen3-14B, Qwen3-8B, Qwen3-4B, and Qwen2.5-7B for scale variation within Qwen, plus Llama-3.1-8B \citep{dubey2024llama} and Mistral-7B-Instruct-v0.3 \citep{jiang2023mistral}. We use three tasks: TriviaQA \citep{joshi2017triviaqa} for fact QA, HotpotQA \citep{yang2018hotpotqa} for multi-hop QA, and GSM8K \citep{cobbe2021gsm8k} for math reasoning. All models are decoded greedily (temperature 0, no sampling) with the instruction prompt ``Answer with just the answer.'' and a maximum generation length of 32 tokens. For Qwen3 models, thinking mode is disabled. The gold token tracked is the first token of the primary answer string after tokenization; for TriviaQA we use the canonical answer value. Hidden states are extracted at the last prompt-token position before generation begins.
+We evaluate three open-weight instruction-tuned model families spanning several scales: Qwen3-14B, Qwen3-8B, Qwen3-4B, and Qwen2.5-7B for scale variation within Qwen, plus Llama-3.1-8B \citep{dubey2024llama} and Mistral-7B-Instruct-v0.3 \citep{jiang2023mistral}. We use three tasks: TriviaQA \citep{joshi2017triviaqa} for fact QA, HotpotQA \citep{yang2018hotpotqa} for multi-hop QA, and GSM8K \citep{cobbe2021gsm8k} for math reasoning.
 
 \subsection{Answer Extraction}
 We judge correctness by exact substring matching after lower-casing. For numeric answers we strip commas and percent signs and compare numerically with a small tolerance. For TriviaQA, where several aliases are valid, a match against any alias counts as correct.
