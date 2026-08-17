@@ -97,34 +97,41 @@ def main():
     def get_gold_rank_with_ablation(sample, ablate_mlp=False):
         """Forward pass, optionally ablating the target layer's MLP output.
         
-        Instead of zeroing the entire MLP (too destructive), we only remove
-        the component of the MLP output that pushes AGAINST the gold token.
-        Specifically, we project out the negative component along the
-        gold unembedding direction: if the MLP pushes against gold, remove
-        that push; if it helps gold, keep it.
+        We remove the component of MLP output along the gold-vs-competitor
+        contrast direction (w_gold - w_competitor). This is the direction
+        that DLA identifies as the main contributor to margin change.
+        By removing it, we test whether this specific directional component
+        of the MLP is causally responsible for the gold signal's fate.
         """
         input_ids = torch.tensor([sample["prompt_ids"]], dtype=torch.long, device=device)
         gold_token = sample["primary_answer_ids"][0]
+        # Get competitor (generated token)
+        sid = sample["id"]
+        gen_token = gold_token  # fallback
+        if sid in existing:
+            gen_text = existing[sid].get("generated", "")
+            if gen_text:
+                gen_ids = tokenizer.encode(gen_text, add_special_tokens=False)
+                if gen_ids:
+                    gen_token = gen_ids[0]
 
         hook_handle = None
         if ablate_mlp:
             target_mlp = layers[target_layer].mlp
-            # Get gold unembedding direction
-            gold_dir = unembed[gold_token].to(device).float()
-            gold_dir = gold_dir / gold_dir.norm()
+            # Contrast direction: w_gold - w_competitor (same as DLA)
+            contrast_dir = (unembed[gold_token] - unembed[gen_token]).to(device).float()
+            contrast_dir = contrast_dir / contrast_dir.norm()
 
-            def selective_mlp_hook(module, input, output):
-                # Only remove the component that hurts gold
+            def directional_ablation_hook(module, input, output):
+                # Remove the contrast-direction component from MLP output
                 out = output.clone()
-                last_pos = out[0, -1, :]  # last token position
-                # Project MLP output onto gold direction
-                proj = (last_pos.float() @ gold_dir) * gold_dir
-                # If projection is negative (hurting gold), remove it
-                if last_pos.float() @ gold_dir < 0:
-                    out[0, -1, :] = (last_pos.float() - proj).to(out.dtype)
+                mlp_vec = out[0, -1, :].float()
+                # Project out the contrast direction
+                proj = (mlp_vec @ contrast_dir) * contrast_dir
+                out[0, -1, :] = (mlp_vec - proj).to(out.dtype)
                 return out
 
-            hook_handle = target_mlp.register_forward_hook(selective_mlp_hook)
+            hook_handle = target_mlp.register_forward_hook(directional_ablation_hook)
 
         with torch.no_grad():
             outputs = model(input_ids, use_cache=False)
