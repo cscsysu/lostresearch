@@ -170,7 +170,7 @@ def main():
     n_eval = min(args.n, len(matched_pairs))
     records = []
 
-    for p_meta, f_meta in tqdm(matched_pairs[:n_eval], desc="Matched pairs"):
+    for pair_idx, (p_meta, f_meta) in enumerate(tqdm(matched_pairs[:n_eval], desc="Matched pairs")):
         for meta, is_pres in [(p_meta, True), (f_meta, False)]:
             sid = meta["id"]
             if sid not in prep_map:
@@ -182,7 +182,7 @@ def main():
                 pres_recovered += int(rec)
             else:
                 form_recovered += int(rec)
-            records.append({"id": sid, "is_pres": is_pres,
+            records.append({"id": sid, "is_pres": is_pres, "pair_id": pair_idx,
                             "final_rank": meta["final_rank"],
                             "peak_layer": meta["peak_layer"],
                             "recovered": rec})
@@ -198,12 +198,63 @@ def main():
     else:
         print(f"  Ratio: preservation-exclusive (formation=0)")
 
+    # ---- Significance testing ----
+    # Rebuild pairs by pair_id so that any skipped side does not misalign them.
+    by_pair = {}
+    for r in records:
+        by_pair.setdefault(r["pair_id"], {})[r["is_pres"]] = r["recovered"]
+    pairs = [(v[True], v[False]) for v in by_pair.values()
+             if True in v and False in v]
+    b = sum(1 for p, f in pairs if p and not f)   # pres recovers, form doesn't
+    c = sum(1 for p, f in pairs if f and not p)   # form recovers, pres doesn't
+    n_complete = len(pairs)
+    try:
+        from scipy.stats import fisher_exact
+        try:
+            from scipy.stats import binomtest
+            mc_p = binomtest(b, b + c, 0.5).pvalue if (b + c) > 0 else 1.0
+        except ImportError:
+            from scipy.stats import binom_test  # older scipy
+            mc_p = binom_test(b, b + c, 0.5) if (b + c) > 0 else 1.0
+        # Fisher exact on the 2x2 recovery table
+        table = [[pres_recovered, n_eval - pres_recovered],
+                 [form_recovered, n_eval - form_recovered]]
+        _, fisher_p = fisher_exact(table, alternative="greater")
+    except Exception as e:
+        mc_p, fisher_p = None, None
+        print(f"  (scipy unavailable: {e})")
+
+    # Bootstrap 95% CI on the recovery-rate difference (paired resample)
+    rng_bs = np.random.default_rng(0)
+    diffs = []
+    npair = len(pairs)
+    if npair > 0:
+        arr = np.array(pairs, dtype=float)
+        for _ in range(5000):
+            idx = rng_bs.integers(0, npair, npair)
+            s = arr[idx]
+            diffs.append(s[:, 0].mean() - s[:, 1].mean())
+        ci_lo, ci_hi = np.percentile(diffs, [2.5, 97.5])
+    else:
+        ci_lo = ci_hi = 0.0
+
+    print(f"\n  Discordant pairs: pres-only={b}, form-only={c}")
+    if mc_p is not None:
+        print(f"  McNemar exact p (paired) = {mc_p:.4f}")
+        print(f"  Fisher exact p (one-sided, pres>form) = {fisher_p:.4f}")
+    print(f"  Bootstrap 95% CI on rate difference (pres-form): "
+          f"[{100*ci_lo:.1f}%, {100*ci_hi:.1f}%]")
+
     out_file = os.path.join(config.DATA_DIR, "matched_rank_intervention_Qwen3-8B.json")
     with open(out_file, "w") as f_out:
         json.dump({
             "n_pairs": n_eval, "alpha": args.alpha,
             "rank_tolerance": args.rank_tolerance,
+            "form_min_peak": args.form_min_peak,
             "pres_recovered": pres_recovered, "form_recovered": form_recovered,
+            "discordant_pres_only": b, "discordant_form_only": c,
+            "mcnemar_p": mc_p, "fisher_p": fisher_p,
+            "diff_ci_lo": float(ci_lo), "diff_ci_hi": float(ci_hi),
             "pres_final_ranks": pres_ranks[:n_eval],
             "form_final_ranks": form_ranks[:n_eval],
             "records": records,

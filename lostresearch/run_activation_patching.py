@@ -242,11 +242,34 @@ def main():
           f"{100*pr:.1f}% vs {100*nr:.1f}%"
           + (f"  ({pr/nr:.1f}x)" if nr > 0 else "  (null=0)"))
 
+    # ---- Significance testing on NET recovery (2x2 Fisher exact) ----
+    def elig(r):
+        return max(r["n"] - r["base_top1"], 0)
+
+    fisher_gf = fisher_pn = None
+    try:
+        from scipy.stats import fisher_exact
+        # preservation-gold vs formation-gold
+        t1 = [[pres_gold["net_recovered"], elig(pres_gold) - pres_gold["net_recovered"]],
+              [form_gold["net_recovered"], elig(form_gold) - form_gold["net_recovered"]]]
+        _, fisher_gf = fisher_exact(t1, alternative="greater")
+        # preservation-gold vs preservation-null (paired samples, same items;
+        # Fisher is conservative here but reported as a sanity check)
+        t2 = [[pres_gold["net_recovered"], elig(pres_gold) - pres_gold["net_recovered"]],
+              [pres_null["net_recovered"], elig(pres_null) - pres_null["net_recovered"]]]
+        _, fisher_pn = fisher_exact(t2, alternative="greater")
+        print(f"\n  Fisher exact p (pres-gold > form-gold) = {fisher_gf:.4f}")
+        print(f"  Fisher exact p (pres-gold > pres-null) = {fisher_pn:.4f}")
+    except Exception as e:
+        print(f"  (scipy unavailable: {e})")
+
     out_file = os.path.join(config.DATA_DIR, "activation_patching_Qwen3-8B.json")
     with open(out_file, "w") as f:
         json.dump({"beta": args.beta,
                    "pres_gold": pres_gold, "form_gold": form_gold,
-                   "pres_null": pres_null}, f, indent=2)
+                   "pres_null": pres_null,
+                   "fisher_p_gold_vs_form": fisher_gf,
+                   "fisher_p_gold_vs_null": fisher_pn}, f, indent=2)
     print(f"\nSaved: {out_file}")
 
 
