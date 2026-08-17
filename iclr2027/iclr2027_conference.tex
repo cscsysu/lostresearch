@@ -226,17 +226,19 @@ Crucially, this 8.9\% preservation-failure rate is not a probe artifact. Because
 \subsection{Failure Taxonomy Is Task-Dependent and Robust to Thresholds}
 \label{sec:taskdecay}
 
-\paragraph{Task dependence: Preservation failures concentrate in knowledge and science tasks.}
-As detailed in Table~\ref{tab:taskdecay} and Figure~\ref{fig:taxonomy}, preservation failures are highly task-dependent. On single-hop factual recall (TriviaQA) and multi-hop entity QA (HotpotQA), the signal-loss rate (gold entering top-5 at an intermediate layer but falling below rank 10 at the final layer) reaches 28.5\% and 25.3\% respectively. Science reasoning (ARC-Challenge) shows a similar rate of 23.6\%, while commonsense reasoning (CommonsenseQA) is lower at 11.8\%, and mathematical reasoning (GSM8K) is lowest at 5.2\%. This gradient from knowledge-intensive tasks (highest) through reasoning tasks (intermediate) to mathematical computation (lowest) suggests that preservation failures are most prevalent when the model possesses the relevant factual association but fails to maintain it through late-layer computation.
+\paragraph{Task dependence: Preservation failures vary widely across reasoning scenarios.}
+As detailed in Table~\ref{tab:taskdecay}, preservation failures are highly task-dependent, spanning a wide range from 5\% to 45\% across seven tasks. Long-context reading comprehension (QuALITY) shows the highest rate at 45.2\%, suggesting that correct signals formed during context processing are particularly vulnerable to being overwritten by subsequent computation in deep networks. World knowledge (MMLU) and single-hop factual recall (TriviaQA) follow at 35.9\% and 28.5\%. Science and multi-hop reasoning (ARC-Challenge, HotpotQA) show intermediate rates around 24--25\%. Commonsense reasoning (CommonsenseQA) is markedly lower at 11.8\%, and mathematical reasoning (GSM8K) is lowest at 5.2\%. This gradient reveals a clear pattern: tasks requiring factual retrieval or long-context integration exhibit the highest preservation-failure rates, while tasks requiring multi-step procedural computation exhibit the lowest, consistent with our interpretation that preservation failures arise when the model forms a correct factual association but fails to maintain it through late-layer computation.
 
 \begin{table}[t]
 \centering
-\caption{Signal-loss rate (preservation failure) by task on Qwen3-8B. Measured as the fraction of errors where the gold token enters top-5 at some intermediate layer but drops below rank 10 at the final layer.}
+\caption{Signal-loss rate (preservation failure) by task on Qwen3-8B, measured as the fraction of errors where the gold token enters top-5 at some intermediate layer but drops below rank 10 at the final layer. Tasks are ordered by signal-loss rate.}
 \label{tab:taskdecay}
 \begin{tabular}{lccc}
 \toprule
 \textbf{Task} & \textbf{Type} & \textbf{Total Errors} & \textbf{Signal-Loss Rate} \\
 \midrule
+QuALITY & Long-context comprehension & 199 & 45.2\% \\
+MMLU & World knowledge (multi-subject) & 167 & 35.9\% \\
 TriviaQA & Knowledge QA & 284 & 28.5\% \\
 HotpotQA & Multi-hop QA & 190 & 25.3\% \\
 ARC-Challenge & Science reasoning & 229 & 23.6\% \\
