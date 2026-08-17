@@ -95,21 +95,36 @@ def main():
 
     # For each sample: run with and without MLP ablation, compare gold rank
     def get_gold_rank_with_ablation(sample, ablate_mlp=False):
-        """Forward pass, optionally zeroing out the target layer's MLP output.
-        Returns gold token rank at final layer."""
+        """Forward pass, optionally ablating the target layer's MLP output.
+        
+        Instead of zeroing the entire MLP (too destructive), we only remove
+        the component of the MLP output that pushes AGAINST the gold token.
+        Specifically, we project out the negative component along the
+        gold unembedding direction: if the MLP pushes against gold, remove
+        that push; if it helps gold, keep it.
+        """
         input_ids = torch.tensor([sample["prompt_ids"]], dtype=torch.long, device=device)
         gold_token = sample["primary_answer_ids"][0]
 
         hook_handle = None
         if ablate_mlp:
-            # Hook the MLP of target layer to zero its output
             target_mlp = layers[target_layer].mlp
+            # Get gold unembedding direction
+            gold_dir = unembed[gold_token].to(device).float()
+            gold_dir = gold_dir / gold_dir.norm()
 
-            def zero_mlp_hook(module, input, output):
-                # Zero out the MLP contribution (effectively removing it from residual)
-                return torch.zeros_like(output)
+            def selective_mlp_hook(module, input, output):
+                # Only remove the component that hurts gold
+                out = output.clone()
+                last_pos = out[0, -1, :]  # last token position
+                # Project MLP output onto gold direction
+                proj = (last_pos.float() @ gold_dir) * gold_dir
+                # If projection is negative (hurting gold), remove it
+                if last_pos.float() @ gold_dir < 0:
+                    out[0, -1, :] = (last_pos.float() - proj).to(out.dtype)
+                return out
 
-            hook_handle = target_mlp.register_forward_hook(zero_mlp_hook)
+            hook_handle = target_mlp.register_forward_hook(selective_mlp_hook)
 
         with torch.no_grad():
             outputs = model(input_ids, use_cache=False)
