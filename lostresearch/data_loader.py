@@ -153,6 +153,81 @@ def load_arc_challenge(n: int) -> List[Dict]:
     return samples
 
 
+def load_quality(n: int) -> List[Dict]:
+    """Load QuALITY (long-context reading comprehension, multiple-choice)."""
+    ds = load_dataset("emozilla/quality", split="validation")
+    samples = []
+    for i, item in enumerate(ds):
+        if i >= n: break
+        # QuALITY has article + question + options
+        question = item.get("question", "").strip()
+        article = item.get("article", "")
+        options = item.get("options", [])
+        gold_idx = item.get("gold_label", 0)
+        if not options or gold_idx >= len(options):
+            continue
+        answer = options[gold_idx].strip()
+        # Truncate article to keep prompt manageable
+        article_short = article[:1500] if len(article) > 1500 else article
+        full_question = f"Based on the passage: {article_short}\n\nQuestion: {question}"
+        samples.append({
+            "id": f"quality_{i:04d}",
+            "question": full_question,
+            "answer": answer,
+            "aliases": [answer],
+            "task": "quality",
+        })
+    return samples
+
+
+def load_mmlu(n: int, subjects=None) -> List[Dict]:
+    """Load MMLU (massive multitask, multiple-choice knowledge/reasoning).
+    
+    Uses a subset of subjects for diversity. Default subjects cover:
+    - humanities (philosophy)
+    - social science (economics)  
+    - STEM (physics)
+    - other (professional law)
+    """
+    if subjects is None:
+        subjects = ["abstract_algebra", "high_school_physics",
+                    "professional_medicine", "philosophy"]
+    samples = []
+    idx = 0
+    for subject in subjects:
+        try:
+            ds = load_dataset("cais/mmlu", subject, split="test")
+        except Exception:
+            try:
+                ds = load_dataset("lukaemon/mmlu", subject, split="test")
+            except Exception:
+                print(f"    Skipping MMLU subject: {subject}")
+                continue
+        per_subject = n // len(subjects)
+        for i, item in enumerate(ds):
+            if i >= per_subject:
+                break
+            question = item["question"].strip()
+            choices = item["choices"]
+            answer_idx = item["answer"]
+            if isinstance(answer_idx, int) and answer_idx < len(choices):
+                answer = choices[answer_idx].strip()
+            elif isinstance(answer_idx, str) and answer_idx in "ABCD":
+                aidx = "ABCD".index(answer_idx)
+                answer = choices[aidx].strip() if aidx < len(choices) else choices[0].strip()
+            else:
+                continue
+            samples.append({
+                "id": f"mmlu_{idx:04d}",
+                "question": question,
+                "answer": answer,
+                "aliases": [answer],
+                "task": "mmlu",
+            })
+            idx += 1
+    return samples[:n]
+
+
 def load_all_datasets() -> List[Dict]:
     """加载所有数据集."""
     all_samples = []
@@ -171,6 +246,10 @@ def load_all_datasets() -> List[Dict]:
                 samples = load_commonsenseqa(n)
             elif label == "arc_challenge":
                 samples = load_arc_challenge(n)
+            elif label == "quality":
+                samples = load_quality(n)
+            elif label == "mmlu":
+                samples = load_mmlu(n)
             else:
                 continue
             all_samples.extend(samples)

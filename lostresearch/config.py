@@ -14,7 +14,7 @@ DTYPE = "bfloat16"
 ENABLE_THINKING = False
 
 # ============ 数据 ============
-# 正式规模: TriviaQA 500 + HotpotQA 250 + GSM8K 250 + CommonsenseQA 250 + ARC 250 = 1500
+# 正式规模: 7 任务覆盖知识/多跳/数学/常识/科学/长文本/世界知识
 DATASETS = [
     {"name": "mandarjoshi/trivia_qa", "config": "unfiltered.nocontext",
      "split": "validation", "n": 500, "label": "triviaqa"},
@@ -26,6 +26,10 @@ DATASETS = [
      "split": "validation", "n": 250, "label": "commonsenseqa"},
     {"name": "allenai/ai2_arc", "config": "ARC-Challenge",
      "split": "test", "n": 250, "label": "arc_challenge"},
+    {"name": "emozilla/quality", "config": None,
+     "split": "validation", "n": 200, "label": "quality"},
+    {"name": "cais/mmlu", "config": None,
+     "split": "test", "n": 200, "label": "mmlu"},
 ]
 MAX_PROMPT_LEN = 512
 
