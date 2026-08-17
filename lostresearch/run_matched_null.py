@@ -29,7 +29,15 @@ import config
 
 
 def main():
+    # Try multiple paths for results file
     results_file = os.path.join(config.DATA_DIR, "full_results_Qwen3-8B.json")
+    if not os.path.exists(results_file):
+        alt_path = os.path.join(os.path.dirname(config.BASE_DIR), "lost-output", "outputs", "data", "full_results_Qwen3-8B.json")
+        if os.path.exists(alt_path):
+            results_file = alt_path
+        else:
+            print(f"ERROR: Cannot find results file at {results_file} or {alt_path}")
+            return
     with open(results_file) as f:
         all_results = json.load(f)
 
