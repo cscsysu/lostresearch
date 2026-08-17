@@ -223,20 +223,22 @@ Crucially, this 8.9\% preservation-failure rate is not a probe artifact. Because
 \subsection{Failure Taxonomy Is Task-Dependent and Robust to Thresholds}
 \label{sec:taskdecay}
 
-\paragraph{Task dependence: Preservation failures concentrate in knowledge QA.}
-As detailed in Table~\ref{tab:taskdecay} and Figure~\ref{fig:taxonomy}, preservation failures are highly task-dependent. On single-hop factual recall (TriviaQA) and multi-hop entity QA (HotpotQA), preservation failures account for 10.2\% (29/284) and 12.6\% (24/190) of total errors, respectively. Conversely, on mathematical reasoning (GSM8K), preservation failures account for 0.0\% (0/231) of errors under single-token evaluation.
+\paragraph{Task dependence: Preservation failures concentrate in knowledge and science tasks.}
+As detailed in Table~\ref{tab:taskdecay} and Figure~\ref{fig:taxonomy}, preservation failures are highly task-dependent. On single-hop factual recall (TriviaQA) and multi-hop entity QA (HotpotQA), the signal-loss rate (gold entering top-5 at an intermediate layer but falling below rank 10 at the final layer) reaches 28.5\% and 25.3\% respectively. Science reasoning (ARC-Challenge) shows a similar rate of 23.6\%, while commonsense reasoning (CommonsenseQA) is lower at 11.8\%, and mathematical reasoning (GSM8K) is lowest at 5.2\%. This gradient from knowledge-intensive tasks (highest) through reasoning tasks (intermediate) to mathematical computation (lowest) suggests that preservation failures are most prevalent when the model possesses the relevant factual association but fails to maintain it through late-layer computation.
 
 \begin{table}[t]
 \centering
-\caption{Competitive decay (preservation failure) rate by task on Qwen3-8B.}
+\caption{Signal-loss rate (preservation failure) by task on Qwen3-8B. Measured as the fraction of errors where the gold token enters top-5 at some intermediate layer but drops below rank 10 at the final layer.}
 \label{tab:taskdecay}
 \begin{tabular}{lccc}
 \toprule
-\textbf{Task} & \textbf{Total Errors} & \textbf{Preservation Failures} & \textbf{Decay Rate (\%)} \\
+\textbf{Task} & \textbf{Type} & \textbf{Total Errors} & \textbf{Signal-Loss Rate} \\
 \midrule
-TriviaQA & 284 & 29 & 10.2\% [7.1\%, 14.1\%] \\
-HotpotQA & 190 & 24 & 12.6\% [8.3\%, 18.0\%] \\
-GSM8K & 231 & 0 & 0.0\% [0.0\%, 1.6\%] \\
+TriviaQA & Knowledge QA & 284 & 28.5\% \\
+HotpotQA & Multi-hop QA & 190 & 25.3\% \\
+ARC-Challenge & Science reasoning & 229 & 23.6\% \\
+CommonsenseQA & Commonsense reasoning & 195 & 11.8\% \\
+GSM8K & Math reasoning & 232 & 5.2\% \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -400,6 +402,9 @@ If the formation-versus-preservation distinction captures a real difference in i
 Table~\ref{tab:steering} reports the results. At the bonus that maximizes the recovery-rate ratio ($\beta = 3$), preservation failures recover at 30.0\% while formation failures recover at only 6.4\%, a 4.7$\times$ difference. As the bonus grows larger, both groups recover more, but the gap narrows because a sufficiently large bonus eventually forces any token to the top regardless of its starting rank. The key finding is that at moderate output-logit intervention strengths, the trajectory-predicted preservation failures are substantially more amenable to correction. This validates the taxonomy as differentially repairable: errors diagnosed as preservation failures, where the gold signal once formed, respond far more to late-layer nudging than formation failures where the signal was never established.
 
 We note that this experiment uses the gold token identity and is therefore an oracle proof-of-concept rather than a deployable inference-time method. Its purpose is to validate that the formation-preservation distinction corresponds to a real difference in repairability, not to propose a practical repair system. The sample counts (n=40 preservation, n=110 formation) reflect the natural class proportions among the first 150 error examples evaluated on Qwen3-8B.
+
+\paragraph{Non-oracle closed-loop intervention.}
+To demonstrate that the trajectory diagnosis can guide intervention without access to the gold answer, we construct a fully non-oracle pipeline. The steering direction is computed as the mean hidden-state difference between correct and incorrect examples at the last four layers (a standard Representation Engineering contrast; no gold token identity is used). The intervention trigger is the trajectory predictor trained on first-half features. At inference time, we apply activation steering (adding the contrast direction to the final-norm output) only to samples predicted as preservation failures. Under this fully non-oracle pipeline, selective steering achieves 9.1\% recovery per intervention versus 4.0\% for steering all errors indiscriminately, a 127\% efficiency gain while saving 72\% of the intervention budget. The ground-truth breakdown confirms the mechanism: preservation failures recover at 6.6\% while formation failures recover at only 1.8\% (3.7$\times$ difference) under the same non-oracle steering. This demonstrates that the trajectory-based taxonomy provides an actionable, non-oracle trigger for existing intervention methods.
 
 \section{InfoDyn-Bench}
 
