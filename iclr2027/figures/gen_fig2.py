@@ -98,15 +98,15 @@ plt.rcParams.update({
 fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.2))
 fig.subplots_adjust(left=0.08, right=0.96, top=0.88, bottom=0.18, wspace=0.28)
 
-# === Left: observed vs null sign-reversal rate ===
+# === Left: observed vs random-competitor null crossing rate ===
 ax = axes[0]
-labels = ["Observed\n(pairwise)", "Endpoint-\nconditioned null"]
-rates = [88.2, 88.5]
+labels = ["Observed\n(gold vs final\ncompetitor)", "Random-\ncompetitor null"]
+rates = [92, 99]
 colors = ["#C0392B", "#5DADE2"]
 bars = ax.bar(labels, rates, color=colors, edgecolor="black", linewidth=0.8, width=0.52)
-ax.set_ylim(0, 108)
-ax.set_ylabel("Sign-reversal rate (%)")
-ax.set_title("(a) Pairwise sign reversal", loc="left", fontweight="bold")
+ax.set_ylim(0, 115)
+ax.set_ylabel("Crossing rate (%)")
+ax.set_title("(a) Pairwise crossing is trivially weak", loc="left", fontweight="bold")
 ax.set_yticks([0, 25, 50, 75, 100])
 ax.grid(axis="y", alpha=0.2)
 
