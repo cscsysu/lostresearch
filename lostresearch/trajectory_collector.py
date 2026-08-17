@@ -152,6 +152,7 @@ class TrajectoryCollector:
         # 对每层计算: correct (max over aliases), generated, CIS
         correct_logprob_per_layer = []
         correct_rank_per_layer = []
+        multitoken_rank_per_layer = []  # best rank across all answer tokens
         generated_logprob_per_layer = []
         generated_rank_per_layer = []
         cis_per_layer = []  # CIS = correct - generated
@@ -164,6 +165,7 @@ class TrajectoryCollector:
             # 1. Correct: 对所有 aliases 取 max
             best_correct_lp = -1e9
             best_correct_rank = 999999
+            best_multitoken_rank = 999999  # best rank across ALL tokens of ALL aliases
             for alias_ids in answer_token_ids:
                 if len(alias_ids) == 0:
                     continue
@@ -173,6 +175,12 @@ class TrajectoryCollector:
                     best_correct_lp = lp
                     best_correct_rank = compute_rank_with_logit_lens(
                         hidden_seq, alias_ids[0], self.final_norm, self.unembed, last_prompt_pos)
+                # Multi-token: check rank of EVERY token in this alias
+                for tok in alias_ids:
+                    tok_rank = compute_rank_with_logit_lens(
+                        hidden_seq, tok, self.final_norm, self.unembed, last_prompt_pos)
+                    if tok_rank < best_multitoken_rank:
+                        best_multitoken_rank = tok_rank
 
             # 2. Generated: 生成答案的首 token
             if gen_first_token >= 0:
@@ -193,6 +201,7 @@ class TrajectoryCollector:
 
             correct_logprob_per_layer.append(best_correct_lp)
             correct_rank_per_layer.append(best_correct_rank)
+            multitoken_rank_per_layer.append(best_multitoken_rank)
             generated_logprob_per_layer.append(gen_lp)
             generated_rank_per_layer.append(gen_rank)
             cis_per_layer.append(cis)
@@ -201,6 +210,7 @@ class TrajectoryCollector:
         return {
             "correct_logprob": correct_logprob_per_layer,
             "correct_rank": correct_rank_per_layer,
+            "multitoken_best_rank": multitoken_rank_per_layer,
             "generated_logprob": generated_logprob_per_layer,
             "generated_rank": generated_rank_per_layer,
             "cis": cis_per_layer,  # correct - generated

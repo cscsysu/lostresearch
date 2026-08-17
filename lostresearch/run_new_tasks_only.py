@@ -94,6 +94,7 @@ def main():
                 "final_correct": correct,
                 "correct_logprob": traj["correct_logprob"],
                 "correct_rank": traj["correct_rank"],
+                "multitoken_best_rank": traj.get("multitoken_best_rank", traj["correct_rank"]),
                 "cis": traj["cis"],
                 "num_layers": traj["num_layers"],
             })

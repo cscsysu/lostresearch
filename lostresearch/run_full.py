@@ -121,6 +121,7 @@ def main():
                 "num_layers": traj["num_layers"],
                 "correct_logprob": traj["correct_logprob"],
                 "correct_rank": traj["correct_rank"],
+                "multitoken_best_rank": traj.get("multitoken_best_rank", traj["correct_rank"]),
                 "generated_logprob": traj["generated_logprob"],
                 "generated_rank": traj["generated_rank"],
                 "cis": traj["cis"],
