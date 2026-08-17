@@ -106,6 +106,53 @@ def load_gsm8k(n: int) -> List[Dict]:
     return samples
 
 
+def load_commonsenseqa(n: int) -> List[Dict]:
+    """Load CommonsenseQA (multiple-choice commonsense reasoning)."""
+    ds = load_dataset("tau/commonsense_qa", split="validation")
+    samples = []
+    for i, item in enumerate(ds):
+        if i >= n: break
+        question = item["question"].strip()
+        # Get the correct answer text from choices
+        choices = item["choices"]
+        answer_key = item["answerKey"]
+        idx = choices["label"].index(answer_key)
+        answer = choices["text"][idx].strip()
+        samples.append({
+            "id": f"csqa_{i:04d}",
+            "question": question,
+            "answer": answer,
+            "aliases": [answer],
+            "task": "commonsenseqa",
+        })
+    return samples
+
+
+def load_arc_challenge(n: int) -> List[Dict]:
+    """Load ARC-Challenge (science reasoning, multiple-choice)."""
+    ds = load_dataset("allenai/ai2_arc", "ARC-Challenge", split="test")
+    samples = []
+    for i, item in enumerate(ds):
+        if i >= n: break
+        question = item["question"].strip()
+        choices = item["choices"]
+        answer_key = item["answerKey"]
+        # answerKey can be letter (A/B/C/D) or number (1/2/3/4)
+        if answer_key in choices["label"]:
+            idx = choices["label"].index(answer_key)
+        else:
+            continue
+        answer = choices["text"][idx].strip()
+        samples.append({
+            "id": f"arc_{i:04d}",
+            "question": question,
+            "answer": answer,
+            "aliases": [answer],
+            "task": "arc_challenge",
+        })
+    return samples
+
+
 def load_all_datasets() -> List[Dict]:
     """加载所有数据集."""
     all_samples = []
@@ -120,6 +167,10 @@ def load_all_datasets() -> List[Dict]:
                 samples = load_hotpotqa(n)
             elif label == "gsm8k":
                 samples = load_gsm8k(n)
+            elif label == "commonsenseqa":
+                samples = load_commonsenseqa(n)
+            elif label == "arc_challenge":
+                samples = load_arc_challenge(n)
             else:
                 continue
             all_samples.extend(samples)
