@@ -36,7 +36,7 @@ A large language model (LLM) can give a wrong answer for two very different inte
 
 \section{Introduction}
 
-When a language model produces a wrong answer, the final output does not reveal how the failure happened \citep{ji2023survey, huang2023survey}. The correct answer may never have become a competitive candidate within the model, or it may have emerged at an intermediate layer and then been weakened by later computation. Both paths end at the same wrong string, yet they represent distinct internal failures that suggest fundamentally different responses: a formation failure indicates insufficient model capability that requires additional training or retrieval augmentation, whereas a preservation failure indicates that the model possessed the relevant signal but lost it during late-layer computation, making it amenable to lightweight inference-time intervention. Distinguishing these two cases is therefore not merely a diagnostic curiosity but a practical deployment decision: across seven tasks, we find that the proportion of errors amenable to intervention varies from 5\% (math reasoning) to 45\% (long-context comprehension), and that selectively intervening only on predicted preservation failures improves per-intervention efficiency by 127\% while saving 72\% of the intervention budget compared to indiscriminate intervention.
+When a language model produces a wrong answer, the final output does not reveal how the failure happened \citep{ji2023survey, huang2023survey}. The correct answer may never have become a competitive candidate within the model, or it may have emerged at an intermediate layer and then been weakened by later computation. Both paths end at the same wrong string, yet they represent distinct internal failures that suggest fundamentally different responses: a formation failure indicates insufficient model capability that requires additional training or retrieval augmentation, whereas a preservation failure indicates that the model possessed the relevant signal but lost it during late-layer computation, making it amenable to lightweight inference-time intervention. Distinguishing these two cases is therefore not merely a diagnostic curiosity but a practical deployment decision: across seven tasks, we find that the proportion of errors amenable to intervention varies from 5\% (math reasoning) to 28\% (knowledge QA and long-context comprehension), and that selectively intervening only on predicted preservation failures improves per-intervention efficiency by 127\% while saving 72\% of the intervention budget compared to indiscriminate intervention.
 
 However, making this distinction reliably is surprisingly difficult. From the model's output alone, the two failure types are indistinguishable. Prior work has attempted to identify preservation-like behavior by checking whether the correct answer ever outranks the final wrong output at an intermediate layer, but we show this criterion is trivially satisfied (99\% of errors pass a random-competitor null), rendering it useless for distinguishing genuine signal formation from noise.
 
@@ -227,23 +227,23 @@ Crucially, this 8.9\% preservation-failure rate is not a probe artifact. Because
 \label{sec:taskdecay}
 
 \paragraph{Task dependence: Preservation failures vary widely across reasoning scenarios.}
-As detailed in Table~\ref{tab:taskdecay}, preservation failures are highly task-dependent, spanning a wide range from 5\% to 45\% across seven tasks. Long-context reading comprehension (QuALITY) shows the highest rate at 45.2\%, suggesting that correct signals formed during context processing are particularly vulnerable to being overwritten by subsequent computation in deep networks. World knowledge (MMLU) and single-hop factual recall (TriviaQA) follow at 35.9\% and 28.5\%. Science and multi-hop reasoning (ARC-Challenge, HotpotQA) show intermediate rates around 24--25\%. Commonsense reasoning (CommonsenseQA) is markedly lower at 11.8\%, and mathematical reasoning (GSM8K) is lowest at 5.2\%. This gradient reveals a clear pattern: tasks requiring factual retrieval or long-context integration exhibit the highest preservation-failure rates, while tasks requiring multi-step procedural computation exhibit the lowest, consistent with our interpretation that preservation failures arise when the model forms a correct factual association but fails to maintain it through late-layer computation.
+As detailed in Table~\ref{tab:taskdecay}, preservation failures are highly task-dependent, spanning a range from 5\% to 28\% across seven tasks under multi-token tracking. Knowledge QA (TriviaQA, 27.9\%), long-context comprehension (QuALITY, 27.6\%), and multi-hop reasoning (HotpotQA, 26.3\%) show the highest rates. Science reasoning (ARC-Challenge, 23.6\%) and world knowledge (MMLU, 23.4\%) are slightly lower. Commonsense reasoning (CommonsenseQA) is markedly lower at 12.2\%, and mathematical reasoning (GSM8K) is lowest at 5.2\%. This gradient reveals a clear pattern: tasks requiring factual retrieval or long-context integration exhibit the highest preservation-failure rates, while tasks requiring multi-step procedural computation exhibit the lowest, consistent with our interpretation that preservation failures arise when the model forms a correct factual association but fails to maintain it through late-layer computation.
 
 \begin{table}[t]
 \centering
-\caption{Signal-loss rate (preservation failure) by task on Qwen3-8B, measured as the fraction of errors where the gold token enters top-5 at some intermediate layer but drops below rank 10 at the final layer. Tasks are ordered by signal-loss rate.}
+\caption{Signal-loss rate (preservation failure) by task on Qwen3-8B with multi-token tracking, measured as the fraction of errors where any gold-answer token enters top-5 at some intermediate layer but drops below rank 10 at the final layer. Tasks are ordered by signal-loss rate.}
 \label{tab:taskdecay}
 \begin{tabular}{lccc}
 \toprule
 \textbf{Task} & \textbf{Type} & \textbf{Total Errors} & \textbf{Signal-Loss Rate} \\
 \midrule
-QuALITY & Long-context comprehension & 199 & 45.2\% \\
-MMLU & World knowledge (multi-subject) & 167 & 35.9\% \\
-TriviaQA & Knowledge QA & 284 & 28.5\% \\
-HotpotQA & Multi-hop QA & 190 & 25.3\% \\
+TriviaQA & Knowledge QA & 283 & 27.9\% \\
+QuALITY & Long-context comprehension & 199 & 27.6\% \\
+HotpotQA & Multi-hop QA & 190 & 26.3\% \\
 ARC-Challenge & Science reasoning & 229 & 23.6\% \\
-CommonsenseQA & Commonsense reasoning & 195 & 11.8\% \\
-GSM8K & Math reasoning & 232 & 5.2\% \\
+MMLU & World knowledge (multi-subject) & 167 & 23.4\% \\
+CommonsenseQA & Commonsense reasoning & 196 & 12.2\% \\
+GSM8K & Math reasoning & 230 & 5.2\% \\
 \bottomrule
 \end{tabular}
 \end{table}
