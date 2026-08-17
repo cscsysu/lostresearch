@@ -145,12 +145,16 @@ def main():
             hs.append(get_last_hidden(s, l))
         h_incorrect_all.append(torch.stack(hs).mean(dim=0))
 
-    # Steering direction = mean(correct) - mean(incorrect), normalized
+    # Steering direction = mean(correct) - mean(incorrect)
+    # DO NOT normalize: the raw magnitude is needed to overcome RMSNorm.
+    # The direction's natural norm reflects the actual scale difference
+    # between correct and incorrect hidden states.
     h_correct_mean = torch.stack(h_correct_all).mean(dim=0)
     h_incorrect_mean = torch.stack(h_incorrect_all).mean(dim=0)
     steering_dir = h_correct_mean - h_incorrect_mean
-    steering_dir = steering_dir / steering_dir.norm()
-    print(f"  Steering direction computed (norm=1, dim={steering_dir.shape[0]})")
+    raw_norm = steering_dir.norm().item()
+    print(f"  Steering direction computed (raw norm={raw_norm:.1f}, dim={steering_dir.shape[0]})")
+    print(f"  With alpha={args.alpha}, effective perturbation norm = {args.alpha * raw_norm:.1f}")
 
     # --- Step 3: Run intervention experiment ---
     print("\n" + "=" * 70)
@@ -167,29 +171,26 @@ def main():
     results = []
 
     def generate_with_steering(sample, alpha, direction):
-        """Generate with activation steering on late layers."""
+        """Generate with activation steering after final layernorm.
+        
+        We hook model.model.norm (the final RMSNorm) and add the steering
+        direction to its OUTPUT. This is the last computation before the
+        lm_head linear layer, so there is no subsequent normalization to
+        wash out the perturbation.
+        """
         input_ids = torch.tensor([sample["prompt_ids"]], dtype=torch.long, device=device)
 
-        hooks = []
-        def make_steer_hook(dir_vec, a):
-            def hook(module, input, output):
-                h = output[0] if isinstance(output, tuple) else output
-                h = h.clone()
-                # Add steering direction to last token position
-                h[0, -1, :] += a * dir_vec.to(h.device, h.dtype)
-                if isinstance(output, tuple):
-                    return (h,) + output[1:]
-                return h
-            return hook
+        def final_norm_hook(module, input, output):
+            # output shape: [batch, seq, hidden_dim]
+            out = output.clone()
+            out[0, -1, :] += alpha * direction.to(out.device, out.dtype)
+            return out
 
-        for l in range(steer_layer_start, num_layers):
-            hk = layers[l].register_forward_hook(make_steer_hook(direction, alpha))
-            hooks.append(hk)
+        hk = model.model.norm.register_forward_hook(final_norm_hook)
 
         out = model.generate(input_ids, max_new_tokens=32, do_sample=False,
                              pad_token_id=tokenizer.pad_token_id or tokenizer.eos_token_id)
-        for hk in hooks:
-            hk.remove()
+        hk.remove()
 
         gen_text = tokenizer.decode(out[0][input_ids.shape[1]:],
                                     skip_special_tokens=True).strip()
