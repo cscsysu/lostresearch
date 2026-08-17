@@ -68,11 +68,13 @@ def main():
     form = [s for s in errors if not s["is_preservation"]]
     print(f"Preservation: {len(pres)}, Formation: {len(form)}")
 
-    # Match pairs by final rank
+    # Match pairs by EXACT final rank (tolerance 0 or 1)
     print(f"\nMatching pairs (tolerance ±{args.rank_tolerance})...")
     matched_pairs = []
     used_form = set()
-    for p in pres:
+    # Sort preservation by final rank for better matching
+    pres_sorted = sorted(pres, key=lambda s: s["final_rank"])
+    for p in pres_sorted:
         for i, f in enumerate(form):
             if i in used_form:
                 continue
