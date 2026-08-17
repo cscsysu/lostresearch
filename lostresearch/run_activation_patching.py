@@ -1,21 +1,38 @@
 """
-Activation Patching: causal validation of layer-35 MLP's role in decay.
+Activation patching (v4): causal peak-state patch with a matched control.
 
-Tests whether the late-layer MLP causally suppresses the gold signal in
-preservation failures, by patching (zeroing or restoring) the MLP output
-at the identified layer and measuring whether gold rank improves.
+Reviewer concern this addresses:
+  "Attribution != causality. A DLA layer ranking is correlational. Does
+   intervening on the identified late-layer computation actually change the
+   gold signal's fate, and is the effect specific to preservation failures?"
 
-Two experiments:
-1. Zero-ablation: zero out layer-35 MLP output for preservation failures.
-   If gold rank improves -> MLP was causally suppressing.
-2. Comparison: same ablation on formation failures.
-   If gold rank does NOT improve -> confirms it's preservation-specific.
+Why the previous version failed (contrast-direction MLP ablation, 0.8x):
+  Projecting the (w_gold - w_comp) direction out of a SINGLE layer's MLP
+  output (i) barely moves the accumulated residual and (ii) gives formation
+  failures more apparent benefit purely because they have more "rank room"
+  below the gold token. It measured rank room, not the decay mechanism.
 
-This directly addresses reviewer: "attribution ≠ causality; does fixing
-the MLP actually restore the gold signal?"
+v4 design (causal patch, not ablation):
+  For each error we know its peak layer L* (where gold rank was best) and its
+  final gold rank. We run a forward pass and, at every layer AFTER L*, we
+  PATCH the last-token residual by adding back the gold-direction component
+  that the peak state carried but the later layers discarded:
+
+     delta = h_{L*} - h_l   (what decayed between peak and layer l)
+     h_l' = h_l + beta * P_gold(delta)
+
+  where P_gold projects onto the residual-space direction that maximally
+  loads the gold token (the unembedding row for the gold token, pulled back
+  through the final norm). We then measure the change in final gold rank.
+
+  Control (matched-null patch): identical procedure but projecting onto a
+  RANDOM competitor token's direction instead of gold. If the gold patch
+  helps preservation far more than (a) the same patch on formation and
+  (b) the matched-null patch, the late-layer decay is causally carrying the
+  gold signal specifically -- attribution is validated as causal.
 
 Usage:
-  python run_activation_patching.py --n 100 --target-layer 35
+  python run_activation_patching.py --n 120 --beta 4.0
 """
 import argparse
 import json
@@ -24,7 +41,6 @@ import sys
 
 import numpy as np
 import torch
-import torch.nn.functional as F
 from tqdm import tqdm
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -41,30 +57,36 @@ def get_residual_layers(model):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--n", type=int, default=100)
-    parser.add_argument("--target-layer", type=int, default=35,
-                        help="Layer whose MLP to patch (0-indexed)")
+    parser.add_argument("--n", type=int, default=120)
+    parser.add_argument("--beta", type=float, default=4.0,
+                        help="Gold-direction restoration strength")
+    parser.add_argument("--k", type=int, default=config.RANK_COMPETITIVE)
     args = parser.parse_args()
 
     from transformers import AutoTokenizer, AutoModelForCausalLM
-    from transformers import LogitsProcessor, LogitsProcessorList
 
-    # Load results to classify samples
     results_file = os.path.join(config.DATA_DIR, "full_results_Qwen3-8B.json")
+    if not os.path.exists(results_file):
+        alt = os.path.join(os.path.dirname(config.BASE_DIR), "lost-output",
+                           "outputs", "data", "full_results_Qwen3-8B.json")
+        results_file = alt if os.path.exists(alt) else results_file
     with open(results_file) as f:
         all_results = json.load(f)
 
+    existing = {r["id"]: r for r in all_results}
     errors = [s for s in all_results if not s.get("final_correct")]
     for s in errors:
         ranks = s.get("correct_rank", [])
-        s["best_mid_rank"] = min(ranks[:-1]) if len(ranks) > 1 else 1e9
-        s["is_preservation"] = s["best_mid_rank"] <= config.RANK_COMPETITIVE
+        inter = ranks[:-1] if len(ranks) > 1 else ranks
+        s["best_mid_rank"] = min(inter) if inter else 10**9
+        s["peak_layer"] = int(np.argmin(inter)) if inter else 0
+        s["final_rank"] = ranks[-1] if ranks else 10**9
+        s["is_preservation"] = s["best_mid_rank"] <= args.k
 
     pres = [s for s in errors if s["is_preservation"]]
     form = [s for s in errors if not s["is_preservation"]]
     print(f"Preservation: {len(pres)}, Formation: {len(form)}")
 
-    # Load model
     print("\nLoading model...")
     tokenizer = AutoTokenizer.from_pretrained(config.MODEL_PATH)
     model = AutoModelForCausalLM.from_pretrained(
@@ -74,139 +96,136 @@ def main():
 
     layers = get_residual_layers(model)
     num_layers = len(layers)
-    final_norm = model.model.norm
-    unembed = model.lm_head.weight.float()
+    unembed = model.lm_head.weight.float()  # [vocab, d]
+    vocab_size = unembed.shape[0]
     device = model.device
-    target_layer = args.target_layer
 
-    # Prepare data
     samples = load_all_datasets()
     prepared = prepare_samples(samples, tokenizer)
-    existing = {r["id"]: r for r in all_results}
-    for s in prepared:
-        if s["id"] in existing:
-            s["final_correct"] = existing[s["id"]]["final_correct"]
-            s["is_preservation"] = existing[s["id"]].get("is_preservation", False)
-
     prep_map = {s["id"]: s for s in prepared}
 
-    print(f"\nTarget layer for patching: {target_layer}")
-    print(f"Experiment: zero-ablate MLP output at layer {target_layer}")
+    rng = np.random.default_rng(0)
 
-    # For each sample: run with and without MLP ablation, compare gold rank
-    def get_gold_rank_with_ablation(sample, ablate_mlp=False):
-        """Forward pass, optionally ablating the target layer's MLP output.
-        
-        We remove the component of MLP output along the gold-vs-competitor
-        contrast direction (w_gold - w_competitor). This is the direction
-        that DLA identifies as the main contributor to margin change.
-        By removing it, we test whether this specific directional component
-        of the MLP is causally responsible for the gold signal's fate.
+    def final_gold_rank_with_patch(sample, peak_layer, target_token, beta):
+        """Forward pass; after peak_layer, restore the target-token-direction
+        component that decayed from the peak state. Return final gold rank.
+        target_token=None means no patch (baseline).
         """
         input_ids = torch.tensor([sample["prompt_ids"]], dtype=torch.long, device=device)
         gold_token = sample["primary_answer_ids"][0]
-        # Get competitor (generated token)
-        sid = sample["id"]
-        gen_token = gold_token  # fallback
-        if sid in existing:
-            gen_text = existing[sid].get("generated", "")
-            if gen_text:
-                gen_ids = tokenizer.encode(gen_text, add_special_tokens=False)
-                if gen_ids:
-                    gen_token = gen_ids[0]
 
-        hook_handle = None
-        if ablate_mlp:
-            target_mlp = layers[target_layer].mlp
-            # Contrast direction: w_gold - w_competitor (same as DLA)
-            contrast_dir = (unembed[gold_token] - unembed[gen_token]).to(device).float()
-            contrast_dir = contrast_dir / contrast_dir.norm()
+        captured = {}
+        # residual-space direction that loads the target token
+        if target_token is not None:
+            dir_vec = unembed[target_token].to(device)
+            dir_vec = dir_vec / (dir_vec.norm() + 1e-6)
+        else:
+            dir_vec = None
 
-            def directional_ablation_hook(module, input, output):
-                # Remove the contrast-direction component from MLP output
-                out = output.clone()
-                mlp_vec = out[0, -1, :].float()
-                # Project out the contrast direction
-                proj = (mlp_vec @ contrast_dir) * contrast_dir
-                out[0, -1, :] = (mlp_vec - proj).to(out.dtype)
+        def capture_hook(module, inp, out):
+            h = out[0] if isinstance(out, tuple) else out
+            captured["peak"] = h[0, -1, :].detach().clone().float()
+            return out
+
+        def patch_hook(module, inp, out):
+            if dir_vec is None or "peak" not in captured:
                 return out
+            h = out[0] if isinstance(out, tuple) else out
+            h = h.clone()
+            cur = h[0, -1, :].float()
+            peak = captured["peak"]
+            delta = peak - cur                       # what decayed since peak
+            comp = (delta @ dir_vec)                 # amount along target dir
+            comp = torch.clamp(comp, min=0.0)        # only restore, never suppress
+            h[0, -1, :] = (cur + beta * comp * dir_vec).to(h.dtype)
+            if isinstance(out, tuple):
+                return (h,) + out[1:]
+            return h
 
-            hook_handle = target_mlp.register_forward_hook(directional_ablation_hook)
+        handles = [layers[peak_layer].register_forward_hook(capture_hook)]
+        for l in range(peak_layer + 1, num_layers):
+            handles.append(layers[l].register_forward_hook(patch_hook))
 
         with torch.no_grad():
-            outputs = model(input_ids, use_cache=False)
-            logits = outputs.logits[0, -1, :]  # final position logits
+            logits = model(input_ids, use_cache=False).logits[0, -1, :]
+        for h in handles:
+            h.remove()
 
-        if hook_handle:
-            hook_handle.remove()
-
-        # Compute gold rank
         rank = (logits > logits[gold_token]).sum().item()
         return rank
 
-    # Run experiment
-    results = {"preservation": [], "formation": []}
-
-    # Evaluate preservation samples
-    pres_samples = [s for s in pres if s["id"] in prep_map][:args.n // 2]
-    form_samples = [s for s in form if s["id"] in prep_map][:args.n // 2]
-
-    print(f"\nEvaluating {len(pres_samples)} preservation + {len(form_samples)} formation samples...")
-
-    for group_name, group_samples in [("preservation", pres_samples), ("formation", form_samples)]:
-        for s_info in tqdm(group_samples, desc=f"Patching {group_name}"):
-            sid = s_info["id"]
+    def eval_group(group_meta, patch_kind):
+        """patch_kind in {'gold','null','none'}"""
+        helped = 0
+        recovered = 0
+        deltas = []
+        n = 0
+        for meta in tqdm(group_meta, desc=f"patch={patch_kind}"):
+            sid = meta["id"]
             if sid not in prep_map:
                 continue
             s = prep_map[sid]
+            gold_token = s["primary_answer_ids"][0]
+            base_rank = final_gold_rank_with_patch(s, meta["peak_layer"], None, 0.0)
+            if patch_kind == "none":
+                target = None
+            elif patch_kind == "gold":
+                target = gold_token
+            else:  # matched-null: random competitor token
+                t = int(rng.integers(0, vocab_size))
+                while t == gold_token:
+                    t = int(rng.integers(0, vocab_size))
+                target = t
+            patched_rank = final_gold_rank_with_patch(s, meta["peak_layer"], target, args.beta)
+            d = base_rank - patched_rank  # positive = patch improved gold rank
+            deltas.append(d)
+            helped += int(d > 0)
+            recovered += int(patched_rank == 0)
+            n += 1
+        return {"n": n, "helped": helped, "recovered": recovered,
+                "mean_delta": float(np.mean(deltas)) if deltas else 0.0,
+                "median_delta": float(np.median(deltas)) if deltas else 0.0}
 
-            # Normal forward: gold rank
-            rank_normal = get_gold_rank_with_ablation(s, ablate_mlp=False)
-            # Ablated forward: gold rank after zeroing MLP
-            rank_ablated = get_gold_rank_with_ablation(s, ablate_mlp=True)
+    half = args.n // 2
+    pres_eval = [s for s in pres if s["id"] in prep_map][:half]
+    form_eval = [s for s in form if s["id"] in prep_map][:half]
 
-            # Improvement = rank decreased (lower = better)
-            improvement = rank_normal - rank_ablated
+    print(f"\nGOLD patch (beta={args.beta})")
+    pres_gold = eval_group(pres_eval, "gold")
+    form_gold = eval_group(form_eval, "gold")
+    print(f"\nNULL patch (matched control)")
+    pres_null = eval_group(pres_eval, "null")
 
-            results[group_name].append({
-                "id": sid,
-                "rank_normal": rank_normal,
-                "rank_ablated": rank_ablated,
-                "improvement": improvement,  # positive = ablation helped gold
-            })
-
-    # Report
     print("\n" + "=" * 70)
-    print(f"Activation Patching Results (layer {target_layer} MLP zero-ablation)")
+    print(f"Activation Patching v4: causal peak-state restoration (beta={args.beta})")
     print("=" * 70)
 
-    for group_name in ["preservation", "formation"]:
-        r = results[group_name]
-        if not r:
-            continue
-        improvements = [x["improvement"] for x in r]
-        helped = sum(1 for x in improvements if x > 0)  # ablation improved gold rank
-        hurt = sum(1 for x in improvements if x < 0)  # ablation hurt gold rank
-        print(f"\n[{group_name}] n={len(r)}")
-        print(f"  MLP ablation HELPED gold (rank improved): {helped}/{len(r)} ({100*helped/len(r):.1f}%)")
-        print(f"  MLP ablation HURT gold (rank worsened):   {hurt}/{len(r)} ({100*hurt/len(r):.1f}%)")
-        print(f"  Mean rank change: {np.mean(improvements):.1f} (positive=helped)")
-        print(f"  Median rank change: {np.median(improvements):.0f}")
+    def show(tag, r):
+        print(f"\n[{tag}] n={r['n']}")
+        print(f"  gold-rank improved: {r['helped']}/{r['n']} ({100*r['helped']/max(r['n'],1):.1f}%)")
+        print(f"  recovered to top-1: {r['recovered']}/{r['n']} ({100*r['recovered']/max(r['n'],1):.1f}%)")
+        print(f"  mean rank improvement: {r['mean_delta']:.1f} (median {r['median_delta']:.0f})")
 
-    # Key comparison
-    pres_helped = sum(1 for x in results["preservation"] if x["improvement"] > 0)
-    form_helped = sum(1 for x in results["formation"] if x["improvement"] > 0)
-    n_pres = len(results["preservation"])
-    n_form = len(results["formation"])
-    print(f"\n[Key comparison]")
-    print(f"  Preservation: {pres_helped}/{n_pres} ({100*pres_helped/max(n_pres,1):.1f}%) helped by MLP ablation")
-    print(f"  Formation:    {form_helped}/{n_form} ({100*form_helped/max(n_form,1):.1f}%) helped by MLP ablation")
-    if form_helped > 0:
-        print(f"  Ratio: {pres_helped/max(form_helped,1):.1f}x")
+    show("preservation + GOLD patch", pres_gold)
+    show("formation    + GOLD patch", form_gold)
+    show("preservation + NULL patch (control)", pres_null)
+
+    pr = pres_gold["recovered"] / max(pres_gold["n"], 1)
+    fr = form_gold["recovered"] / max(form_gold["n"], 1)
+    nr = pres_null["recovered"] / max(pres_null["n"], 1)
+    print("\n[Key comparisons: recovery-to-top-1]")
+    print(f"  preservation GOLD vs formation GOLD: "
+          f"{100*pr:.1f}% vs {100*fr:.1f}%"
+          + (f"  ({pr/fr:.1f}x)" if fr > 0 else "  (formation=0)"))
+    print(f"  preservation GOLD vs preservation NULL: "
+          f"{100*pr:.1f}% vs {100*nr:.1f}%"
+          + (f"  ({pr/nr:.1f}x)" if nr > 0 else "  (null=0)"))
 
     out_file = os.path.join(config.DATA_DIR, "activation_patching_Qwen3-8B.json")
     with open(out_file, "w") as f:
-        json.dump({"target_layer": target_layer, "results": results}, f, indent=2)
+        json.dump({"beta": args.beta,
+                   "pres_gold": pres_gold, "form_gold": form_gold,
+                   "pres_null": pres_null}, f, indent=2)
     print(f"\nSaved: {out_file}")
 
 
