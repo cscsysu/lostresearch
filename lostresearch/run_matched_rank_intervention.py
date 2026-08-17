@@ -58,6 +58,10 @@ def main():
     parser.add_argument("--rank-tolerance", type=int, default=3,
                         help="Max final-rank difference for matching")
     parser.add_argument("--k", type=int, default=config.RANK_COMPETITIVE)
+    parser.add_argument("--form-min-peak", type=int, default=20,
+                        help="Formation side must have peak gold rank > this, "
+                             "so we match true formation (no good peak state) "
+                             "against preservation, not borderline pseudo-formation.")
     args = parser.parse_args()
 
     from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -80,8 +84,14 @@ def main():
         s["is_preservation"] = s["best_mid_rank"] <= args.k
 
     pres = [s for s in errors if s["is_preservation"]]
-    form = [s for s in errors if not s["is_preservation"]]
-    print(f"Preservation: {len(pres)}, Formation: {len(form)}")
+    form_all = [s for s in errors if not s["is_preservation"]]
+    # True formation: no good peak state at all. Excludes borderline
+    # "pseudo-formation" samples whose gold peaked near the top but just
+    # above k -- those confound the comparison because peak restoration would
+    # help them too. We want: same final rank, but genuinely different peak.
+    form = [s for s in form_all if s["best_mid_rank"] > args.form_min_peak]
+    print(f"Preservation: {len(pres)}, Formation(all): {len(form_all)}, "
+          f"Formation(true, peak>{args.form_min_peak}): {len(form)}")
 
     # Match pairs by final rank (removes the "closer final rank" confound)
     print(f"\nMatching pairs on FINAL rank (tolerance +-{args.rank_tolerance})...")
@@ -98,7 +108,7 @@ def main():
                 break
     print(f"  Matched pairs: {len(matched_pairs)}")
     if len(matched_pairs) < 10:
-        print("  Too few matched pairs. Increase rank_tolerance.")
+        print("  Too few matched pairs. Increase rank_tolerance or lower form-min-peak.")
         return
 
     pres_ranks = [p["final_rank"] for p, _ in matched_pairs]

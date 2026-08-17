@@ -106,21 +106,15 @@ def main():
 
     rng = np.random.default_rng(0)
 
-    def final_gold_rank_with_patch(sample, peak_layer, target_token, beta):
-        """Forward pass; after peak_layer, restore the target-token-direction
+    def final_gold_rank_with_patch(sample, peak_layer, dir_vec, beta):
+        """Forward pass; after peak_layer, restore the dir_vec-direction
         component that decayed from the peak state. Return final gold rank.
-        target_token=None means no patch (baseline).
+        dir_vec=None means no patch (baseline). dir_vec must be a unit vector.
         """
         input_ids = torch.tensor([sample["prompt_ids"]], dtype=torch.long, device=device)
         gold_token = sample["primary_answer_ids"][0]
 
         captured = {}
-        # residual-space direction that loads the target token
-        if target_token is not None:
-            dir_vec = unembed[target_token].to(device)
-            dir_vec = dir_vec / (dir_vec.norm() + 1e-6)
-        else:
-            dir_vec = None
 
         def capture_hook(module, inp, out):
             h = out[0] if isinstance(out, tuple) else out
@@ -155,9 +149,19 @@ def main():
         return rank
 
     def eval_group(group_meta, patch_kind):
-        """patch_kind in {'gold','null','none'}"""
+        """patch_kind in {'gold','null'}.
+
+        gold: restore the decayed component along the gold unembedding direction.
+        null: restore the decayed component along a random competitor direction
+              that has been ORTHOGONALIZED against the gold direction, so the
+              control cannot smuggle in any gold-direction signal. This is the
+              matched control: same peak state, same restoration mechanism, same
+              strength, only the direction differs and is guaranteed gold-free.
+        """
         helped = 0
-        recovered = 0
+        recovered = 0          # patched final rank == 0
+        net_recovered = 0      # baseline NOT top-1 but patch makes it top-1
+        base_top1 = 0
         deltas = []
         n = 0
         for meta in tqdm(group_meta, desc=f"patch={patch_kind}"):
@@ -166,23 +170,32 @@ def main():
                 continue
             s = prep_map[sid]
             gold_token = s["primary_answer_ids"][0]
+            gold_dir = unembed[gold_token].to(device)
+            gold_dir = gold_dir / (gold_dir.norm() + 1e-6)
+
             base_rank = final_gold_rank_with_patch(s, meta["peak_layer"], None, 0.0)
-            if patch_kind == "none":
-                target = None
-            elif patch_kind == "gold":
-                target = gold_token
-            else:  # matched-null: random competitor token
+
+            if patch_kind == "gold":
+                dir_vec = gold_dir
+            else:  # matched-null: random competitor, orthogonalized vs gold
                 t = int(rng.integers(0, vocab_size))
                 while t == gold_token:
                     t = int(rng.integers(0, vocab_size))
-                target = t
-            patched_rank = final_gold_rank_with_patch(s, meta["peak_layer"], target, args.beta)
+                nd = unembed[t].to(device)
+                nd = nd / (nd.norm() + 1e-6)
+                nd = nd - (nd @ gold_dir) * gold_dir      # remove gold component
+                dir_vec = nd / (nd.norm() + 1e-6)
+
+            patched_rank = final_gold_rank_with_patch(s, meta["peak_layer"], dir_vec, args.beta)
             d = base_rank - patched_rank  # positive = patch improved gold rank
             deltas.append(d)
             helped += int(d > 0)
             recovered += int(patched_rank == 0)
+            base_top1 += int(base_rank == 0)
+            net_recovered += int(base_rank != 0 and patched_rank == 0)
             n += 1
         return {"n": n, "helped": helped, "recovered": recovered,
+                "net_recovered": net_recovered, "base_top1": base_top1,
                 "mean_delta": float(np.mean(deltas)) if deltas else 0.0,
                 "median_delta": float(np.median(deltas)) if deltas else 0.0}
 
@@ -201,19 +214,27 @@ def main():
     print("=" * 70)
 
     def show(tag, r):
-        print(f"\n[{tag}] n={r['n']}")
-        print(f"  gold-rank improved: {r['helped']}/{r['n']} ({100*r['helped']/max(r['n'],1):.1f}%)")
-        print(f"  recovered to top-1: {r['recovered']}/{r['n']} ({100*r['recovered']/max(r['n'],1):.1f}%)")
+        n = max(r["n"], 1)
+        eligible = max(r["n"] - r["base_top1"], 1)  # samples not already top-1
+        print(f"\n[{tag}] n={r['n']} (already top-1 at baseline: {r['base_top1']})")
+        print(f"  gold-rank improved: {r['helped']}/{r['n']} ({100*r['helped']/n:.1f}%)")
+        print(f"  recovered to top-1: {r['recovered']}/{r['n']} ({100*r['recovered']/n:.1f}%)")
+        print(f"  NET recovered (was not top-1 -> top-1): "
+              f"{r['net_recovered']}/{eligible} ({100*r['net_recovered']/eligible:.1f}%)")
         print(f"  mean rank improvement: {r['mean_delta']:.1f} (median {r['median_delta']:.0f})")
 
     show("preservation + GOLD patch", pres_gold)
     show("formation    + GOLD patch", form_gold)
     show("preservation + NULL patch (control)", pres_null)
 
-    pr = pres_gold["recovered"] / max(pres_gold["n"], 1)
-    fr = form_gold["recovered"] / max(form_gold["n"], 1)
-    nr = pres_null["recovered"] / max(pres_null["n"], 1)
-    print("\n[Key comparisons: recovery-to-top-1]")
+    def net_rate(r):
+        elig = max(r["n"] - r["base_top1"], 1)
+        return r["net_recovered"] / elig
+
+    pr = net_rate(pres_gold)
+    fr = net_rate(form_gold)
+    nr = net_rate(pres_null)
+    print("\n[Key comparisons: NET recovery-to-top-1 (excludes already-top-1)]")
     print(f"  preservation GOLD vs formation GOLD: "
           f"{100*pr:.1f}% vs {100*fr:.1f}%"
           + (f"  ({pr/fr:.1f}x)" if fr > 0 else "  (formation=0)"))
