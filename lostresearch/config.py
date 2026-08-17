@@ -2,7 +2,9 @@
 import os
 
 # ============ 模型 ============
-MODEL_PATH = "/data2/css2025/models/Qwen/Qwen3-8B"
+# 默认路径，可通过环境变量 INFODYN_MODEL_PATH 覆盖
+import os as _os
+MODEL_PATH = _os.environ.get("INFODYN_MODEL_PATH", "/data2/css2025/models/Qwen/Qwen3-8B")
 MODEL_NAME = "Qwen3-8B"
 # 服务器 GPU 映射 (CUDA ordinal):
 #   0 = A40 (46GB)  ← 选这个
