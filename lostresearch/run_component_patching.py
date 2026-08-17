@@ -49,9 +49,11 @@ def get_residual_layers(model):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--n", type=int, default=150)
-    parser.add_argument("--gamma", type=float, default=1.0)
+    parser.add_argument("--gammas", type=str, default="1.0,2.0,4.0",
+                        help="Comma-separated ablation strengths to sweep")
     parser.add_argument("--k", type=int, default=config.RANK_COMPETITIVE)
     args = parser.parse_args()
+    gammas = [float(g) for g in args.gammas.split(",")]
 
     from transformers import AutoTokenizer, AutoModelForCausalLM
 
@@ -92,7 +94,7 @@ def main():
     rng = np.random.default_rng(0)
 
     def final_gold_rank(sample, target=None):
-        """target = (layer_idx, 'mlp'|'attn'|'mlp_randorth') or None for baseline."""
+        """target = (layer_idx, kind, gamma) or None for baseline."""
         input_ids = torch.tensor([sample["prompt_ids"]], dtype=torch.long,
                                  device=device)
         gold_token = sample["primary_answer_ids"][0]
@@ -100,10 +102,9 @@ def main():
         w = w / (w.norm() + 1e-6)
 
         if target is None:
-            w_patch = None
-            module = None
+            w_patch, gamma, module = None, 0.0, None
         else:
-            l_idx, kind = target
+            l_idx, kind, gamma = target
             if kind == "mlp":
                 module, w_patch = layers[l_idx].mlp, w
             elif kind == "attn":
@@ -122,7 +123,7 @@ def main():
             h = h.clone()
             m = h[0, -1, :].float()
             c = torch.clamp(m @ w_patch, max=0.0)   # only the anti-gold part
-            h[0, -1, :] = (m - args.gamma * c * w_patch).to(h.dtype)
+            h[0, -1, :] = (m - gamma * c * w_patch).to(h.dtype)
             if isinstance(out, tuple):
                 return (h,) + out[1:]
             return h
@@ -136,11 +137,17 @@ def main():
 
     eval_set = [s for s in pres if s["id"] in prep_map][:args.n]
     print(f"Evaluating {len(eval_set)} preservation failures")
+    print(f"Model has {num_layers} layers (indices 0-{num_layers-1}); "
+          f"layer 35 is the FINAL layer")
 
-    conditions = ([("baseline", None)]
-                  + [(f"mlp@{l}", (l, "mlp")) for l in (33, 34, 35, 36, 37)]
-                  + [("attn@35", (35, "attn"))]
-                  + [("mlp@35-randorth", (35, "mlp_randorth"))])
+    # Layer 35 is the last layer, so "adjacent" controls must be BELOW it.
+    mlp_neighbors = [l for l in (31, 32, 33, 34) if l < num_layers]
+    conditions = [("baseline", None)]
+    for g in gammas:
+        conditions += [(f"mlp@35_g{g:g}", (35, "mlp", g))]
+        conditions += [(f"mlp@{l}_g{g:g}", (l, "mlp", g)) for l in mlp_neighbors]
+        conditions += [(f"attn@35_g{g:g}", (35, "attn", g))]
+        conditions += [(f"mlp@35-randorth_g{g:g}", (35, "mlp_randorth", g))]
 
     results = {}
     base_ranks = None
@@ -155,37 +162,39 @@ def main():
             results[name] = {"n": len(ranks),
                              "base_top1": int((ranks == 0).sum())}
             continue
+        l_idx, kind, gamma = target
         elig = base_ranks != 0
         net_rec = int(((ranks == 0) & elig).sum())
         results[name] = {
-            "n": len(ranks),
+            "n": len(ranks), "gamma": gamma,
             "net_recovered": net_rec,
             "eligible": int(elig.sum()),
             "net_rate": net_rec / max(int(elig.sum()), 1),
             "mean_rank_improve": float((base_ranks - ranks).mean()),
         }
-        print(f"  {name:18s} net={net_rec}/{int(elig.sum())} "
+        print(f"  {name:22s} net={net_rec}/{int(elig.sum())} "
               f"({100*net_rec/max(int(elig.sum()),1):.1f}%)  "
               f"mean dRank={results[name]['mean_rank_improve']:+.1f}")
 
-    # Significance: mlp@35 vs each control (Fisher on net recovery)
+    # Significance: mlp@35 vs controls at each gamma (Fisher on net recovery)
     try:
         from scipy.stats import fisher_exact
-        ref = results["mlp@35"]
-        for name in ["mlp@33", "mlp@34", "mlp@36", "mlp@37", "attn@35",
-                     "mlp@35-randorth"]:
-            c = results[name]
-            table = [[ref["net_recovered"], ref["eligible"] - ref["net_recovered"]],
-                     [c["net_recovered"], c["eligible"] - c["net_recovered"]]]
-            _, p = fisher_exact(table, alternative="greater")
-            results[name]["fisher_p_vs_mlp35"] = float(p)
-            print(f"  Fisher mlp@35 > {name}: p = {p:.4f}")
+        for g in gammas:
+            ref = results[f"mlp@35_g{g:g}"]
+            for name in [f"mlp@{l}_g{g:g}" for l in mlp_neighbors] + \
+                        [f"attn@35_g{g:g}", f"mlp@35-randorth_g{g:g}"]:
+                c = results[name]
+                table = [[ref["net_recovered"], ref["eligible"] - ref["net_recovered"]],
+                         [c["net_recovered"], c["eligible"] - c["net_recovered"]]]
+                _, p = fisher_exact(table, alternative="greater")
+                results[name]["fisher_p_vs_mlp35"] = float(p)
+                print(f"  Fisher mlp@35 > {name}: p = {p:.4f}")
     except Exception as e:
         print(f"  (scipy unavailable: {e})")
 
     out_file = os.path.join(config.DATA_DIR, "component_patching_Qwen3-8B.json")
     with open(out_file, "w") as f:
-        json.dump({"gamma": args.gamma, "results": results}, f, indent=2)
+        json.dump({"gammas": gammas, "results": results}, f, indent=2)
     print(f"\nSaved: {out_file}")
 
 
