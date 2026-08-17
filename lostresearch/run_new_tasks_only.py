@@ -67,16 +67,22 @@ def main():
 
     for s in tqdm(prepared, desc="New tasks"):
         try:
-            traj = collector.collect(s["prompt_ids"])
-            # Generate answer
+            # Generate answer first
             input_ids = torch.tensor([s["prompt_ids"]], dtype=torch.long, device=model.device)
             out = model.generate(input_ids, max_new_tokens=config.MAX_NEW_TOKENS,
                                  do_sample=False,
                                  pad_token_id=tokenizer.pad_token_id or tokenizer.eos_token_id)
             gen_ids = out[0][input_ids.shape[1]:].tolist()
             generated = tokenizer.decode(gen_ids, skip_special_tokens=True).strip()
-
             correct = is_answer_correct(generated, s["aliases"])
+
+            # Collect trajectory
+            answer_token_ids = [s["primary_answer_ids"]] if "primary_answer_ids" in s else [[]]
+            traj = collector.collect_trajectory(
+                s["prompt_ids"],
+                answer_token_ids=answer_token_ids,
+                generated_token_ids=gen_ids
+            )
 
             results.append({
                 "id": s["id"],
