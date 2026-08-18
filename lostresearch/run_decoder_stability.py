@@ -157,6 +157,7 @@ def main():
         hs = torch.stack(cap["hs"])                # [L, d]
 
         out = {}
+        model_dtype = next(model.lm_head.parameters()).dtype
         with torch.no_grad():
             for name in ["raw", "tuned"]:
                 ranks, margins = [], []
@@ -165,6 +166,7 @@ def main():
                     if name == "tuned":
                         t = translators[l]
                         h = h @ t["A"].to(device) + t["b"].to(device)
+                    h = h.to(model_dtype)
                     lg = model.lm_head(final_norm(h))[0].float()
                     lp = F.log_softmax(lg, dim=-1)
                     ranks.append(int((lg > lg[gold_token]).sum()))
