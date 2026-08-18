@@ -401,7 +401,7 @@ To localize where the decay is concentrated, we decomposed the margin change at 
 
 \subsection{Calibrated Steering Validates the Taxonomy}
 
-If the formation-versus-preservation distinction captures a real difference in internal state, then a targeted intervention should rescue preservation failures far more than formation failures under the same steering strength. We test this with a calibrated logit bonus: during generation, we add a fixed bonus $\beta$ to the gold token's logit at every decoding step. Because preservation failures have the gold token at final-layer rank $\le5$ in91\% of cases (median rank 1), even a small bonus suffices to tip the gold token to the top prediction and recover the correct answer. Formation failures, by contrast, have the gold token at median rank 23, so the same small bonus cannot bridge the gap.
+If the formation-versus-preservation distinction captures a real difference in internal state, then a targeted intervention should rescue preservation failures far more than formation failures under the same steering strength. We test this with a calibrated logit bonus: during generation, we add a fixed bonus $\beta$ to the gold token's logit at every decoding step. Because preservation failures have the gold token at final-layer rank $\le5$ in 91\% of cases (median rank 1), even a small bonus suffices to tip the gold token to the top prediction and recover the correct answer. Formation failures, by contrast, have the gold token at median rank 23, so the same small bonus cannot bridge the gap.
 
 \begin{table}[t]
 \centering
