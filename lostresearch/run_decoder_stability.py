@@ -127,7 +127,6 @@ def main():
                     {e["id"] for e in errors}][:args.lens_prompts]
     hiddens, final_logits, _ = collect_all_hiddens(model, lens_samples,
                                                    n_samples=len(lens_samples))
-    del model.model.generation_config  # not needed; keep memory tidy
     translators = train_translators_mb(model, hiddens, final_logits,
                                        num_layers)
     del hiddens, final_logits
