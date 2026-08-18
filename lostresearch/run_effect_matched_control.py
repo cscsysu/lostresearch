@@ -120,7 +120,8 @@ def main():
                 h = h.clone()
                 cur = h[0, -1, :].float()
                 if mode_ == "gold":
-                    comp = torch.clamp(captured["peak"] - cur @ w_, min=0.0)
+                    dv = captured["peak"] - cur
+                    comp = torch.clamp(dv @ w_, min=0.0)
                     add = args.beta * comp * w_
                 else:
                     add = s_ * d_
