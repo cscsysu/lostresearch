@@ -31,7 +31,7 @@ Address \\
 \maketitle
 
 \begin{abstract}
-A wrong answer can arise from at least two distinct output-space trajectories: the gold answer may never become a competitive candidate, or it may become competitive at an intermediate layer and later lose that status. Distinguishing these cases requires more than showing that the gold token once exceeded a single wrong token. We introduce \emph{Information Dynamics}, an operational framework that traces the gold answer's log-probability, full-vocabulary rank, and competitor-relative margin across Transformer layers. Across six open-weight instruction-tuned models (4B--14B parameters) and seven tasks, we find that the common ``ever crossing'' shortcut is non-diagnostic: it occurs in 92.2\% of errors, while random and strength-matched competitor nulls yield still higher rates (98.8\% and 98.7\%). Rank-level separation analyses cover all six models; the full seven-task taxonomy, sequence diagnostics, and intervention studies are conducted on Qwen3-8B; prediction transfer covers three model families. Under a stricter vocabulary-wide criterion, preservation failures form a small, task-dependent subset of errors (10.0\% on the Qwen3-8B seven-task error set; 95\% CI [8.4\%, 11.4\%]), whereas most errors never exhibit an output-competitive gold signal under the evaluated decoder. Early trajectory shape also contains predictive information about later decay: an endpoint-conditioned retrospective classifier reaches AUC $0.75\pm0.02$, while an endpoint-free gold-token variant reaches 0.66. Finally, final-rank-matched restoration experiments provide evidence that errors with a strong intermediate gold state are more repairable than errors without one. We release \texttt{InfoDyn-Bench} to support further work on layer-wise error diagnosis. Our claims concern output-space decodability, not a general definition of what a model ``knows.''
+A wrong answer can arise from at least two distinct output-space trajectories: the gold answer may never become a competitive candidate, or it may become competitive at an intermediate layer and later lose that status. Distinguishing these cases requires more than showing that the gold token once exceeded a single wrong token. We introduce \emph{Information Dynamics}, an operational framework that traces the gold answer's log-probability, full-vocabulary rank, and competitor-relative margin across Transformer layers. Across six open-weight instruction-tuned models (4B--14B parameters) and seven tasks, we find that the common ``ever crossing'' shortcut is non-diagnostic: it occurs in 92.2\% of errors, while random and strength-matched competitor nulls yield still higher rates (98.8\% and 98.7\%). Rank-level separation analyses cover all six models; the full seven-task taxonomy, sequence diagnostics, and intervention studies are conducted on Qwen3-8B; prediction transfer covers three model families. Under a stricter vocabulary-wide criterion, preservation failures form a small, task-dependent subset of errors (10.0\% on the Qwen3-8B seven-task error set; 95\% CI [8.5\%, 11.6\%]), whereas most errors never exhibit an output-competitive gold signal under the evaluated decoder. Early trajectory shape also contains predictive information about later decay: an endpoint-conditioned retrospective classifier reaches AUC $0.75\pm0.02$, while an endpoint-free gold-token variant reaches 0.66. Finally, final-rank-matched restoration experiments provide evidence that errors with a strong intermediate gold state are more repairable than errors without one. We release \texttt{InfoDyn-Bench} to support further work on layer-wise error diagnosis. Our claims concern output-space decodability, not a general definition of what a model ``knows.''
 \end{abstract}
 
 \section{Introduction}
@@ -141,7 +141,7 @@ We define four operational categories under the answer-onset measurement. A \emp
 We evaluate three open-weight instruction-tuned model families spanning several scales: Qwen3-14B, Qwen3-8B, Qwen3-4B, and Qwen2.5-7B for scale variation within Qwen \citep{qwen3}, plus Llama-3.1-8B \citep{dubey2024llama} and Mistral-7B-Instruct-v0.3 \citep{jiang2023mistral}. We use seven tasks: TriviaQA \citep{joshi2017triviaqa} for fact QA, HotpotQA \citep{yang2018hotpotqa} for multi-hop QA, GSM8K \citep{cobbe2021gsm8k} for math reasoning, CommonsenseQA \citep{talmor2019commonsenseqa} for commonsense reasoning, ARC-Challenge \citep{clark2018arc} for science reasoning, QuALITY \citep{pang2022quality} for long-context comprehension, and MMLU (four subjects) \citep{hendrycks2021mmlu} for world knowledge. Rank-level separation and gold-direction ablation cover all six models; the full seven-task taxonomy, teacher-forced diagnostics, and all interventions are conducted on Qwen3-8B; prediction transfer covers three model families.
 
 \subsection{Evaluation Protocol}
-All prompts use each model's chat template with the user message ``\{question\} Answer with just the answer.'', so the model is required to emit the answer directly without chain-of-thought or explanation. The analyzed \emph{answer-onset position} is the final prompt token, i.e.\ the position that predicts the first generated token; the taxonomy therefore measures whether the gold token is competitive as the first output token in the model's realized context. For each gold answer we track the first answer token, aligned by exact prompt-suffix encoding (tokenizing prompt+answer and subtracting the prompt encoding), with alias fallback to the first alias whose encoding is non-empty. Generation is greedy (temperature 0) with at most 32 new tokens. Prompts are truncated from the left to at most 512 tokens; for QuALITY the article is additionally truncated to 1{,}500 characters before prompting. MMLU uses four subjects (abstract algebra, high-school physics, professional medicine, philosophy), 50--51 examples each. Per-task evaluated counts are TriviaQA 500, HotpotQA 250, GSM8K 250, CommonsenseQA 250, ARC-Challenge 250, QuALITY 200, MMLU 200 (1{,}900 total; 1{,}494 errors on Qwen3-8B), sampled sequentially from the validation or test split named in the released configuration. All inference uses bfloat16. The stored margin is implemented as $\log p_\ell(y^\star)-\log p_\ell(\hat y)$ against the greedy first generated token; under greedy decoding on incorrect examples the generated token is the final-layer argmax, i.e.\ exactly the strongest non-gold competitor, so this implementation coincides with $\mathrm{CIS}^{\mathrm{comp}}$ wherever the taxonomy uses it (errors). On correct examples the generated token may be an alias of the gold answer, so correct-example formation is assessed rank-only.
+All prompts use each model's chat template with the user message ``\{question\} Answer with just the answer.'', so the model is required to emit the answer directly without chain-of-thought or explanation. The analyzed \emph{answer-onset position} is the final prompt token, i.e.\ the position that predicts the first generated token; the taxonomy therefore measures whether the gold token is competitive as the first output token in the model's realized context. For each gold answer we track the first answer token, aligned by exact prompt-suffix encoding (tokenizing prompt+answer and subtracting the prompt encoding), with alias fallback to the first alias whose encoding is non-empty. Generation is greedy (temperature 0) with at most 32 new tokens. Prompts are truncated from the left to at most 512 tokens; for QuALITY the article is additionally truncated to 1{,}500 characters before prompting. MMLU uses four subjects (abstract algebra, high-school physics, professional medicine, philosophy), 50--51 examples each. Per-task evaluated counts are TriviaQA 500, HotpotQA 250, GSM8K 250, CommonsenseQA 250, ARC-Challenge 250, QuALITY 200, MMLU 200 (1{,}900 total; 1{,}494 errors on Qwen3-8B), sampled sequentially from the validation or test split named in the released configuration. All inference uses bfloat16.
 
 \subsection{Answer Extraction}
 We judge correctness by normalized substring matching after lower-casing. For numeric answers, we strip commas and percent signs and compare numerically with a small tolerance. For TriviaQA, a match against any supplied alias counts as correct. This automatic evaluator is a practical choice but can misclassify negated, embedded, or unusually formatted answers; we list it as a limitation rather than treating it as a semantic judge.
@@ -209,30 +209,61 @@ Residual states are layer-wise continuous, so intermediate ranks are partly a re
 \subsection{Strict Answer-Onset Preservation Failures Are a Minority}
 
 \paragraph{Primary retrospective rate.}
-Applying Eq.~8 to the first answer token of each error yields a small preservation-failure subset. Two decoders are involved and must not be conflated: the calibrated subset (8.9\%, bootstrap 95\% CI [6.4\%, 11.5\%]) is decoded with the \emph{tuned lens}, whereas the full seven-task error set (1{,}494 errors) was collected with the \emph{raw logit lens} and gives a strict answer-onset rate of 10.0\% (95\% CI [8.4\%, 11.4\%]): multi-hop QA 14.2\% [9.5, 19.5], world knowledge 12.6\% [7.8, 18.0], long-context comprehension 12.1\% [8.0, 16.6], knowledge QA 12.0\% [8.5, 15.9], science reasoning 10.9\% [7.0, 14.8], commonsense reasoning 9.2\% [5.6, 13.3], and mathematical reasoning 0.0\% (exact binomial upper bound 1.6\% at 0/230). The two numbers change dataset, sample size, and decoder simultaneously, so we present them as consistent magnitudes rather than as a literal replication; decoder-level stability of the label is quantified separately below. These percentages are the paper's primary taxonomy result. They concern the answer-onset token, the endpoint-conditioned strict criterion, and the named decoder; they are not sequence-level claims.
+Applying Eq.~8 to the first answer token of each error yields a small preservation-failure subset. Two decoders are involved and must not be conflated: the calibrated subset (8.9\%, bootstrap 95\% CI [6.4\%, 11.5\%]) is decoded with the \emph{tuned lens}, whereas the full seven-task error set (1{,}494 errors) was collected with the \emph{raw logit lens} and gives a strict answer-onset rate of 10.0\% (95\% CI [8.5\%, 11.6\%]): multi-hop QA 14.2\% [9.6, 20.0], world knowledge 12.6\% [8.0, 18.6], long-context comprehension 12.1\% [7.9, 17.4], knowledge QA 12.0\% [8.5, 16.4], science reasoning 10.9\% [7.2, 15.7], commonsense reasoning 9.2\% [5.5, 14.1], and mathematical reasoning 0.0\% (exact binomial upper bound 1.6\% at 0/230). The two numbers change dataset, sample size, and decoder simultaneously, so we present them as consistent magnitudes rather than as a literal replication; decoder-level stability of the label is quantified separately below. These percentages are the paper's primary taxonomy result. They concern the answer-onset token, the endpoint-conditioned strict criterion, and the named decoder; they are not sequence-level claims.
 
 \begin{table}[t]
 \centering
-\caption{Primary strict answer-onset preservation rate on Qwen3-8B errors. The label is Eq.~8 under the stored zero-based $k=5$ cutoff. Intervals are bootstrap 95\% CIs.}
+\caption{Primary strict answer-onset preservation rate on Qwen3-8B errors. The label is Eq.~8 under the stored zero-based $k=5$ cutoff. Intervals are exact binomial (Clopper--Pearson) 95\% CIs.}
 \label{tab:strict_rates}
 \begin{tabular}{lrrc}
 \toprule
 \textbf{Task} & \textbf{Errors} & \textbf{Rate} & \textbf{95\% CI} \\
 \midrule
-HotpotQA & 190 & 14.2\% & [9.5, 19.5] \\
-MMLU & 167 & 12.6\% & [7.8, 18.0] \\
-QuALITY & 199 & 12.1\% & [8.0, 16.6] \\
-TriviaQA & 283 & 12.0\% & [8.5, 15.9] \\
-ARC-Challenge & 229 & 10.9\% & [7.0, 14.8] \\
-CommonsenseQA & 196 & 9.2\% & [5.6, 13.3] \\
-GSM8K & 230 & 0.0\% & [0.0, 0.0] \\
+HotpotQA & 190 & 14.2\% & [9.6, 20.0] \\
+MMLU & 167 & 12.6\% & [8.0, 18.6] \\
+QuALITY & 199 & 12.1\% & [7.9, 17.4] \\
+TriviaQA & 283 & 12.0\% & [8.5, 16.4] \\
+ARC-Challenge & 229 & 10.9\% & [7.2, 15.7] \\
+CommonsenseQA & 196 & 9.2\% & [5.5, 14.1] \\
+GSM8K & 230 & 0.0\% & [0.0, 1.6] \\
 \midrule
-\textbf{Overall} & \textbf{1{,}494} & \textbf{10.0\%} & \textbf{[8.4, 11.4]} \\
+\textbf{Overall} & \textbf{1{,}494} & \textbf{10.0\%} & \textbf{[8.5, 11.6]} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 The translator sees no gold labels, but its final-logit objective can still influence the measured absolute rate. We therefore do not describe 10.0\% as a decoder-independent ground truth. The stronger decoder-robust finding is that correct and incorrect examples remain separated under raw, tuned, and cosine readouts, while preservation failures remain a minority under the tested strict thresholds (Appendix~\ref{app:probe}).
+
+\subsection{Endpoint-Free Variants and Label Robustness}
+\label{sec:endpointfree}
+Because Eq.~8 references the endpoint-selected competitor, we compare it against endpoint-free rank-only labels of the form $C_{\mathrm{rank}}(k_{\mathrm{in}}, k_{\mathrm{out}})=\mathbb{1}[\min_{\ell<L}r_\ell\le k_{\mathrm{in}}]\cdot\mathbb{1}[r_L>k_{\mathrm{out}}]$. Table~\ref{tab:endpointfree} reports the family alongside Eq.~8 on the same 1{,}494 errors. The closest analogue $(5,0)$ (top-band entry, final rank outside top-1) yields 21.0\% overall: higher than Eq.~8's 10.0\% because it drops the requirement that the gold token lead the eventual competitor at an intermediate layer. A stricter deep-exit hysteresis $(4,9)$ (entry into the conventional top-5, exit beyond top-10) yields only 0.7\% and measures a different, more restrictive event. Under every variant, preservation-type errors remain a minority, and the task ordering is preserved (Spearman 0.61--0.93 versus Eq.~8 across variants); sample-level overlap with Eq.~8 is moderate (Jaccard 0.48), reflecting that the competitor condition selects a subset. We therefore retain Eq.~8 as the primary competitor-relative criterion and report the endpoint-free family as the required sensitivity view; the headline conclusion (a small, task-dependent preservation regime) is unchanged under all definitions. Under the conventional top-5 cutoff ($r<5$, i.e.\ $k{=}4$) with the margin condition fixed, the Eq.~8 rate is 9.0\% versus 10.0\% at the stored $k{=}5$, so the off-by-one convention shifts the rate by about one point.
+
+\begin{table}[t]
+\centering
+\caption{Endpoint-free label family versus Eq.~8 (Qwen3-8B, 1{,}494 errors, raw lens). $C_{\mathrm{rank}}(k_{\mathrm{in}},k_{\mathrm{out}})=\mathbb{1}[\min_\ell r_\ell\le k_{\mathrm{in}}]\cdot\mathbb{1}[r_L>k_{\mathrm{out}}]$. $(5,0)$ is the closest endpoint-free analogue of Eq.~8's final condition; $(4,9)$ is the deep-exit hysteresis. All variants keep preservation-type errors a minority with consistent task ordering.}
+\label{tab:endpointfree}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Task} & \textbf{Eq.~8} & \textbf{$(5,0)$} & \textbf{$(4,0)$} & \textbf{$(4,9)$} & \textbf{$k{=}4$ Eq.~8} \\
+\midrule
+QuALITY & 12.1\% & 28.1\% & 23.6\% & 0.0\% & 11.1\% \\
+TriviaQA & 12.0\% & 27.9\% & 23.3\% & 0.4\% & 10.6\% \\
+HotpotQA & 14.2\% & 26.3\% & 24.2\% & 2.1\% & 13.2\% \\
+ARC-Challenge & 10.9\% & 23.6\% & 21.4\% & 0.4\% & 9.2\% \\
+MMLU & 12.6\% & 23.4\% & 20.4\% & 1.8\% & 10.8\% \\
+CommonsenseQA & 9.2\% & 12.2\% & 12.2\% & 1.0\% & 9.2\% \\
+GSM8K & 0.0\% & 5.2\% & 3.9\% & 0.0\% & 0.0\% \\
+\midrule
+\textbf{Overall} & \textbf{10.0\%} & \textbf{21.0\%} & \textbf{18.4\%} & \textbf{0.7\%} & \textbf{9.0\%} \\
+\midrule
+\multicolumn{6}{l}{\emph{Agreement with Eq.~8}: $(5,0)$ $\kappa$=0.215, $J$=0.48, $\rho_{\mathrm{task}}$=0.61; $(4,0)$ $\kappa$=0.195, $J$=0.48, $\rho_{\mathrm{task}}$=0.79; $k{=}4$ $\kappa$=0.195, $J$=0.90, $\rho_{\mathrm{task}}$=0.93.} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Category counts.}
+The four taxonomy categories are mutually exclusive and exhaustive on the evaluated set: among 1{,}494 errors, 1{,}339 (89.6\%) are formation failures, 149 (10.0\%) are preservation failures (Eq.~8 positive), and 6 (0.4\%) are unresolved, of which 5 have the gold token as the final top-1 at the answer-onset position yet a judged-wrong full answer, i.e.\ the error arises downstream of the first token. Among the 406 correct examples, 351 (86.5\%) show an intermediate top-band gold rank (\emph{successful preservation}) and 55 (13.5\%) emerge only late.
 
 \subsection{Counterfactual Sequence Decodability and Threshold Sensitivity}
 \label{sec:taskdecay}
