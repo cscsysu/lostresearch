@@ -33,7 +33,47 @@ from tqdm import tqdm
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import config
 from data_loader import load_all_datasets, prepare_samples
-from run_p0_tuned_lens import collect_all_hiddens, train_tuned_lens
+from run_p0_tuned_lens import collect_all_hiddens
+
+
+def train_translators_mb(model, hiddens, final_logits, num_layers,
+                         epochs=150, batch=32, lr=1e-3):
+    """Memory-friendly tuned-lens trainer (mini-batch, cached fp32 unembed).
+
+    The original trainer materializes a fresh fp32 unembedding per layer and
+    backprops over the full 200-prompt batch at once, which OOMs a 24GB GPU
+    next to the loaded model. This version caches one fp32 weight copy and
+    steps in batches of 32; affine fitting converges well within 150 epochs.
+    """
+    device = model.device
+    final_norm = model.model.norm
+    unembed_f = model.lm_head.weight.detach().float()  # [V, d], once
+    translators = {}
+    for l in range(num_layers):
+        h = hiddens[l].to(device).float()       # [n, d]
+        y = final_logits.to(device).float()     # [n, V]
+        A = torch.eye(h.shape[1], device=device)
+        b = torch.zeros(h.shape[1], device=device)
+        A.requires_grad_(True)
+        b.requires_grad_(True)
+        opt = torch.optim.Adam([A, b], lr=lr)
+        n = h.shape[0]
+        for ep in range(epochs):
+            perm = torch.randperm(n, device=device)
+            for i in range(0, n, batch):
+                idx = perm[i:i + batch]
+                normed = final_norm(h[idx] @ A.T + b)      # [B, d]
+                logits = F.linear(normed, unembed_f)       # [B, V]
+                loss = F.mse_loss(logits, y[idx])
+                opt.zero_grad()
+                loss.backward()
+                opt.step()
+        if l % 6 == 0:
+            print(f"  translator layer {l}: final loss {loss.item():.4f}")
+        translators[l] = {"A": A.detach().cpu(), "b": b.detach().cpu()}
+        del h, y
+        torch.cuda.empty_cache()
+    return translators
 
 
 def cohen_kappa(a, b):
@@ -81,13 +121,17 @@ def main():
     errors = [s for s in errors if s["id"] in prep_map][:args.n]
     print(f"Decoding {len(errors)} errors under three decoders")
 
-    # ---------- train tuned lens ----------
+    # ---------- train tuned lens (memory-friendly) ----------
     print(f"\nTraining tuned-lens translators on {args.lens_prompts} prompts...")
     lens_samples = [s for s in prepared if s["id"] not in
                     {e["id"] for e in errors}][:args.lens_prompts]
     hiddens, final_logits, _ = collect_all_hiddens(model, lens_samples,
                                                    n_samples=len(lens_samples))
-    translators = train_tuned_lens(model, hiddens, final_logits, num_layers)
+    del model.model.generation_config  # not needed; keep memory tidy
+    translators = train_translators_mb(model, hiddens, final_logits,
+                                       num_layers)
+    del hiddens, final_logits
+    torch.cuda.empty_cache()
     print("Translators ready.")
 
     # ---------- decode ----------
