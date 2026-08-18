@@ -114,7 +114,8 @@ def main():
     # Grouped evaluation: folds stratified so each fold contains all tasks
     # (removes the task-identity shortcut from the pooled number)
     print("\n[Pooled AUC, task-grouped folds (no task-identity shortcut)]")
-    gkf = GroupKFold(5)
+    n_groups = len(np.unique(tasks))
+    gkf = GroupKFold(min(5, n_groups))
     for tag, idx in [("old (prefix-only)", old_idx), ("old+fullDepth", list(range(len(names))))]:
         rf = RandomForestClassifier(500, max_depth=10, random_state=42, n_jobs=-1)
         p = cross_val_predict(rf, X[:, idx], y, cv=gkf, groups=tasks,
