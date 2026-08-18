@@ -117,9 +117,18 @@ def main():
     samples = load_all_datasets()
     prepared = prepare_samples(samples, tokenizer)
     prep_map = {s["id"]: s for s in prepared}
-    errors = [s for s in all_results if not s.get("final_correct")]
-    errors = [s for s in errors if s["id"] in prep_map][:args.n]
-    print(f"Decoding {len(errors)} errors under three decoders")
+    # Task-balanced error sample (reviewer-grade fix: no file-order bias)
+    from collections import defaultdict
+    by_task = defaultdict(list)
+    for s in all_results:
+        if not s.get("final_correct") and s["id"] in prep_map:
+            by_task[s.get("task", "?")].append(s)
+    per_task = max(args.n // max(len(by_task), 1), 1)
+    errors = []
+    for t in sorted(by_task):
+        errors.extend(by_task[t][:per_task])
+    print(f"Decoding {len(errors)} errors under three decoders "
+          f"(task-balanced, {per_task}/task)")
 
     # ---------- train tuned lens (memory-friendly) ----------
     print(f"\nTraining tuned-lens translators on {args.lens_prompts} prompts...")
@@ -128,7 +137,7 @@ def main():
     hiddens, final_logits, _ = collect_all_hiddens(model, lens_samples,
                                                    n_samples=len(lens_samples))
     translators = train_translators_mb(model, hiddens, final_logits,
-                                       num_layers)
+                                       num_layers, epochs=500)
     del hiddens, final_logits
     torch.cuda.empty_cache()
     print("Translators ready.")
@@ -195,7 +204,9 @@ def main():
         d = decode_all(s)
         rec = {"id": e["id"], "task": e.get("task", "?")}
         for name in ["raw", "tuned", "cosine"]:
-            rec[f"h50_{name}"] = h50(d[name]["ranks"])
+            ranks = d[name]["ranks"]
+            rec[f"h50_{name}"] = h50(ranks)
+            rec[f"argmin_{name}"] = int(np.argmin(ranks)) / num_layers
         for name in ["raw", "tuned"]:
             rec[f"eq8_{name}"] = eq8(d[name]["ranks"], d[name]["margins"])
         recs.append(rec)
@@ -237,6 +248,17 @@ def main():
         sub = [r for r in recs if r["task"] == t]
         print(f"  {t:16s} {100*np.mean([r['h50_tuned'] for r in sub]):5.1f}%  "
               f"(n={len(sub)})")
+    # where does the min rank fire? (shallow-noise diagnosis)
+    print("\nRelative depth of the layer attaining min rank (0=shallowest):")
+    bins = [(0.0, 0.25, "0-25%"), (0.25, 0.5, "25-50%"),
+            (0.5, 0.75, "50-75%"), (0.75, 1.01, "75-100%")]
+    print(f"{'decoder':10s}" + "".join(f"{b[2]:>10s}" for b in bins))
+    for name in ["raw", "tuned", "cosine"]:
+        dep = np.array([r[f"argmin_{name}"] for r in recs])
+        row = f"{name:10s}"
+        for lo, hi, lab in bins:
+            row += f"{100*np.mean((dep >= lo) & (dep < hi)):9.1f}%"
+        print(row)
 
     out = os.path.join(config.DATA_DIR, "decoder_stability_Qwen3-8B.json")
     with open(out, "w") as f:
